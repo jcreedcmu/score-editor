@@ -1,3 +1,6 @@
+import { score } from './score';
+import { component_render } from './component';
+
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
 
@@ -23,7 +26,7 @@ const UI_LEFT = 10;
 
 declare const debug_glob: any;
 
-import { score } from './score';
+
 
 function fullscreen(c, d) {
   const oldWidth = w;
@@ -114,13 +117,6 @@ function gutter(d, x, y, w) {
   d.restore();
 }
 
-for (let oc = 0; oc < 3; oc++) {
-  octave(d, UI_LEFT, UI_TOP + oc * PIANO_OCTAVE_VSPACE);
-  gutter(d, UI_LEFT + PIANO_WIDTH + SCALE, UI_TOP + oc * PIANO_OCTAVE_VSPACE, 10);
-  staff_octave(d, UI_LEFT + PIANO_WIDTH + GUTTER_WIDTH, UI_TOP + oc * PIANO_OCTAVE_VSPACE, 250);
-}
-
-
 const notes = score.notes;
 notes.forEach(note => note.pitch += 12);
 
@@ -137,9 +133,17 @@ function render_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_t
   d.restore();
 }
 
-render_notes(d, notes, UI_LEFT + PIANO_WIDTH + GUTTER_WIDTH, UI_TOP,
-				 -1 + 12 * 6, 0, FAT_PIXELS_PER_TICK);
+function paint({scroll}) {
+  d.clearRect(0, 0, w, h);
+  for (let oc = 0; oc < 3; oc++) {
+	 octave(d, UI_LEFT, UI_TOP + oc * PIANO_OCTAVE_VSPACE);
+	 gutter(d, UI_LEFT + PIANO_WIDTH + SCALE, UI_TOP + oc * PIANO_OCTAVE_VSPACE, 10);
+	 staff_octave(d, UI_LEFT + PIANO_WIDTH + GUTTER_WIDTH, UI_TOP + oc * PIANO_OCTAVE_VSPACE, 250);
+  }
 
+  render_notes(d, notes, UI_LEFT + PIANO_WIDTH + GUTTER_WIDTH, UI_TOP,
+					-1 + 12 * 6 - scroll, 0, FAT_PIXELS_PER_TICK);
+}
 
 
 function freq_of_pitch(pitch) {
@@ -207,15 +211,25 @@ export function audio_render_notes(ad, score) {
 }
 
 
+export function set_scroll(y) {
+  state.scroll = y;
+  paint(state);
+}
+
 export function play() {
   audio_render_notes(ad, score);
 }
 
+let state;
 window.onload = () => {
-  document.getElementById('play').onclick = play;
-  document.getElementById('v_scroll').onscroll = (e) => {
-	 console.log((e.target as HTMLElement).scrollTop);
+  state = {
+	 scroll: 0;
   }
+
+  paint(state);
+  document.getElementById('play').onclick = play;
+
+  component_render(UI_LEFT, UI_TOP, PIANO_WIDTH + GUTTER_WIDTH + SCORE_WIDTH + 20, PIANO_OCTAVE_VSPACE * 3 + SCALE);
 }
 
 // debugging

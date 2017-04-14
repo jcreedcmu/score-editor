@@ -4,12 +4,12 @@
   "description": "",
   "main": "main.js",
   "dependencies": {
-    "ts-loader": "^2.0.3",
-    "typescript": "^2.2.2"
+    "preact": "^7.2.1"
   },
   "devDependencies": {
     "ts-loader": "^2.0.3",
-    "typescript": "^2.2.2"
+    "typescript": "^2.2.2",
+	 "webpack": "^2.3.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
