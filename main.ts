@@ -191,7 +191,6 @@ export function audio_render_notes(ad, score) {
 		return;
 	 d2.clearRect(0, 0, w, h);
 	 d2.fillStyle = "white";
-	 console.log (ad.currentTime - beginTime);
 	 d2.fillRect(100 + PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK / score.seconds_per_tick * (ad.currentTime - beginTime), 100,
 					 2, PIANO_OCTAVE_VSPACE * 3);
   }, 40);
@@ -211,16 +210,13 @@ export function play() {
 }
 
 window.onload = () => {
-  console.log('load');
   document.getElementById('play').onclick = play;
 }
 
 // debugging
 setTimeout(() => {
   window['score'] = score;
-  console.log(debug_glob);
   for (let x in debug_glob) {
-	 console.log(x);
 	 window[x] = debug_glob[x];
   }
 }, 0);
