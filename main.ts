@@ -2,7 +2,9 @@ export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
 
 const c = document.getElementById('c') as HTMLCanvasElement;
+const c2 = document.getElementById('c2') as HTMLCanvasElement;
 const d = c.getContext('2d');
+const d2 = c2.getContext('2d');
 const w = innerWidth;
 const h = innerHeight;
 
@@ -10,21 +12,25 @@ declare const debug_glob: any;
 
 import { score } from './score';
 
-const oldWidth = w;
-const oldHeight = h;
-const ratio = devicePixelRatio;
+function fullscreen(c, d) {
+  const oldWidth = w;
+  const oldHeight = h;
+  const ratio = devicePixelRatio;
 
-c.width = oldWidth;
-c.height = oldHeight;
+  c.width = oldWidth;
+  c.height = oldHeight;
 
-c.width = oldWidth * ratio;
-c.height = oldHeight * ratio;
+  c.width = oldWidth * ratio;
+  c.height = oldHeight * ratio;
 
-c.style.width = oldWidth + 'px';
-c.style.height = oldHeight + 'px';
+  c.style.width = oldWidth + 'px';
+  c.style.height = oldHeight + 'px';
 
-d.imageSmoothingEnabled = false;
-d.webkitImageSmoothingEnabled = false;
+  d.imageSmoothingEnabled = false;
+  d.webkitImageSmoothingEnabled = false;
+}
+fullscreen(c, d);
+fullscreen(c2, d2);
 
 const SCALE = 2;
 const PIANO_H = 73;
@@ -102,6 +108,8 @@ function gutter(d, x, y, w) {
 
 const GUTTER_W = 8;
 const GUTTER_WIDTH = GUTTER_W * SCALE;
+const SCORE_W = 250;
+const SCORE_WIDTH = 250 * SCALE;
 
 for (let oc = 0; oc < 3; oc++) {
   octave(d, 100, 100 + oc * PIANO_OCTAVE_VSPACE);
@@ -126,8 +134,9 @@ function render_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_t
   d.restore();
 }
 
+const FAT_PIXELS_PER_TICK = 6;
 render_notes(d, notes, 100 + PIANO_WIDTH + GUTTER_WIDTH, 100,
-				 -1 + 12 * 6, 0, 6);
+				 -1 + 12 * 6, 0, FAT_PIXELS_PER_TICK);
 
 
 
@@ -152,7 +161,8 @@ function adsr(params, length) {
 
 
 export function audio_render_notes(ad, score) {
-  const len = score.duration * score.seconds_per_tick * RATE; // in frames
+  const segmentTime = score.duration * score.seconds_per_tick;
+  const len = segmentTime * RATE; // in frames
   var buf = ad.createBuffer(1, len, RATE);
   var dat = buf.getChannelData(0);
 
@@ -173,9 +183,26 @@ export function audio_render_notes(ad, score) {
   });
 
   var src = ad.createBufferSource();
+
+  const beginTime = ad.currentTime + 0.1;
+
+  const ival = setInterval(() => {
+	 if (ad.currentTime < beginTime)
+		return;
+	 d2.clearRect(0, 0, w, h);
+	 d2.fillStyle = "white";
+	 console.log (ad.currentTime - beginTime);
+	 d2.fillRect(100 + PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK / score.seconds_per_tick * (ad.currentTime - beginTime), 100,
+					 2, PIANO_OCTAVE_VSPACE * 3);
+  }, 40);
+
+  src.onended = () => {
+	 d2.clearRect(0, 0, w, h);
+	 clearInterval(ival);
+  }
   src.buffer = buf;
   src.connect(ad.destination);
-  src.start(0);
+  src.start(beginTime);
 }
 
 

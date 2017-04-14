@@ -3,7 +3,7 @@
 // beepbox export to json then
 // jq -c '[.channels[0,1,2].patterns[1].notes[]|{pitch:.pitches[0], time: [.points[0].tick, .points[1].tick]}]'  /tmp/BeepBox-Song.json
 export const score = {
-  "duration": 32,
+  "duration": 33, // extra 1 to make it not click when I do a release
   "seconds_per_tick": 0.09,
   "notes": [
     {
