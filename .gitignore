@@ -1,2 +1,4 @@
 *.map
 main.js
+js/*
+node_modules/

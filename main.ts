@@ -1,7 +1,14 @@
+export const ad = new AudioContext();
+const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
+
 const c = document.getElementById('c') as HTMLCanvasElement;
 const d = c.getContext('2d');
 const w = innerWidth;
 const h = innerHeight;
+
+declare const debug_glob: any;
+
+import { score } from './score';
 
 const oldWidth = w;
 const oldHeight = h;
@@ -102,13 +109,9 @@ for (let oc = 0; oc < 3; oc++) {
   staff_octave(d, 100 + PIANO_WIDTH + GUTTER_WIDTH, 100 + oc * PIANO_OCTAVE_VSPACE, 250);
 }
 
-// got these from 'overboard'
-// https://twitter.com/jcreed/status/851457146852184065
-// beepbox export to json then
-// jq -c '[.channels[0,1,2].patterns[1].notes[]|{pitch:.pitches[0], time: [.points[0].tick, .points[1].tick]}]'  /tmp/BeepBox-Song.json
-const notes = [{"pitch":50,"time":[0,4]},{"pitch":54,"time":[4,8]},{"pitch":54,"time":[8,12]},{"pitch":52,"time":[12,16]},{"pitch":50,"time":[16,24]},{"pitch":50,"time":[28,32]},{"pitch":42,"time":[0,4]},{"pitch":45,"time":[4,8]},{"pitch":45,"time":[8,12]},{"pitch":43,"time":[12,16]},{"pitch":42,"time":[16,20]},{"pitch":43,"time":[20,24]},{"pitch":45,"time":[24,26]},{"pitch":43,"time":[26,28]},{"pitch":42,"time":[28,32]},{"pitch":26,"time":[0,4]},{"pitch":23,"time":[16,20]}];
 
-notes.forEach(note => note.pitch += 3);
+const notes = score.notes;
+notes.forEach(note => note.pitch += 12);
 
 function render_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_tick) {
   d.save();
@@ -124,4 +127,73 @@ function render_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_t
 }
 
 render_notes(d, notes, 100 + PIANO_WIDTH + GUTTER_WIDTH, 100,
-				 -1 + 12 * 5, 0, 6);
+				 -1 + 12 * 6, 0, 6);
+
+
+
+function freq_of_pitch(pitch) {
+  return 440 * Math.pow(2, (pitch - 69) / 12);
+}
+
+const global_adsr_params = {a: 0.01, d: 0.1, s: 0.5, r: 0.01};
+
+function adsr(params, length) {
+  const {a, d, s, r} = params;
+  return {
+	 env_f: (t => {
+		if (t < a) { return t / a }
+		if (t - a < d) { const T = (t - a) / d; return s * T + (1 - T); }
+		if (t < length) return s;
+		return s * (1 - (t - length) / r);
+	 }),
+	 real_length: length + r
+  }
+}
+
+
+export function audio_render_notes(ad, score) {
+  const len = score.duration * score.seconds_per_tick * RATE; // in frames
+  var buf = ad.createBuffer(1, len, RATE);
+  var dat = buf.getChannelData(0);
+
+  score.notes.forEach(note => {
+	 const {env_f, real_length} = adsr(global_adsr_params,
+												  (note.time[1] - note.time[0]) * score.seconds_per_tick);
+	 const note_start_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE);
+	 const note_term_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE + real_length * RATE);
+	 const state = {phase: 0, amp: 1, f: freq_of_pitch(note.pitch)};
+
+	 for (var t = note_start_frame; t < note_term_frame; t++) {
+		state.phase += state.f / RATE;
+		let e = env_f((t - note_start_frame) / RATE);
+		const wav = 0.15 * Math.sin(3.1415926535 * 2 * state.phase);
+//		const wav = 0.05 * ((state.phase - Math.floor(state.phase) < 0.5) ? 1 : -1);
+		dat[t] += e * state.amp * wav ;
+	 }
+  });
+
+  var src = ad.createBufferSource();
+  src.buffer = buf;
+  src.connect(ad.destination);
+  src.start(0);
+}
+
+
+export function play() {
+  audio_render_notes(ad, score);
+}
+
+window.onload = () => {
+  console.log('load');
+  document.getElementById('play').onclick = play;
+}
+
+// debugging
+setTimeout(() => {
+  window['score'] = score;
+  console.log(debug_glob);
+  for (let x in debug_glob) {
+	 console.log(x);
+	 window[x] = debug_glob[x];
+  }
+}, 0);
