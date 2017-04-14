@@ -8,6 +8,19 @@ const d2 = c2.getContext('2d');
 const w = innerWidth;
 const h = innerHeight;
 
+const SCALE = 2;
+const PIANO_H = 73;
+const PIANO_W = 43;
+const PIANO_OCTAVE_VSPACE = (PIANO_H - 1) * SCALE;
+const PIANO_WIDTH = (PIANO_W) * SCALE;
+const GUTTER_W = 8;
+const GUTTER_WIDTH = GUTTER_W * SCALE;
+const SCORE_W = 250;
+const SCORE_WIDTH = 250 * SCALE;
+const FAT_PIXELS_PER_TICK = 6;
+const UI_TOP = 50;
+const UI_LEFT = 10;
+
 declare const debug_glob: any;
 
 import { score } from './score';
@@ -32,11 +45,6 @@ function fullscreen(c, d) {
 fullscreen(c, d);
 fullscreen(c2, d2);
 
-const SCALE = 2;
-const PIANO_H = 73;
-const PIANO_W = 43;
-const PIANO_OCTAVE_VSPACE = (PIANO_H - 1) * SCALE;
-const PIANO_WIDTH = (PIANO_W) * SCALE;
 
 function box(d, x, y, w, h, border, c, bc) {
   d.fillStyle = bc;
@@ -106,15 +114,10 @@ function gutter(d, x, y, w) {
   d.restore();
 }
 
-const GUTTER_W = 8;
-const GUTTER_WIDTH = GUTTER_W * SCALE;
-const SCORE_W = 250;
-const SCORE_WIDTH = 250 * SCALE;
-
 for (let oc = 0; oc < 3; oc++) {
-  octave(d, 100, 100 + oc * PIANO_OCTAVE_VSPACE);
-  gutter(d, 100 + PIANO_WIDTH + SCALE, 100 + oc * PIANO_OCTAVE_VSPACE, 10);
-  staff_octave(d, 100 + PIANO_WIDTH + GUTTER_WIDTH, 100 + oc * PIANO_OCTAVE_VSPACE, 250);
+  octave(d, UI_LEFT, UI_TOP + oc * PIANO_OCTAVE_VSPACE);
+  gutter(d, UI_LEFT + PIANO_WIDTH + SCALE, UI_TOP + oc * PIANO_OCTAVE_VSPACE, 10);
+  staff_octave(d, UI_LEFT + PIANO_WIDTH + GUTTER_WIDTH, UI_TOP + oc * PIANO_OCTAVE_VSPACE, 250);
 }
 
 
@@ -134,8 +137,7 @@ function render_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_t
   d.restore();
 }
 
-const FAT_PIXELS_PER_TICK = 6;
-render_notes(d, notes, 100 + PIANO_WIDTH + GUTTER_WIDTH, 100,
+render_notes(d, notes, UI_LEFT + PIANO_WIDTH + GUTTER_WIDTH, UI_TOP,
 				 -1 + 12 * 6, 0, FAT_PIXELS_PER_TICK);
 
 
@@ -191,7 +193,7 @@ export function audio_render_notes(ad, score) {
 		return;
 	 d2.clearRect(0, 0, w, h);
 	 d2.fillStyle = "white";
-	 d2.fillRect(100 + PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK / score.seconds_per_tick * (ad.currentTime - beginTime), 100,
+	 d2.fillRect(UI_LEFT + PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK / score.seconds_per_tick * (ad.currentTime - beginTime), UI_TOP,
 					 2, PIANO_OCTAVE_VSPACE * 3);
   }, 40);
 
@@ -211,6 +213,9 @@ export function play() {
 
 window.onload = () => {
   document.getElementById('play').onclick = play;
+  document.getElementById('v_scroll').onscroll = (e) => {
+	 console.log((e.target as HTMLElement).scrollTop);
+  }
 }
 
 // debugging
