@@ -223,7 +223,7 @@ export function play() {
 let state;
 window.onload = () => {
   state = {
-	 scroll: 0;
+	 scroll: 0
   }
 
   paint(state);
