@@ -153,12 +153,27 @@ class ScoreEditorOverlay extends Surface < any > {
 class ScoreEditor extends Component < any, any > {
   render(props, state) {
 	 const {w, h} = props;
+	 const s = getScrollbarDims();
 	 const style = {width: w, height: h,
 						 position: "relative", display: "inline-block"};
+	 const vscroller =
+	 <div style={{height: h, left: w, width: s.width, "overflow-x": "hidden",
+			"overflow-y": "scroll", position: "absolute"}}>
+		<div style={{height: 2*h}}></div>
+	 </div>;
+	 const hscroller =
+	 <div style={{height: s.height, top: h, left: PIANO_WIDTH + GUTTER_WIDTH,
+			width: w - PIANO_WIDTH - GUTTER_WIDTH, "overflow-y": "hidden",
+			"overflow-x": "scroll", position: "absolute"}}>
+		<div style={{width: 2*w}}>&nbsp;</div>
+	 </div>;
+
 	 const c =
 	 <div style={style}>
 		<ScoreEditorMain {...props} scroll={0}/>
 		<ScoreEditorOverlay {...props}/>
+		{vscroller}
+		{hscroller}
 	 </div>;
 	 return c;
   }
@@ -168,7 +183,7 @@ export function component_render(scoreprops) {
   //  render(<ScrollBars dims={{x, y, w, h}}/>, document.body);
   const props = {
 	  ...scoreprops,
-	 w: PIANO_WIDTH + GUTTER_WIDTH + SCORE_WIDTH + 20,
+	 w: PIANO_WIDTH + GUTTER_WIDTH + SCORE_WIDTH,
 	 h: PIANO_OCTAVE_VSPACE * 3 + SCALE
   };
   const cont = document.getElementById('canvas_container');
