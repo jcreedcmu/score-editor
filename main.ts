@@ -4,19 +4,10 @@ import { component_render } from './component';
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
 
-// const c = document.getElementById('c') as HTMLCanvasElement;
-// const c2 = document.getElementById('c2') as HTMLCanvasElement;
-// const d = c.getContext('2d');
-// const d2 = c2.getContext('2d');
-// const w = innerWidth;
-// const h = innerHeight;
-let c, c2, d, d2, w, h;
-
 declare const debug_glob: any;
 
 const notes = score.notes;
 notes.forEach(note => note.pitch += 12);
-
 
 function freq_of_pitch(pitch) {
   return 440 * Math.pow(2, (pitch - 69) / 12);
