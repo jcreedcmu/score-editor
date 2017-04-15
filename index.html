@@ -2,21 +2,26 @@
 <head>
 <style>
 body { margin: 0px; }
-canvas { position: absolute; top: 0; left: 0; z-index: -100; }
+/* canvas { position: absolute; top: 0; left: 0; z-index: -100; } */
 .scroll_container {
 position: absolute;
 overflow-y: scroll;
 }
 .scroll_content {
 }
+#canvas_container { display: inline-block; }
 </style>
 </head>
   <body>
 
+<!--
 	 <canvas id="c"></canvas>
 	 <canvas id="c2"></canvas>
+-->
 
+	 <button id="play">Play</button><br/>
+	 <div id="canvas_container"></div>
 	 <script src="js/index.js"></script>
-	 <br/><button id="play">Play</button>
+
   </body>
 <html>
