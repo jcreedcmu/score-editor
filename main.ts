@@ -84,7 +84,9 @@ window.onload = () => {
 export function dispatch(a: Action) {
   switch (a.t) {
   case "PreviewNote":
-	 setState({previewNote: a.note});
+	 if (JSON.stringify(a.note) != JSON.stringify(state.previewNote)) {
+		setState({previewNote: a.note});
+	 }
 	 break;
   case "Play":
 	 play();
