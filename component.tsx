@@ -196,6 +196,8 @@ declare global {
    }
 }
 
+// simplified version of
+// http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 function getScrollbarDims() {
   if (!window.scrollbarDims) {
 	 const div = document.createElement('div');
