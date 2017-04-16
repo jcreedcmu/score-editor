@@ -1,23 +1,27 @@
 import { h as hh, render, Component } from 'preact';
 
-// declare global { // https://github.com/Microsoft/TypeScript/issues/10628
-//   interface CanvasRenderingContext2D {
-// 	 imageSmoothingEnabled: boolean;
-//   }
-// }
-
+type Point = {x: number, y: number};
 export class Surface< P > extends Component< P, void > {
   ctx: CanvasRenderingContext2D;
   elt: HTMLCanvasElement;
-  onmousedown(n:MouseEvent): void { }
-  onmousemove(n:MouseEvent): void { }
-  onmouseleave(n:MouseEvent): void { }
+  onmousedown(p: Point, e:MouseEvent): void { }
+  onmousemove(p: Point, e:MouseEvent): void { }
+  onmouseleave(e:MouseEvent): void { }
   className: string = null;
   key: string = null;
   w: number = 0;
   h: number = 0;
 
   extraAttrs(props: P) { return {}; }
+
+  rel(of: (p: Point, e:MouseEvent) => void): (e:MouseEvent) => void {
+	 function f(e:MouseEvent): void {
+		const br = this.elt.getBoundingClientRect();
+		const p = {x: e.clientX - br.left, y: e.clientY - br.top};
+		of.call(this, p, e);
+	 }
+	 return f.bind(this);
+  }
 
   render (props: P, state: void): JSX.Element {
 	 const rf = (elt: HTMLCanvasElement) => {
@@ -32,8 +36,8 @@ export class Surface< P > extends Component< P, void > {
 	 }
 	 const attrs = {
 		ref: rf,
-		onmousedown: (ev:MouseEvent) => this.onmousedown(ev),
-		onmousemove: (ev:MouseEvent) => this.onmousemove(ev),
+		onmousedown: this.rel(this.onmousedown),
+		onmousemove: this.rel(this.onmousemove),
 		onmouseleave: (ev:MouseEvent) => this.onmouseleave(ev),
 		className: this.className,
 		key: this.key,

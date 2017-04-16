@@ -1,6 +1,6 @@
 import { h as hh, render, Component } from 'preact';
 import { Surface } from './surface';
-
+import { dispatch } from './main';
 // class ScrollBars extends Component < any, any > {
 //   render({dims: {x, y, w, h}}) {
 // 	 const style = {left: x, top: y, width: w, height: h};
@@ -29,6 +29,8 @@ const GUTTER_WIDTH = GUTTER_W * SCALE;
 const SCORE_W = 250;
 const SCORE_WIDTH = 250 * SCALE;
 const FAT_PIXELS_PER_TICK = 6;
+const PITCH_HEIGHT = 6;
+const BASIC_PITCH_AT_Y0 = -1 + 12 * 6;
 
 function box(d, x, y, w, h, border, c, bc) {
   d.fillStyle = bc;
@@ -63,7 +65,7 @@ function gutter(d, x, y, w) {
 
   for (let n = 0; n < 12; n++) {
 	 if (keytype[n]) {
-		box(d, w - 7, 6 * n, 5, 7, 1, "#141414", "black");
+		box(d, w - 7, PITCH_HEIGHT * n, 5, 7, 1, "#141414", "black");
 	 }
   }
 
@@ -76,8 +78,8 @@ function render_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_t
   notes.forEach(note => {
 	 const nx = (note.time[0] - ticks_at_x0) * fat_pixels_per_tick;
 	 const nw = (note.time[1] - note.time[0]) * fat_pixels_per_tick + 1;
-	 const ny = (pitch_at_y0 - note.pitch) * 6;
-	 const nh = 7;
+	 const ny = (pitch_at_y0 - note.pitch) * PITCH_HEIGHT;
+	 const nh = PITCH_HEIGHT + 1;
 	 box(d, nx, ny, nw, nh, 1, colors[note.pitch % 12], "black")
   });
   d.restore();
@@ -92,7 +94,7 @@ function octave(d, x, y) {
 											  d.fillRect(0, wks * SCALE, PIANO_W * SCALE, 1 * SCALE)
 											 );
   [1, 3, 5, 8, 10].forEach(bk =>
-									box(d, 0, 6 * bk, 25, 7, 1, "#2e2234", "black")
+									box(d, 0, PITCH_HEIGHT * bk, 25, PITCH_HEIGHT + 1, 1, "#2e2234", "black")
 								  );
 
   d.restore();
@@ -105,7 +107,7 @@ function staff_octave(d, x, y, w) {
   d.fillRect(0, 0, w * SCALE, PIANO_H * SCALE);
   for (let n = 0; n < 12; n++) {
 	 d.fillStyle = keytype[n] ? "#141414" : "#262626";
-	 d.fillRect(SCALE, (6 * n + 1) * SCALE, (w-2) * SCALE, 5 * SCALE);
+	 d.fillRect(SCALE, (PITCH_HEIGHT * n + 1) * SCALE, (w-2) * SCALE, (PITCH_HEIGHT - 1) * SCALE);
   }
   d.restore();
 }
@@ -114,6 +116,11 @@ class ScoreEditorMain extends Surface < any > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
+
+  shouldComponentUpdate(p) {
+	 return false; // xxx should reflect changes in notes
+  }
+
   paint(props) {
 	 const {scroll, notes} = props;
 	 const d = this.ctx;
@@ -128,7 +135,7 @@ class ScoreEditorMain extends Surface < any > {
 	 }
 
 	 render_notes(d, notes, PIANO_WIDTH + GUTTER_WIDTH, 0,
-					  -1 + 12 * 6 - scroll, 0, FAT_PIXELS_PER_TICK);
+					  BASIC_PITCH_AT_Y0 - scroll, 0, FAT_PIXELS_PER_TICK);
 
   }
 }
@@ -137,11 +144,37 @@ class ScoreEditorOverlay extends Surface < any > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
+
+  onmousemove(p, e) {
+	 dispatch({t: "PreviewNote", note: { pitch: BASIC_PITCH_AT_Y0 - Math.floor(p.y / (SCALE * PITCH_HEIGHT)),
+													 time: [0, 3] } });
+  }
+  onmousedown(p, e) {
+
+  }
+  onmouseleave(e) {
+	 dispatch({t: "PreviewNote", note: null});
+  }
+
+  shouldComponentUpdate(p) {
+	 const now = this.props;
+	 return (now.offsetTicks != p.offsetTicks) ||
+	 (now.previewNote != p.previewNote && JSON.stringify(now.previewNote) != JSON.stringify(p.previewNote));
+  }
+
   paint(props) {
 	 if (this.w != props.w || this.h != props.h)
 		this.setDims(props.w, props.h);
 	 const d = this.ctx;
 	 d.clearRect(0, 0, this.w, this.h);
+	 if (props.previewNote != null) {
+		d.fillStyle = "white";
+		const rect = [PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * props.previewNote.time[0] + SCALE,
+					  (BASIC_PITCH_AT_Y0 - props.previewNote.pitch) * PITCH_HEIGHT * SCALE,
+					  100, (PITCH_HEIGHT + 1) * SCALE];
+		d.fillRect(rect[0], rect[1], rect[2], rect[3]);
+		d.clearRect(rect[0] + SCALE, rect[1] + SCALE, rect[2] - 2 * SCALE, rect[3] - 2 * SCALE);
+	 }
 	 if (props.offsetTicks != null) {
 		d.fillStyle = "white";
 		d.fillRect(PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * props.offsetTicks, 0,

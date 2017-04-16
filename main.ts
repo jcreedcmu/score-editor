@@ -1,5 +1,6 @@
 import { score } from './score';
 import { component_render } from './component';
+import { Action } from './action';
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
@@ -29,7 +30,7 @@ function adsr(params, length) {
 }
 
 
-export function audio_render_notes(ad, score) {
+function audio_render_notes(ad, score) {
   const segmentTime = score.duration * score.seconds_per_tick;
   const len = segmentTime * RATE; // in frames
   var buf = ad.createBuffer(1, len, RATE);
@@ -58,12 +59,12 @@ export function audio_render_notes(ad, score) {
   const ival = setInterval(() => {
 	 if (ad.currentTime < beginTime)
 		return;
-
-	 render_state((ad.currentTime - beginTime) / score.seconds_per_tick);
+	 dispatch({t: "SetCurrentPlaybackTime",
+				  v: (ad.currentTime - beginTime) / score.seconds_per_tick});
   }, 40);
 
   src.onended = () => {
-	 render_state(null);
+	 dispatch({t: "SetCurrentPlaybackTime", v: null});
 	 clearInterval(ival);
   }
   src.buffer = buf;
@@ -71,18 +72,37 @@ export function audio_render_notes(ad, score) {
   src.start(beginTime);
 }
 
-export function play() {
+function play() {
   audio_render_notes(ad, score);
 }
 
 window.onload = () => {
-  document.getElementById('play').onclick = play;
-  render_state(null);
+  document.getElementById('play').onclick = () => dispatch({t: "Play"}); // xxx put in preact
+  component_render(state);
 }
 
-function render_state(offsetTicks) {
-  component_render({notes: notes, offsetTicks});
+export function dispatch(a: Action) {
+  switch (a.t) {
+  case "PreviewNote":
+	 setState({previewNote: a.note});
+	 break;
+  case "Play":
+	 play();
+	 break;
+  case "SetCurrentPlaybackTime":
+	 setState({offsetTicks: a.v});
+	 break;
+  }
 }
+
+let state = {offsetTicks: null,
+				 previewNote: null,
+				 notes};
+function setState(extra) {
+  state = {...state, ...extra};
+  component_render(state);
+}
+
 // debugging
 setTimeout(() => {
   window['score'] = score;
