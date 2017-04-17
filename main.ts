@@ -106,10 +106,6 @@ let state: AppState = {
   scrollOctave: 3, /* in the range [0 .. 4] for now */
 };
 
-function y0pitch_of_scrollOctave(scrollOctave) {
-  return 12 * (9 - scrollOctave) - 1;
-}
-
 // snap to grid
 function snap(gridSize: number, note: Note): Note {
   const gs = gridSize;

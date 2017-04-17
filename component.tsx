@@ -78,9 +78,13 @@ function draw_notes(d, notes: Note[], camera: Camera) {
   });
 }
 
-function get_camera(scroll: number): Camera {
+function y0pitch_of_scrollOctave(scrollOctave) {
+  return 12 * (9 - scrollOctave) - 1;
+}
+
+function get_camera(scrollOctave: number): Camera {
   return {x: PIANO_WIDTH + GUTTER_WIDTH,
-			 y: (BASIC_PITCH_AT_Y0 - scroll) * PITCH_HEIGHT * SCALE};
+			 y: y0pitch_of_scrollOctave(scrollOctave) * PITCH_HEIGHT * SCALE};
 }
 
 function inset(rect: Rect): Rect {
@@ -121,11 +125,12 @@ class ScoreEditorMain extends Surface < ScoreEditorMainProps > {
   }
 
   shouldComponentUpdate(p) {
-	 return JSON.stringify(p.score) != JSON.stringify(this.props.score);
+	 return JSON.stringify(p.score) != JSON.stringify(this.props.score) ||
+	 p.scrollOctave != this.props.scrollOctave;
   }
 
   paint(props: ScoreEditorMainProps) {
-	 const {scroll, score: {notes}} = props;
+	 const {scrollOctave, score: {notes}} = props;
 
 	 const d = this.ctx;
 	 if (this.w != props.w || this.h != props.h)
@@ -137,13 +142,13 @@ class ScoreEditorMain extends Surface < ScoreEditorMainProps > {
 		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10);
 		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250);
 	 }
-	 draw_notes(d, notes, get_camera(scroll));
+	 draw_notes(d, notes, get_camera(scrollOctave));
   }
 }
 
-function mpoint_of_cpoint(cp: cpoint): mpoint {
+function mpoint_of_cpoint(cp: cpoint, scrollOctave: number): mpoint {
   return {
-	 pitch: BASIC_PITCH_AT_Y0 - Math.floor(cp.y / (SCALE * PITCH_HEIGHT)),
+	 pitch: y0pitch_of_scrollOctave(scrollOctave) - Math.floor(cp.y / (SCALE * PITCH_HEIGHT)),
 	 time: (cp.x - (PIANO_WIDTH + GUTTER_WIDTH + SCALE)) / PIXELS_PER_TICK,
   };
 }
@@ -160,7 +165,7 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
   existing_note(p) {
 	 const pr: ScoreEditorProps = this.props;
 	 const notes = pr.score.notes;
-	 const c = get_camera(0 /* xxx scroll */);
+	 const c = get_camera(this.props.scrollOctave);
 	 const d = this.ctx;
 	 return _.find(notes, note => {
 		d.beginPath();
@@ -171,7 +176,7 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 
   onmousemove(p, e) {
 	 const note = this.existing_note(p);
-	 dispatch({t: "SetHover", mpoint: mpoint_of_cpoint(p)});
+	 dispatch({t: "SetHover", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
   }
 
   onmousedown(p, e) {
@@ -180,7 +185,7 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 		dispatch({t: "DeleteNote", note: note})
 	 }
 	 else {
-		dispatch({t: "CreateNote", note: note_of_mpoint(mpoint_of_cpoint(p))})
+		dispatch({t: "CreateNote", note: note_of_mpoint(mpoint_of_cpoint(p, this.props.scrollOctave))})
 	 }
   }
 
@@ -205,7 +210,7 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 	 const d = this.ctx;
 	 d.clearRect(0, 0, this.w, this.h);
 	 if (props.previewNote != null) {
-		const rect = rect_of_note(props.previewNote, get_camera(0 /* xxx scroll*/));
+		const rect = rect_of_note(props.previewNote, get_camera(props.scrollOctave));
 		d.fillStyle = "white";
 		d.fillRect.apply(d, rect);
 		d.clearRect.apply(d, inset(rect));
