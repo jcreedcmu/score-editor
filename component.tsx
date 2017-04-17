@@ -218,17 +218,43 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
   }
 }
 
+class VScrollBar extends Component < any, any > {
+  _elt: Element;
+
+  render(props) {
+	 const s = getScrollbarDims();
+	 const {height, content_height, x, y, scrollTop, onScroll} = props;
+	 const c =
+	 <div style={{height, left: x, top: y, width: s.width, "overflow-x": "hidden",
+			"overflow-y": "scroll", position: "absolute"}}
+			onScroll={() => onScroll(this._elt.scrollTop)}
+			ref = {x => this._elt = x}>
+		<div style={{height: content_height}}></div>
+	 </div>;
+	 return c;
+  }
+
+  componentDidMount() {
+	 this._elt.scrollTop = this.props.scrollTop;
+  }
+
+  componentDidUpdate() {
+	 this._elt.scrollTop = this.props.scrollTop;
+  }
+}
+
 class ScoreEditor extends Component < any, any > {
   render(props, state) {
 	 const {w, h} = props;
 	 const s = getScrollbarDims();
 	 const style = {width: w, height: h,
 						 position: "relative", display: "inline-block"};
-	 const vscroller =
-	 <div style={{height: h, left: w, width: s.width, "overflow-x": "hidden",
-			"overflow-y": "scroll", position: "absolute"}}>
-		<div style={{height: 2*h}}></div>
-	 </div>;
+	 const onVscroll = top => dispatch({t: "Vscroll", top: Math.round(3 * top / h)});
+	 const vscroller = <VScrollBar height={h}
+											 scrollTop={props.scrollOctave * h / 3}
+											 onScroll={onVscroll}
+											 content_height = {(7/3) * h}
+											 x={w} y={0}/>;
 	 const hscroller =
 	 <div style={{height: s.height, top: h, left: PIANO_WIDTH + GUTTER_WIDTH,
 			width: w - PIANO_WIDTH - GUTTER_WIDTH, "overflow-y": "hidden",

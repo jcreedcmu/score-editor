@@ -23,12 +23,17 @@ interface IncrementGridSize {
   t: "IncrementGridSize";
   by: number;
 }
+interface Vscroll {
+  t: "Vscroll";
+  top: number;
+}
 interface SetCurrentPlaybackTime { t: "SetCurrentPlaybackTime", v: number }
 export type Action =
   SetHover
   | CreateNote
   | DeleteNote
   | Play
+  | Vscroll
   | SetCurrentPlaybackTime
   | IncrementGridSize;
 
@@ -47,6 +52,7 @@ export type BaseState = {
   mouseHover: mpoint | null,
   score: Score,
   gridSize: number,
+  scrollOctave: number,
 };
 
 export type DerivedState = {

@@ -103,7 +103,12 @@ let state: AppState = {
   previewNote: null,
   score,
   gridSize: 4,
+  scrollOctave: 3, /* in the range [0 .. 4] for now */
 };
+
+function y0pitch_of_scrollOctave(scrollOctave) {
+  return 12 * (9 - scrollOctave) - 1;
+}
 
 // snap to grid
 function snap(gridSize: number, note: Note): Note {
@@ -174,6 +179,10 @@ export function dispatch(a: Action) {
 	 break;
   case "IncrementGridSize":
 	 state = rederivePreviewNote({...state, gridSize: state.gridSize + a.by});
+	 component_render(state);
+	 break;
+  case "Vscroll":
+	 state = rederivePreviewNote({...state, scrollOctave: a.top});
 	 component_render(state);
 	 break;
   default: unreachable(a);
