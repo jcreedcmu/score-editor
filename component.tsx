@@ -25,6 +25,8 @@ function box(d, x, y, w, h, border, c, bc) {
   d.fillRect((x + border) * SCALE, (y + border) * SCALE, (w - 2*border) * SCALE, (h-2*border) * SCALE);
 }
 
+const note_name = [ "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+
 const colors = [
   "#7882e2",
   "#38396e",
@@ -41,6 +43,14 @@ const colors = [
 ];
 
 const keytype = [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0];
+
+export function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined {
+  return _.find(notes, note => {
+	 return (note.pitch == mp.pitch
+				&& note.time[0] <= mp.time
+				&& note.time[1] >= mp.time);
+  });
+}
 
 // I find this just helps guide my eye
 function draw_gutter(d, x, y, w) {
@@ -162,30 +172,18 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 	 return {style: {position: "absolute"}};
   }
 
-  existing_note(p) {
-	 const pr: ScoreEditorProps = this.props;
-	 const notes = pr.score.notes;
-	 const c = get_camera(this.props.scrollOctave);
-	 const d = this.ctx;
-	 return _.find(notes, note => {
-		d.beginPath();
-		d.rect.apply(d, rect_of_note(note, c));
-		return d.isPointInPath(p.x, p.y);
-	 });
-  }
-
   onmousemove(p, e) {
-	 const note = this.existing_note(p);
 	 dispatch({t: "SetHover", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
   }
 
   onmousedown(p, e) {
-	 const note = this.existing_note(p);
+	 const mp = mpoint_of_cpoint(p, this.props.scrollOctave);
+	 const note = find_note_at_mpoint(this.props.score.notes, mp);
 	 if (note) {
 		dispatch({t: "DeleteNote", note: note})
 	 }
 	 else {
-		dispatch({t: "CreateNote", note: note_of_mpoint(mpoint_of_cpoint(p, this.props.scrollOctave))})
+		dispatch({t: "CreateNote", note: note_of_mpoint(mp)})
 	 }
   }
 
@@ -212,6 +210,11 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 	 if (props.previewNote != null) {
 		const rect = rect_of_note(props.previewNote, get_camera(props.scrollOctave));
 		d.fillStyle = "white";
+		d.textAlign = "right";
+		d.textBaseline = "middle";
+		d.font = "bold 10px sans-serif ";
+
+		d.fillText(note_name[props.previewNote.pitch % 12], rect[0] - 1, rect[1] + 1 + rect[3] / 2);
 		d.fillRect.apply(d, rect);
 		d.clearRect.apply(d, inset(rect));
 	 }

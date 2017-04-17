@@ -1,5 +1,5 @@
 import { score } from './score';
-import { component_render } from './component';
+import { component_render, find_note_at_mpoint } from './component';
 import { Action, AppState, Note } from './types';
 import * as _ from "underscore";
 
@@ -119,11 +119,7 @@ function rederivePreviewNote(state: AppState): AppState {
 	 const mh = state.mouseHover;
 	 if (mh == null)
 		return null;
-	 const found = _.find(state.score.notes, note => {
-		return (note.pitch == mh.pitch
-				  && note.time[0] <= mh.time
-				  && note.time[1] >= mh.time);
-	 });
+	 const found = find_note_at_mpoint(state.score.notes, mh);
 	 if (found) return found;
 	 return snap(state.gridSize, {pitch: mh.pitch,
 											time: [mh.time, mh.time]});
