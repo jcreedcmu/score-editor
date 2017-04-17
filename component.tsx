@@ -1,7 +1,7 @@
 import { h as hh, render, Component } from 'preact';
 import { Surface } from './surface';
 import { dispatch } from './main';
-import { Note } from './action';
+import { Note, AppState } from './types';
 
 // class ScrollBars extends Component < any, any > {
 //   render({dims: {x, y, w, h}}) {
@@ -75,7 +75,7 @@ function draw_gutter(d, x, y, w) {
   d.restore();
 }
 
-function draw_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_tick) {
+function draw_notes(d, notes: Note[], x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_tick) {
   d.save();
   d.translate(x, y);
   notes.forEach(note => {
@@ -115,7 +115,8 @@ function draw_staff_octave(d, x, y, w) {
   d.restore();
 }
 
-class ScoreEditorMain extends Surface < any > {
+type ScoreEditorMainProps = ScoreEditorProps & { scroll: number };
+class ScoreEditorMain extends Surface < ScoreEditorMainProps > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
@@ -124,8 +125,9 @@ class ScoreEditorMain extends Surface < any > {
 	 return false; // xxx should reflect changes in notes
   }
 
-  paint(props) {
-	 const {scroll, notes} = props;
+  paint(props: ScoreEditorMainProps) {
+	 const {scroll, score: {notes}} = props;
+
 	 const d = this.ctx;
 	 if (this.w != props.w || this.h != props.h)
 		this.setDims(props.w, props.h);
@@ -136,7 +138,6 @@ class ScoreEditorMain extends Surface < any > {
 		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10);
 		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250);
 	 }
-
 	 draw_notes(d, notes, PIANO_WIDTH + GUTTER_WIDTH, 0,
 					BASIC_PITCH_AT_Y0 - scroll, 0, FAT_PIXELS_PER_TICK);
 
@@ -158,7 +159,7 @@ function note_of_mpoint({pitch, time}: mpoint): Note {
   return {pitch, time: [time, time + 3]};
 }
 
-class ScoreEditorOverlay extends Surface < any > {
+class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
@@ -179,7 +180,7 @@ class ScoreEditorOverlay extends Surface < any > {
 	 (now.previewNote != p.previewNote && JSON.stringify(now.previewNote) != JSON.stringify(p.previewNote));
   }
 
-  paint(props) {
+  paint(props: ScoreEditorProps) {
 	 if (this.w != props.w || this.h != props.h)
 		this.setDims(props.w, props.h);
 	 const d = this.ctx;
@@ -232,7 +233,8 @@ class ScoreEditor extends Component < any, any > {
   }
 }
 
-export function component_render(scoreprops) {
+type ScoreEditorProps = AppState & {w: number, h: number};
+export function component_render(scoreprops: AppState) {
   //  render(<ScrollBars dims={{x, y, w, h}}/>, document.body);
   const props = {
 	  ...scoreprops,

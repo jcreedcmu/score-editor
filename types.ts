@@ -1,4 +1,3 @@
-
 export type Note = { pitch: number, time: [number, number] };
 
 // the interface names should probably not be needed outside this
@@ -8,3 +7,15 @@ interface PreviewNote { t: "PreviewNote"; note: Note | null }
 interface Play { t: "Play" }
 interface SetCurrentPlaybackTime { t: "SetCurrentPlaybackTime", v: number }
 export type Action = PreviewNote | Play | SetCurrentPlaybackTime;
+
+export type Score = {
+  duration: number, // ticks
+  seconds_per_tick: number,
+  notes: Note[],
+};
+
+export type AppState = {
+  offsetTicks: number | null,
+  previewNote: Note | null,
+  score: Score
+};

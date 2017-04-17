@@ -1,6 +1,6 @@
 import { score } from './score';
 import { component_render } from './component';
-import { Action } from './action';
+import { Action, AppState } from './types';
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
@@ -102,9 +102,11 @@ export function dispatch(a: Action) {
   }
 }
 
-let state = {offsetTicks: null,
-				 previewNote: null,
-				 notes};
+let state: AppState = {
+  offsetTicks: null,
+  previewNote: null,
+  score,
+};
 function setState(extra) {
   state = {...state, ...extra};
   component_render(state);
