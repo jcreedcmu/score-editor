@@ -121,7 +121,7 @@ class ScoreEditorMain extends Surface < ScoreEditorMainProps > {
   }
 
   shouldComponentUpdate(p) {
-	 return false; // xxx should reflect changes in notes
+	 return JSON.stringify(p.score) != JSON.stringify(this.props.score);
   }
 
   paint(props: ScoreEditorMainProps) {
@@ -175,15 +175,20 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 
   onmousemove(p, e) {
 	 const note = this.existing_note(p);
-	 if (note)
-		dispatch({t: "PreviewNote", note, exist: true });
-	 else
-		dispatch({t: "PreviewNote", note: note_of_mpoint(mpoint_of_cpoint(p)) });
+	 dispatch({t: "PreviewNote", note: note || note_of_mpoint(mpoint_of_cpoint(p)),
+				  exist: note != null });
   }
 
   onmousedown(p, e) {
-
+	 const note = this.existing_note(p);
+	 if (note) {
+		dispatch({t: "DeleteNote", note: note})
+	 }
+	 else {
+		dispatch({t: "CreateNote", note: note_of_mpoint(mpoint_of_cpoint(p))})
+	 }
   }
+
   onmouseleave(e) {
 	 dispatch({t: "PreviewNote", note: null});
   }

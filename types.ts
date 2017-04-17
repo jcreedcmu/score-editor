@@ -8,9 +8,22 @@ interface PreviewNote {
   note: Note | null;
   exist?: boolean;
 }
+interface CreateNote {
+  t: "CreateNote";
+  note: Note;
+}
+interface DeleteNote {
+  t: "DeleteNote";
+  note: Note;
+}
 interface Play { t: "Play" }
 interface SetCurrentPlaybackTime { t: "SetCurrentPlaybackTime", v: number }
-export type Action = PreviewNote | Play | SetCurrentPlaybackTime;
+export type Action =
+  PreviewNote
+  | CreateNote
+  | DeleteNote
+  | Play
+  | SetCurrentPlaybackTime;
 
 export type Score = {
   duration: number, // ticks

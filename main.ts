@@ -1,6 +1,7 @@
 import { score } from './score';
 import { component_render } from './component';
-import { Action, AppState } from './types';
+import { Action, AppState, Note } from './types';
+import * as _ from "underscore";
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
@@ -81,15 +82,24 @@ window.onload = () => {
   component_render(state);
 }
 
+// Picked up this notion from
+// http://stackoverflow.com/questions/39419170/how-do-i-check-that-a-switch-block-is-exhaustive-in-typescript
+// not sure if there's a better way of doing it.
+function unreachable(x: never): never {
+  throw new Error("Shouldn't get here.");
+}
+
 export function dispatch(a: Action) {
+  // snap to grid
+  function snap(note: Note) {
+	 note.time[0] = Math.floor(note.time[0] / 4) * 4;
+	 note.time[1] = note.time[0] + 4;
+  }
+
   switch (a.t) {
   case "PreviewNote":
-	 if (a.note != null) {
-		if (!a.exist) {
-		  // snap to grid
-		  a.note.time[0] = Math.floor(a.note.time[0] / 4) * 4;
-		  a.note.time[1] = a.note.time[0] + 4;
-		}
+	 if (a.note != null && !a.exist) {
+		snap(a.note);
 	 }
 	 if (JSON.stringify(a.note) != JSON.stringify(state.previewNote)) {
 		setState({previewNote: a.note});
@@ -101,6 +111,16 @@ export function dispatch(a: Action) {
   case "SetCurrentPlaybackTime":
 	 setState({offsetTicks: a.v});
 	 break;
+  case "CreateNote":
+	 snap(a.note);
+	 // maybe I want immutable.js here!
+	 effState(s => ({...s, score: {...s.score, notes: [...s.score.notes, a.note]}}));
+	 break;
+  case "DeleteNote":
+	 const notIt = x => JSON.stringify(x) != JSON.stringify(a.note);
+	 effState(s => ({...s, score: {...s.score, notes: _.filter(s.score.notes, notIt)}}));
+	 break;
+  default: unreachable(a);
   }
 }
 
@@ -109,8 +129,14 @@ let state: AppState = {
   previewNote: null,
   score,
 };
+
 function setState(extra) {
   state = {...state, ...extra};
+  component_render(state);
+}
+
+function effState(f : (a: AppState) => AppState) {
+  state = f(state);
   component_render(state);
 }
 
