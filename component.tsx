@@ -1,7 +1,7 @@
 import { h as hh, render, Component } from 'preact';
 import { Surface } from './surface';
 import { dispatch } from './main';
-import { Note, AppState } from './types';
+import { Note, AppState, mpoint, cpoint } from './types';
 import * as _ from "underscore";
 
 const SCALE = 2; // units: pixels per fat pixel
@@ -141,10 +141,6 @@ class ScoreEditorMain extends Surface < ScoreEditorMainProps > {
   }
 }
 
-// XXX rename 'time' to 'ticks'
-type mpoint = { pitch: number, time: number } // point in "musical coordinates"
-type cpoint = { x: number, y: number } // point measured in pixels from the topleft of the canvas
-
 function mpoint_of_cpoint(cp: cpoint): mpoint {
   return {
 	 pitch: BASIC_PITCH_AT_Y0 - Math.floor(cp.y / (SCALE * PITCH_HEIGHT)),
@@ -175,8 +171,7 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 
   onmousemove(p, e) {
 	 const note = this.existing_note(p);
-	 dispatch({t: "PreviewNote", note: note || note_of_mpoint(mpoint_of_cpoint(p)),
-				  exist: note != null });
+	 dispatch({t: "SetHover", mpoint: mpoint_of_cpoint(p)});
   }
 
   onmousedown(p, e) {
@@ -190,7 +185,7 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
   }
 
   onmouseleave(e) {
-	 dispatch({t: "PreviewNote", note: null});
+	 dispatch({t: "SetHover", mpoint: null});
   }
 
   shouldComponentUpdate(p) {

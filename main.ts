@@ -99,26 +99,60 @@ function unreachable(x: never): never {
 
 let state: AppState = {
   offsetTicks: null,
+  mouseHover: null,
   previewNote: null,
   score,
   gridSize: 4,
 };
 
-export function dispatch(a: Action) {
-  // snap to grid
-  function snap(note: Note) {
-	 const gs = state.gridSize;
-	 note.time[0] = Math.floor(note.time[0] / gs) * gs;
-	 note.time[1] = note.time[0] + gs;
-  }
+// snap to grid
+function snap(gridSize: number, note: Note): Note {
+  const gs = gridSize;
+  const b = Math.floor(note.time[0] / gs) * gs;
+  return {pitch: note.pitch,
+			 time: [b, b + gs]};
+}
 
+function rederivePreviewNote(state: AppState): AppState {
+  function compute(): Note | null {
+	 const mh = state.mouseHover;
+	 if (mh == null)
+		return null;
+	 const found = _.find(state.score.notes, note => {
+		return (note.pitch == mh.pitch
+				  && note.time[0] <= mh.time
+				  && note.time[1] >= mh.time);
+	 });
+	 if (found) return found;
+	 return snap(state.gridSize, {pitch: mh.pitch,
+											time: [mh.time, mh.time]});
+  }
+	 // if (a.note != null && !a.exist) {
+	 // 	snap(a.note);
+	 // }
+  return {...state, previewNote: compute()};
+}
+
+// Any state -> state functions that effectfully happen here should
+// commute with the evident projection from AppState to BaseState in the
+// sense of
+//                     effect
+// Base x Derived ---------------> Base x Derived
+//      |                               ^
+//      |                               |
+//  pi1 |                               | derive
+//      |                               |
+//      v                               |
+//    Base -------------------------> Base
+//          underlying state change
+
+export function dispatch(a: Action) {
   switch (a.t) {
-  case "PreviewNote":
-	 if (a.note != null && !a.exist) {
-		snap(a.note);
-	 }
-	 if (JSON.stringify(a.note) != JSON.stringify(state.previewNote)) {
-		setState({previewNote: a.note});
+  case "SetHover":
+	 const old = state;
+	 state = rederivePreviewNote({...state, mouseHover: a.mpoint});
+	 if (JSON.stringify(old.previewNote) != JSON.stringify(state.previewNote)) {
+		component_render(state);
 	 }
 	 break;
   case "Play":
@@ -128,16 +162,17 @@ export function dispatch(a: Action) {
 	 setState({offsetTicks: a.v});
 	 break;
   case "CreateNote":
-	 snap(a.note);
+	 const sn: Note = snap(state.gridSize, a.note);
 	 // maybe I want immutable.js here!
-	 effState(s => ({...s, score: {...s.score, notes: [...s.score.notes, a.note]}}));
+	 effState(s => ({...s, score: {...s.score, notes: [...s.score.notes, sn]}}));
 	 break;
   case "DeleteNote":
 	 const notIt = x => JSON.stringify(x) != JSON.stringify(a.note);
 	 effState(s => ({...s, score: {...s.score, notes: _.filter(s.score.notes, notIt)}}));
 	 break;
   case "IncrementGridSize":
-	 effState(s => ({...s, gridSize: s.gridSize + a.by}));
+	 state = rederivePreviewNote({...state, gridSize: state.gridSize + a.by});
+	 component_render(state);
 	 break;
   default: unreachable(a);
   }
