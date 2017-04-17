@@ -20,13 +20,18 @@ interface Play {
   t: "Play";
   score: Score;
 }
+interface IncrementGridSize {
+  t: "IncrementGridSize";
+  by: number;
+}
 interface SetCurrentPlaybackTime { t: "SetCurrentPlaybackTime", v: number }
 export type Action =
   PreviewNote
   | CreateNote
   | DeleteNote
   | Play
-  | SetCurrentPlaybackTime;
+  | SetCurrentPlaybackTime
+  | IncrementGridSize;
 
 export type Score = {
   duration: number, // ticks
@@ -37,5 +42,6 @@ export type Score = {
 export type AppState = {
   offsetTicks: number | null,
   previewNote: Note | null,
-  score: Score
+  score: Score,
+  gridSize: number,
 };

@@ -78,6 +78,15 @@ function play(score) {
 }
 
 window.onload = () => {
+  document.onkeydown = (e) => {
+	 switch(e.keyCode) {
+	 case 188: dispatch({t: "IncrementGridSize", by: -1});
+		break;
+	 case 190: dispatch({t: "IncrementGridSize", by: 1});
+		break;
+	 default: console.log(e.keyCode);
+	 }
+  }
   component_render(state);
 }
 
@@ -88,11 +97,19 @@ function unreachable(x: never): never {
   throw new Error("Shouldn't get here.");
 }
 
+let state: AppState = {
+  offsetTicks: null,
+  previewNote: null,
+  score,
+  gridSize: 4,
+};
+
 export function dispatch(a: Action) {
   // snap to grid
   function snap(note: Note) {
-	 note.time[0] = Math.floor(note.time[0] / 4) * 4;
-	 note.time[1] = note.time[0] + 4;
+	 const gs = state.gridSize;
+	 note.time[0] = Math.floor(note.time[0] / gs) * gs;
+	 note.time[1] = note.time[0] + gs;
   }
 
   switch (a.t) {
@@ -119,15 +136,13 @@ export function dispatch(a: Action) {
 	 const notIt = x => JSON.stringify(x) != JSON.stringify(a.note);
 	 effState(s => ({...s, score: {...s.score, notes: _.filter(s.score.notes, notIt)}}));
 	 break;
+  case "IncrementGridSize":
+	 effState(s => ({...s, gridSize: s.gridSize + a.by}));
+	 break;
   default: unreachable(a);
   }
 }
 
-let state: AppState = {
-  offsetTicks: null,
-  previewNote: null,
-  score,
-};
 
 function setState(extra) {
   state = {...state, ...extra};

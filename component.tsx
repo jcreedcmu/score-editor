@@ -200,7 +200,8 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 
 	 const now = this.props;
 	 return (now.offsetTicks != p.offsetTicks) ||
-	 (now.previewNote != p.previewNote && JSON.stringify(now.previewNote) != JSON.stringify(p.previewNote));
+	 (now.previewNote != p.previewNote && JSON.stringify(now.previewNote) != JSON.stringify(p.previewNote)) ||
+	 (now.gridSize != p.gridSize);
   }
 
   paint(props: ScoreEditorProps) {
