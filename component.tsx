@@ -1,6 +1,8 @@
 import { h as hh, render, Component } from 'preact';
 import { Surface } from './surface';
 import { dispatch } from './main';
+import { Note } from './action';
+
 // class ScrollBars extends Component < any, any > {
 //   render({dims: {x, y, w, h}}) {
 // 	 const style = {left: x, top: y, width: w, height: h};
@@ -19,7 +21,7 @@ import { dispatch } from './main';
 //   }
 // }
 
-const SCALE = 2;
+const SCALE = 2; // units: pixels per fat pixel
 const PIANO_H = 73;
 const PIANO_W = 43;
 const PIANO_OCTAVE_VSPACE = (PIANO_H - 1) * SCALE;
@@ -29,6 +31,7 @@ const GUTTER_WIDTH = GUTTER_W * SCALE;
 const SCORE_W = 250;
 const SCORE_WIDTH = 250 * SCALE;
 const FAT_PIXELS_PER_TICK = 6;
+const PIXELS_PER_TICK = FAT_PIXELS_PER_TICK * SCALE;
 const PITCH_HEIGHT = 6;
 const BASIC_PITCH_AT_Y0 = -1 + 12 * 6;
 
@@ -131,7 +134,7 @@ class ScoreEditorMain extends Surface < any > {
 	 for (let oc = 0; oc < 3; oc++) {
 		draw_piano_octave(d, 0, oc * PIANO_OCTAVE_VSPACE);
 		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10);
-		draw_staff_octave(d,  + PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250);
+		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250);
 	 }
 
 	 draw_notes(d, notes, PIANO_WIDTH + GUTTER_WIDTH, 0,
@@ -140,14 +143,28 @@ class ScoreEditorMain extends Surface < any > {
   }
 }
 
+// XXX rename 'time' to 'ticks'
+type mpoint = { pitch: number, time: number } // point in "musical coordinates"
+type cpoint = { x: number, y: number } // point measured in pixels from the topleft of the canvas
+
+function mpoint_of_cpoint(cp: cpoint): mpoint {
+  return {
+	 pitch: BASIC_PITCH_AT_Y0 - Math.floor(cp.y / (SCALE * PITCH_HEIGHT)),
+	 time: (cp.x - (PIANO_WIDTH + GUTTER_WIDTH + SCALE)) / PIXELS_PER_TICK,
+  };
+}
+
+function note_of_mpoint({pitch, time}: mpoint): Note {
+  return {pitch, time: [time, time + 3]};
+}
+
 class ScoreEditorOverlay extends Surface < any > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
 
   onmousemove(p, e) {
-	 dispatch({t: "PreviewNote", note: { pitch: BASIC_PITCH_AT_Y0 - Math.floor(p.y / (SCALE * PITCH_HEIGHT)),
-													 time: [0, 3] } });
+	 dispatch({t: "PreviewNote", note: note_of_mpoint(mpoint_of_cpoint(p)) });
   }
   onmousedown(p, e) {
 
@@ -169,9 +186,12 @@ class ScoreEditorOverlay extends Surface < any > {
 	 d.clearRect(0, 0, this.w, this.h);
 	 if (props.previewNote != null) {
 		d.fillStyle = "white";
-		const rect = [PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * props.previewNote.time[0] + SCALE,
-					  (BASIC_PITCH_AT_Y0 - props.previewNote.pitch) * PITCH_HEIGHT * SCALE,
-					  100, (PITCH_HEIGHT + 1) * SCALE];
+		const rect = [
+		  PIANO_WIDTH + GUTTER_WIDTH + PIXELS_PER_TICK * props.previewNote.time[0] + SCALE,
+		  (BASIC_PITCH_AT_Y0 - props.previewNote.pitch) * PITCH_HEIGHT * SCALE,
+		  (props.previewNote.time[1] - props.previewNote.time[0]) * PIXELS_PER_TICK,
+		  (PITCH_HEIGHT + 1) * SCALE
+		];
 		d.fillRect(rect[0], rect[1], rect[2], rect[3]);
 		d.clearRect(rect[0] + SCALE, rect[1] + SCALE, rect[2] - 2 * SCALE, rect[3] - 2 * SCALE);
 	 }

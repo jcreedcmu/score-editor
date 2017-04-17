@@ -1,5 +1,5 @@
 
-type Note = { pitch: number, time: [number, number] };
+export type Note = { pitch: number, time: [number, number] };
 
 // the interface names should probably not be needed outside this
 // module, only the tag names, which I'm by convention keeping the
