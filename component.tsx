@@ -2,6 +2,7 @@ import { h as hh, render, Component } from 'preact';
 import { Surface } from './surface';
 import { dispatch } from './main';
 import { Note, AppState } from './types';
+import * as _ from "underscore";
 
 const SCALE = 2; // units: pixels per fat pixel
 const PIANO_H = 73;
@@ -160,15 +161,26 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 	 return {style: {position: "absolute"}};
   }
 
-  onmousemove(p, e) {
+  existing_note(p) {
 	 const pr: ScoreEditorProps = this.props;
 	 const notes = pr.score.notes;
-	 notes.forEach(note => {
-
+	 const c = get_camera(0 /* xxx scroll */);
+	 const d = this.ctx;
+	 return _.find(notes, note => {
+		d.beginPath();
+		d.rect.apply(d, rect_of_note(note, c));
+		return d.isPointInPath(p.x, p.y);
 	 });
-	 dispatch({t: "PreviewNote", note: note_of_mpoint(mpoint_of_cpoint(p)) });
-
   }
+
+  onmousemove(p, e) {
+	 const note = this.existing_note(p);
+	 if (note)
+		dispatch({t: "PreviewNote", note, exist: true });
+	 else
+		dispatch({t: "PreviewNote", note: note_of_mpoint(mpoint_of_cpoint(p)) });
+  }
+
   onmousedown(p, e) {
 
   }

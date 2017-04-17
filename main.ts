@@ -84,10 +84,12 @@ window.onload = () => {
 export function dispatch(a: Action) {
   switch (a.t) {
   case "PreviewNote":
-	 // snap to grid
 	 if (a.note != null) {
-		a.note.time[0] = Math.floor(a.note.time[0] / 4) * 4;
-		a.note.time[1] = a.note.time[0] + 4;
+		if (!a.exist) {
+		  // snap to grid
+		  a.note.time[0] = Math.floor(a.note.time[0] / 4) * 4;
+		  a.note.time[1] = a.note.time[0] + 4;
+		}
 	 }
 	 if (JSON.stringify(a.note) != JSON.stringify(state.previewNote)) {
 		setState({previewNote: a.note});
