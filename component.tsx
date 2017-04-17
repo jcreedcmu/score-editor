@@ -57,7 +57,7 @@ const colors = [
 const keytype = [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0];
 
 // I find this just helps guide my eye
-function gutter(d, x, y, w) {
+function draw_gutter(d, x, y, w) {
   d.fillStyle = "black";
   d.save();
   d.translate(x, y);
@@ -72,7 +72,7 @@ function gutter(d, x, y, w) {
   d.restore();
 }
 
-function render_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_tick) {
+function draw_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_tick) {
   d.save();
   d.translate(x, y);
   notes.forEach(note => {
@@ -85,7 +85,7 @@ function render_notes(d, notes, x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_t
   d.restore();
 }
 
-function octave(d, x, y) {
+function draw_piano_octave(d, x, y) {
   d.save();
   d.translate(x, y);
   box(d, 0, 0, PIANO_W, PIANO_H, 1, "#f8f8d8", "black");
@@ -100,7 +100,7 @@ function octave(d, x, y) {
   d.restore();
 }
 
-function staff_octave(d, x, y, w) {
+function draw_staff_octave(d, x, y, w) {
   d.fillStyle = "black";
   d.save();
   d.translate(x, y);
@@ -129,13 +129,13 @@ class ScoreEditorMain extends Surface < any > {
 
 	 d.clearRect(0, 0, this.w, this.h);
 	 for (let oc = 0; oc < 3; oc++) {
-		octave(d, 0, oc * PIANO_OCTAVE_VSPACE);
-		gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10);
-		staff_octave(d,  + PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250);
+		draw_piano_octave(d, 0, oc * PIANO_OCTAVE_VSPACE);
+		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10);
+		draw_staff_octave(d,  + PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250);
 	 }
 
-	 render_notes(d, notes, PIANO_WIDTH + GUTTER_WIDTH, 0,
-					  BASIC_PITCH_AT_Y0 - scroll, 0, FAT_PIXELS_PER_TICK);
+	 draw_notes(d, notes, PIANO_WIDTH + GUTTER_WIDTH, 0,
+					BASIC_PITCH_AT_Y0 - scroll, 0, FAT_PIXELS_PER_TICK);
 
   }
 }
