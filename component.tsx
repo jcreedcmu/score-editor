@@ -3,24 +3,6 @@ import { Surface } from './surface';
 import { dispatch } from './main';
 import { Note, AppState } from './types';
 
-// class ScrollBars extends Component < any, any > {
-//   render({dims: {x, y, w, h}}) {
-// 	 const style = {left: x, top: y, width: w, height: h};
-// 	 const inner_style = {height: 3 * h};
-// 	 const cb = (e) => {
-// 		set_scroll((e.target as HTMLElement).scrollTop);
-// 	 };
-// 	 const c =
-// 	 <div id="v_scroll" class="scroll_container"
-// 			style={style}
-// 			onScroll={cb}>
-// 		<div class="scroll_content" style={inner_style}>
-// 		</div>
-// 	 </div>;
-// 	 return c;
-//   }
-// }
-
 const SCALE = 2; // units: pixels per fat pixel
 const PIANO_H = 73;
 const PIANO_W = 43;
@@ -235,7 +217,6 @@ class ScoreEditor extends Component < any, any > {
 
 type ScoreEditorProps = AppState & {w: number, h: number};
 export function component_render(scoreprops: AppState) {
-  //  render(<ScrollBars dims={{x, y, w, h}}/>, document.body);
   const props = {
 	  ...scoreprops,
 	 w: PIANO_WIDTH + GUTTER_WIDTH + SCORE_WIDTH,
