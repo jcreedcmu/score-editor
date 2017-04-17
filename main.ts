@@ -133,18 +133,18 @@ function rederivePreviewNote(state: AppState): AppState {
   return {...state, previewNote: compute()};
 }
 
-// Any state -> state functions that effectfully happen here should
-// commute with the evident projection from AppState to BaseState in the
-// sense of
-//                     effect
-// Base x Derived ---------------> Base x Derived
-//      |                               ^
-//      |                               |
-//  pi1 |                               | derive
-//      |                               |
-//      v                               |
-//    Base -------------------------> Base
-//          underlying state change
+// For any f that dispatch causes as a side effect,
+// there should exist an f' that makes the following
+// diagram commute:
+//                        f
+//    Base x Derived ---------------> Base x Derived
+//         ^                               ^
+//  <id,   |                               |<id,
+//  derive>|                               | derive>
+//         |                               |
+//         |                               |
+//       Base -------------------------> Base
+//                      f'
 
 export function dispatch(a: Action) {
   switch (a.t) {
@@ -164,11 +164,13 @@ export function dispatch(a: Action) {
   case "CreateNote":
 	 const sn: Note = snap(state.gridSize, a.note);
 	 // maybe I want immutable.js here!
-	 effState(s => ({...s, score: {...s.score, notes: [...s.score.notes, sn]}}));
+	 state = rederivePreviewNote({...state, score: {...state.score, notes: [...state.score.notes, sn]}});
+	 component_render(state);
 	 break;
   case "DeleteNote":
 	 const notIt = x => JSON.stringify(x) != JSON.stringify(a.note);
-	 effState(s => ({...s, score: {...s.score, notes: _.filter(s.score.notes, notIt)}}));
+	 state = rederivePreviewNote({...state, score: {...state.score, notes: _.filter(state.score.notes, notIt)}});
+	 component_render(state);
 	 break;
   case "IncrementGridSize":
 	 state = rederivePreviewNote({...state, gridSize: state.gridSize + a.by});
