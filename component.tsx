@@ -57,17 +57,33 @@ function draw_gutter(d, x, y, w) {
   d.restore();
 }
 
-function draw_notes(d, notes: Note[], x, y, pitch_at_y0, ticks_at_x0, fat_pixels_per_tick) {
-  d.save();
-  d.translate(x, y);
+type Rect = [number, number, number, number]; // x y w h, in canvas pixels
+type Camera = {x: number, y: number};
+
+function rect_of_note(n: Note, c: Camera): Rect {
+  return [c.x + n.time[0] * PIXELS_PER_TICK,
+			 c.y - n.pitch * PITCH_HEIGHT * SCALE,
+			 (n.time[1] - n.time[0]) * PIXELS_PER_TICK + SCALE,
+			 SCALE * (PITCH_HEIGHT + 1)];
+}
+
+function draw_notes(d, notes: Note[], camera: Camera) {
   notes.forEach(note => {
-	 const nx = (note.time[0] - ticks_at_x0) * fat_pixels_per_tick;
-	 const nw = (note.time[1] - note.time[0]) * fat_pixels_per_tick + 1;
-	 const ny = (pitch_at_y0 - note.pitch) * PITCH_HEIGHT;
-	 const nh = PITCH_HEIGHT + 1;
-	 box(d, nx, ny, nw, nh, 1, colors[note.pitch % 12], "black")
+	 const r = rect_of_note(note, camera);
+	 d.fillStyle = "black";
+	 d.fillRect.apply(d, r);
+	 d.fillStyle = colors[note.pitch % 12];
+	 d.fillRect.apply(d, inset(r));
   });
-  d.restore();
+}
+
+function get_camera(scroll: number): Camera {
+  return {x: PIANO_WIDTH + GUTTER_WIDTH,
+			 y: (BASIC_PITCH_AT_Y0 - scroll) * PITCH_HEIGHT * SCALE};
+}
+
+function inset(rect: Rect): Rect {
+  return [rect[0] + SCALE, rect[1] + SCALE, rect[2] - 2 * SCALE, rect[3] - 2 * SCALE];
 }
 
 function draw_piano_octave(d, x, y) {
@@ -120,9 +136,7 @@ class ScoreEditorMain extends Surface < ScoreEditorMainProps > {
 		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10);
 		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250);
 	 }
-	 draw_notes(d, notes, PIANO_WIDTH + GUTTER_WIDTH, 0,
-					BASIC_PITCH_AT_Y0 - scroll, 0, FAT_PIXELS_PER_TICK);
-
+	 draw_notes(d, notes, get_camera(scroll));
   }
 }
 
@@ -147,7 +161,13 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
   }
 
   onmousemove(p, e) {
+	 const pr: ScoreEditorProps = this.props;
+	 const notes = pr.score.notes;
+	 notes.forEach(note => {
+
+	 });
 	 dispatch({t: "PreviewNote", note: note_of_mpoint(mpoint_of_cpoint(p)) });
+
   }
   onmousedown(p, e) {
 
@@ -157,6 +177,10 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
   }
 
   shouldComponentUpdate(p) {
+	 // XXX mmmmaybe should also check if score changes. Technically the overlay seems like it ought
+	 // to change if, for example, a note shows up directly under the cursor. But that would seem
+	 // to require *storing* the mouse position somewhere, which I'm not sure I like.
+
 	 const now = this.props;
 	 return (now.offsetTicks != p.offsetTicks) ||
 	 (now.previewNote != p.previewNote && JSON.stringify(now.previewNote) != JSON.stringify(p.previewNote));
@@ -168,15 +192,10 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 	 const d = this.ctx;
 	 d.clearRect(0, 0, this.w, this.h);
 	 if (props.previewNote != null) {
+		const rect = rect_of_note(props.previewNote, get_camera(0 /* xxx scroll*/));
 		d.fillStyle = "white";
-		const rect = [
-		  PIANO_WIDTH + GUTTER_WIDTH + PIXELS_PER_TICK * props.previewNote.time[0] + SCALE,
-		  (BASIC_PITCH_AT_Y0 - props.previewNote.pitch) * PITCH_HEIGHT * SCALE,
-		  (props.previewNote.time[1] - props.previewNote.time[0]) * PIXELS_PER_TICK,
-		  (PITCH_HEIGHT + 1) * SCALE
-		];
-		d.fillRect(rect[0], rect[1], rect[2], rect[3]);
-		d.clearRect(rect[0] + SCALE, rect[1] + SCALE, rect[2] - 2 * SCALE, rect[3] - 2 * SCALE);
+		d.fillRect.apply(d, rect);
+		d.clearRect.apply(d, inset(rect));
 	 }
 	 if (props.offsetTicks != null) {
 		d.fillStyle = "white";
