@@ -259,7 +259,12 @@ export function component_render(scoreprops: AppState) {
 	 h: PIANO_OCTAVE_VSPACE * 3 + SCALE
   };
   const cont = document.getElementById('canvas_container');
-  render(<ScoreEditor {...props}/>, cont, cont.lastElementChild);
+  const playClick = () => dispatch({t: "Play", score: scoreprops.score});
+  const cc = <div>
+		<button onClick={playClick}>Play</button><br/>
+		<ScoreEditor {...props}/>
+  </div>;
+  render(cc, cont, cont.lastElementChild);
 }
 
 declare global {

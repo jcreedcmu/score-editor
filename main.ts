@@ -73,12 +73,11 @@ function audio_render_notes(ad, score) {
   src.start(beginTime);
 }
 
-function play() {
+function play(score) {
   audio_render_notes(ad, score);
 }
 
 window.onload = () => {
-  document.getElementById('play').onclick = () => dispatch({t: "Play"}); // xxx put in preact
   component_render(state);
 }
 
@@ -106,7 +105,7 @@ export function dispatch(a: Action) {
 	 }
 	 break;
   case "Play":
-	 play();
+	 play(a.score);
 	 break;
   case "SetCurrentPlaybackTime":
 	 setState({offsetTicks: a.v});

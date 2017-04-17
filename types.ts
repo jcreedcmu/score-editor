@@ -16,7 +16,10 @@ interface DeleteNote {
   t: "DeleteNote";
   note: Note;
 }
-interface Play { t: "Play" }
+interface Play {
+  t: "Play";
+  score: Score;
+}
 interface SetCurrentPlaybackTime { t: "SetCurrentPlaybackTime", v: number }
 export type Action =
   PreviewNote
