@@ -19,7 +19,7 @@ canvas { cursor: url(pencil.png) 5 16, auto; }
 .minibuffer .input_container {
   position: absolute;
   bottom: 0px;
-  left: 30px;
+  left: 40px;
   right: 0px;
   top: 0px;
 }
@@ -39,7 +39,9 @@ canvas { cursor: url(pencil.png) 5 16, auto; }
   top: 0px;
   left: 0px;
   height: 24px;
-  padding: 10px;
+  padding-left: 10px;
+  padding-top: 12px;
+  padding-bottom: 8px;
   right: 0px;
 }
 .minibuffer input:focus { outline: none; }

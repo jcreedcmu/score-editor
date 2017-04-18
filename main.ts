@@ -79,19 +79,7 @@ function play(score) {
 }
 
 window.onload = () => {
-  document.onkeydown = (e) => {
-	 const k = keyOf(e);
-	 switch(k) {
-	 case "A-x":
-		dispatch({t: "ToggleMinibuf"});
-		break;
-	 case ",": dispatch({t: "IncrementGridSize", by: -1});
-		break;
-	 case ".": dispatch({t: "IncrementGridSize", by: 1});
-		break;
-		// default: console.log(k);
-	 }
-  }
+  document.onkeydown = (e) => dispatch({t: "Key", key: keyOf(e)});
   document.onmouseup = (e) => dispatch({t: "Mouseup"});
   component_render(state);
 }
@@ -243,19 +231,15 @@ export function dispatch(a: Action) {
 	 state = rederivePreviewNote({...state, score: {...state.score, notes: _.filter(state.score.notes, notIt)}});
 	 component_render(state);
 	 break;
-  case "IncrementGridSize":
-	 state = rederivePreviewNote({...state, gridSize: state.gridSize + a.by});
-	 component_render(state);
+  case "Key": {
+	 const old = state;
+	 state = reduceKey(state, a.key);
+	 if (state != old)
+		component_render(state);
 	 break;
+  }
   case "Vscroll":
 	 state = rederivePreviewNote({...state, scrollOctave: a.top});
-	 component_render(state);
-	 break;
-  case "ToggleMinibuf":
-	 state = {...state, minibufferVisible: !state.minibufferVisible};
-	 // if (state.minibufferVisible) {
-	 // 	window.minibuf.focus();
-	 // }
 	 component_render(state);
 	 break;
   case "Exec":
@@ -267,6 +251,19 @@ export function dispatch(a: Action) {
   }
 }
 
+function reduceKey(state: AppState, key: string): AppState {
+  switch(key) {
+  case "A-x":
+	 return {...state, minibufferVisible: !state.minibufferVisible};
+  case ",":
+	 if (state.minibufferVisible) return state;
+	 return rederivePreviewNote({...state, gridSize: state.gridSize / 2});
+  case ".":
+	 if (state.minibufferVisible) return state;
+	 return rederivePreviewNote({...state, gridSize: state.gridSize * 2});
+  default: return state;
+  }
+}
 
 function setState(extra) {
   state = {...state, ...extra};

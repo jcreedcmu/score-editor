@@ -11,10 +11,9 @@ export type Action =
   | { t: "CreateNote"; note: Note; }
   | { t: "DeleteNote"; note: Note; }
   | { t: "Play"; score: Score; }
-  | { t: "IncrementGridSize"; by: number; }
   | { t: "Vscroll"; top: number; }
   | { t: "SetCurrentPlaybackTime"; v: number }
-  | { t: "ToggleMinibuf" }
+  | { t: "Key", key: string }
   | { t: "Exec", cmd: string }
 
 export type Score = {
