@@ -109,7 +109,7 @@ const initialState: AppState = {
   previewNote: null,
   score,
   gridSize: 4,
-  scrollOctave: 3, /* in the range [0 .. 4] for now */
+  scrollOctave: 3, /* in the range [0 .. 4] for now, higher numbers are lower pitch */
   minibufferVisible: false,
 };
 
