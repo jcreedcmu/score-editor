@@ -14,6 +14,7 @@ export type Action =
   | { t: "IncrementGridSize"; by: number; }
   | { t: "Vscroll"; top: number; }
   | { t: "SetCurrentPlaybackTime"; v: number }
+  | { t: "ToggleMinibuf" }
 
 export type Score = {
   duration: number, // ticks

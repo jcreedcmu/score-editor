@@ -6,6 +6,7 @@
   "dependencies": {
     "@types/underscore": "^1.8.0",
     "preact": "^7.2.1",
+    "preact-css-transition-group": "^1.2.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {

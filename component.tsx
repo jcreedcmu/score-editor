@@ -2,6 +2,7 @@ import { h as hh, render, Component } from 'preact';
 import { Surface } from './surface';
 import { dispatch } from './main';
 import { Note, AppState, mpoint, cpoint } from './types';
+import * as CSSTransitionGroup from 'preact-css-transition-group';
 import * as _ from "underscore";
 
 const SCALE = 2; // units: pixels per fat pixel
@@ -272,10 +273,10 @@ class ScoreEditor extends Component < any, any > {
 
 class Minibuffer extends Component < any, any > {
   render(props, state) {
-	 return <div className="minibuffer">
-		<b>{"\u25B6 "}</b>
-		<div className="input_container"><input></input></div>
-	 </div>;
+	 return <div className="mbcont">
+		  <b>{"\u25B6 "}</b>
+		  <div className="input_container"><input></input></div>
+		</div>;
   }
 }
 
@@ -288,10 +289,17 @@ export function component_render(scoreprops: AppState) {
   };
   const cont = document.getElementById('canvas_container');
   const playClick = () => dispatch({t: "Play", score: scoreprops.score});
+
   const cc = <div>
 		<button onClick={playClick}>Play</button><br/>
 		<ScoreEditor {...props}/>
-		<Minibuffer visible={props.minibufferVisible}/>
+		<div>
+		  <div className="minibuffer">
+			 <CSSTransitionGroup transitionName="minibuf">
+				{props.minibufferVisible ? <Minibuffer key="minibuf" /> : ''}
+			 </CSSTransitionGroup>
+		  </div>
+		</div>
   </div>;
   render(cc, cont, cont.lastElementChild);
 }

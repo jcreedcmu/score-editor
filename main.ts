@@ -80,6 +80,8 @@ function play(score) {
 window.onload = () => {
   document.onkeydown = (e) => {
 	 switch(e.keyCode) {
+	 case 65:
+		dispatch({t: "ToggleMinibuf"});
 	 case 188: dispatch({t: "IncrementGridSize", by: -1});
 		break;
 	 case 190: dispatch({t: "IncrementGridSize", by: 1});
@@ -236,6 +238,10 @@ export function dispatch(a: Action) {
 	 break;
   case "Vscroll":
 	 state = rederivePreviewNote({...state, scrollOctave: a.top});
+	 component_render(state);
+	 break;
+  case "ToggleMinibuf":
+	 state = {...state, minibufferVisible: !state.minibufferVisible};
 	 component_render(state);
 	 break;
   default: unreachable(a);
