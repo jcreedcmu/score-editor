@@ -3,7 +3,7 @@ export type Note = { pitch: number, time: [number, number] };
 export type MouseAction =
   | { t: "Mousemove"; mpoint: mpoint; }
   | { t: "Mousedown"; mpoint: mpoint; }
-  | { t: "Mouseup"; mpoint: mpoint; }
+  | { t: "Mouseup" }
   | { t: "Mouseleave" }
 
 export type Action =
@@ -26,9 +26,8 @@ export type mpoint = { pitch: number, time: number } // point in "musical coordi
 export type cpoint = { x: number, y: number } // point measured in pixels from the topleft of the canvas
 
 export type MouseState =
-  | { t: "absent" }
-  | { t: "hover", mp: mpoint }
-  | { t: "down", orig: mpoint, now: mpoint }
+  | { t: "hover", mp: mpoint | null }
+  | { t: "down", orig: mpoint, now: mpoint | null }
 
 export type BaseState = {
   offsetTicks: number | null,

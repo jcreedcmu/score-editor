@@ -87,6 +87,7 @@ window.onload = () => {
 	 default: console.log(e.keyCode);
 	 }
   }
+  document.onmouseup = (e) => dispatch({t: "Mouseup"});
   component_render(state);
 }
 
@@ -99,7 +100,7 @@ function unreachable(x: never): never {
 
 let state: AppState = {
   offsetTicks: null,
-  mouseState: {t: "absent"},
+  mouseState: {t: "hover", mp: null},
   previewNote: null,
   score,
   gridSize: 4,
@@ -120,11 +121,12 @@ function rederivePreviewNote(state: AppState): AppState {
 	 switch (ms.t) {
 	 case "hover":
 		const mh = ms.mp;
+		if (mh == null)
+		  return null;
 		const found = find_note_at_mpoint(state.score.notes, mh);
 		if (found) return found;
 		return snap(state.gridSize, {pitch: mh.pitch,
 											  time: [mh.time, mh.time]});
-	 case "absent":
 	 case "down":
 		return null;
 	 default: unreachable(ms);
@@ -138,30 +140,26 @@ function mouseReduce(a: MouseAction, ms: MouseState): [boolean, MouseState] {
   switch(a.t) {
   case "Mousemove":
 	 switch(ms.t) {
-	 case "absent": return [true, {t: "hover", mp: a.mpoint}];
 	 case "hover": return [false, {t: "hover", mp: a.mpoint}];
 	 case "down": return [false, {t: "down", orig: ms.orig, now: a.mpoint}];
 	 default: unreachable(ms);
 	 }
   case "Mousedown":
 	 switch(ms.t) {
-	 case "absent": throw "impossible";
 	 case "hover": return [true, {t: "down", orig: a.mpoint, now: a.mpoint}];
 	 case "down": throw "impossible";
 	 default: unreachable(ms);
 	 }
   case "Mouseup":
 	 switch(ms.t) {
-	 case "absent": return [true, {t: "absent"}];
 	 case "hover": throw "impossible";
-	 case "down": return [true, {t: "hover", mp: a.mpoint}];
+	 case "down": return [true, {t: "hover", mp: ms.now}];
 	 default: unreachable(ms);
 	 }
   case "Mouseleave":
 	 switch(ms.t) {
-	 case "absent": throw "impossible";
-	 case "hover": return [true, {t: "absent"}];
-	 case "down": return [true, {t: "absent"}];
+	 case "hover": return [true, {...ms, mp: null}];
+	 case "down": return [true, {...ms, now: null}];
 	 default: unreachable(ms);
 	 }
   }
@@ -191,9 +189,11 @@ export function dispatch(a: Action) {
   case "Mouseup":
 	 const old = state;
 	 const [redraw, nms] = mouseReduce(a, state.mouseState);
+	 console.log('old', old.mouseState, 'redraw', redraw, 'nms', nms);
 	 let red = redraw;
 	 if (state.mouseState.t == "down" && a.t == "Mouseup") {
 		const mp = state.mouseState.orig;
+		console.log('mp', mp);
 		const note = find_note_at_mpoint(state.score.notes, mp);
 		if (note) {
 		  // Delete note

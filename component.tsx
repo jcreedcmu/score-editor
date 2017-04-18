@@ -176,10 +176,6 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 	 dispatch({t: "Mousedown", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
   }
 
-  onmouseup(p, e) {
-	 dispatch({t: "Mouseup", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
-  }
-
   onmouseleave(e) {
 	 dispatch({t: "Mouseleave"});
   }

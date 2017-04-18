@@ -17,6 +17,7 @@ export class Surface< P > extends Component< P, void > {
 
   rel(of: (p: Point, e:MouseEvent) => void): (e:MouseEvent) => void {
 	 function f(e:MouseEvent): void {
+		e.preventDefault();
 		const br = this.elt.getBoundingClientRect();
 		const p = {x: e.clientX - br.left, y: e.clientY - br.top};
 		of.call(this, p, e);
