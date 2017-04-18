@@ -1,6 +1,7 @@
 import { score } from './score';
 import { component_render, find_note_at_mpoint } from './component';
 import { MouseState, MouseAction, Action, AppState, Note, mpoint } from './types';
+import { keyOf } from './key';
 import * as _ from "underscore";
 
 export const ad = new AudioContext();
@@ -79,14 +80,16 @@ function play(score) {
 
 window.onload = () => {
   document.onkeydown = (e) => {
-	 switch(e.keyCode) {
-	 case 65:
+	 const k = keyOf(e);
+	 switch(k) {
+	 case "A-x":
 		dispatch({t: "ToggleMinibuf"});
-	 case 188: dispatch({t: "IncrementGridSize", by: -1});
 		break;
-	 case 190: dispatch({t: "IncrementGridSize", by: 1});
+	 case ",": dispatch({t: "IncrementGridSize", by: -1});
 		break;
-	 default: console.log(e.keyCode);
+	 case ".": dispatch({t: "IncrementGridSize", by: 1});
+		break;
+		// default: console.log(k);
 	 }
   }
   document.onmouseup = (e) => dispatch({t: "Mouseup"});
@@ -100,15 +103,17 @@ function unreachable(x: never): never {
   throw new Error("Shouldn't get here.");
 }
 
-let state: AppState = {
+const initialState: AppState = {
   offsetTicks: null,
   mouseState: {t: "hover", mp: null},
   previewNote: null,
   score,
   gridSize: 4,
   scrollOctave: 3, /* in the range [0 .. 4] for now */
-  minibufferVisible: true,
+  minibufferVisible: false,
 };
+
+let state = initialState;
 
 // snap to grid
 function snap(gridSize: number, note: Note): Note {
@@ -172,6 +177,14 @@ function note_of_mpoint({pitch, time}: mpoint): Note {
   return {pitch, time: [time, time + 3]};
 }
 
+
+function reduceCmd(state: AppState, cmd: string): AppState {
+  switch (cmd) {
+  case "clear":
+	 return {...state, score: {...state.score, notes: []}};
+  default: return state;
+  }
+}
 // For any f that dispatch causes as a side effect,
 // there should exist an f' that makes the following
 // diagram commute:
@@ -192,11 +205,9 @@ export function dispatch(a: Action) {
   case "Mouseup":
 	 const old = state;
 	 const [redraw, nms] = mouseReduce(a, state.mouseState);
-	 console.log('old', old.mouseState, 'redraw', redraw, 'nms', nms);
 	 let red = redraw;
 	 if (state.mouseState.t == "down" && a.t == "Mouseup") {
 		const mp = state.mouseState.orig;
-		console.log('mp', mp);
 		const note = find_note_at_mpoint(state.score.notes, mp);
 		if (note) {
 		  // Delete note
@@ -242,6 +253,14 @@ export function dispatch(a: Action) {
 	 break;
   case "ToggleMinibuf":
 	 state = {...state, minibufferVisible: !state.minibufferVisible};
+	 // if (state.minibufferVisible) {
+	 // 	window.minibuf.focus();
+	 // }
+	 component_render(state);
+	 break;
+  case "Exec":
+	 state = reduceCmd(state, a.cmd);
+	 state = {...state, minibufferVisible: false};
 	 component_render(state);
 	 break;
   default: unreachable(a);

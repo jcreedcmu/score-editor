@@ -272,11 +272,20 @@ class ScoreEditor extends Component < any, any > {
 }
 
 class Minibuffer extends Component < any, any > {
+  _elt: HTMLInputElement;
   render(props, state) {
 	 return <div className="mbcont">
 		  <b>{"\u25B6 "}</b>
-		  <div className="input_container"><input></input></div>
+		  <div className="input_container">
+			 <input ref={e => this._elt = e as HTMLInputElement}
+					  onKeyDown={(e) => { if (e.keyCode == 13) props.send(this.state.value);}}
+					  onInput={x => this.state.value = this._elt.value}
+					  value={this.props.value}></input>
+		  </div>
 		</div>;
+  }
+  componentDidMount () {
+	 this._elt.focus();
   }
 }
 
@@ -296,7 +305,8 @@ export function component_render(scoreprops: AppState) {
 		<div>
 		  <div className="minibuffer">
 			 <CSSTransitionGroup transitionName="minibuf">
-				{props.minibufferVisible ? <Minibuffer key="minibuf" /> : ''}
+				{props.minibufferVisible ? <Minibuffer key="minibuf"
+																	send={cmd => dispatch({t:"Exec", cmd})} /> : ''}
 			 </CSSTransitionGroup>
 		  </div>
 		</div>

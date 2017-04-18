@@ -1,0 +1,63 @@
+body { margin: 0px; }
+/* canvas { position: absolute; top: 0; left: 0; z-index: -100; } */
+canvas { cursor: url(pencil.png) 5 16, auto; }
+.scroll_container {
+  position: absolute;
+  overflow-y: scroll;
+}
+.scroll_content {
+}
+#canvas_container { display: inline-block; }
+.minibuffer {
+  position: fixed;
+  bottom: 0px;
+  height: 24px;
+  width: 100%;
+  padding: 10px;
+}
+
+.minibuffer .input_container {
+  position: absolute;
+  bottom: 0px;
+  left: 30px;
+  right: 0px;
+  top: 0px;
+}
+.minibuffer input {
+  background-color: transparent;
+  font-family: monospace;
+  font-size: 18px;
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  top: 0px;
+  border: none;
+}
+.mbcont {
+  background-color: #ddd;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 24px;
+  padding: 10px;
+  right: 0px;
+}
+.minibuffer input:focus { outline: none; }
+
+.minibuf-enter{
+  top: 44px;
+}
+
+.minibuf-enter.minibuf-enter-active  {
+  top: 0px;
+  transition: top 200ms ease-in;
+}
+
+.minibuf-leave {
+  top: 0px;
+}
+
+.minibuf-leave.minibuf-leave-active   {
+  top: 44px;
+  transition: top 200ms ease-in;
+}

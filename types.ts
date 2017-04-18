@@ -15,6 +15,7 @@ export type Action =
   | { t: "Vscroll"; top: number; }
   | { t: "SetCurrentPlaybackTime"; v: number }
   | { t: "ToggleMinibuf" }
+  | { t: "Exec", cmd: string }
 
 export type Score = {
   duration: number, // ticks
