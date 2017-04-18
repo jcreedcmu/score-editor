@@ -35,6 +35,7 @@ export type BaseState = {
   score: Score,
   gridSize: number,
   scrollOctave: number,
+  minibufferVisible: boolean,
 };
 
 export type DerivedState = {

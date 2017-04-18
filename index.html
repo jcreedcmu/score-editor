@@ -11,6 +11,35 @@ overflow-y: scroll;
 .scroll_content {
 }
 #canvas_container { display: inline-block; }
+.minibuffer {
+padding: 10px;
+background-color: #ddd;
+position: fixed;
+bottom: 0px;
+height: 24px;
+width: 100%;
+
+}
+.minibuffer .input_container {
+position: absolute;
+bottom: 0px;
+left: 30px;
+right: 0px;
+top: 0px;
+}
+.minibuffer input {
+background-color: transparent;
+font-family: monospace;
+font-size: 18px;
+position: absolute;
+bottom: 0px;
+width: 100%;
+top: 0px;
+border: none;
+}
+
+.minibuffer input:focus { outline: none; }
+
 </style>
 </head>
   <body>

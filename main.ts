@@ -105,6 +105,7 @@ let state: AppState = {
   score,
   gridSize: 4,
   scrollOctave: 3, /* in the range [0 .. 4] for now */
+  minibufferVisible: true,
 };
 
 // snap to grid
@@ -152,7 +153,7 @@ function mouseReduce(a: MouseAction, ms: MouseState): [boolean, MouseState] {
 	 }
   case "Mouseup":
 	 switch(ms.t) {
-	 case "hover": throw "impossible";
+	 case "hover": return [false, ms]; // this happens for mouse events that started outside the editor
 	 case "down": return [true, {t: "hover", mp: ms.now}];
 	 default: unreachable(ms);
 	 }

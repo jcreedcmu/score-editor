@@ -270,6 +270,15 @@ class ScoreEditor extends Component < any, any > {
   }
 }
 
+class Minibuffer extends Component < any, any > {
+  render(props, state) {
+	 return <div className="minibuffer">
+		<b>{"\u25B6 "}</b>
+		<div className="input_container"><input></input></div>
+	 </div>;
+  }
+}
+
 type ScoreEditorProps = AppState & {w: number, h: number};
 export function component_render(scoreprops: AppState) {
   const props = {
@@ -282,6 +291,7 @@ export function component_render(scoreprops: AppState) {
   const cc = <div>
 		<button onClick={playClick}>Play</button><br/>
 		<ScoreEditor {...props}/>
+		<Minibuffer visible={props.minibufferVisible}/>
   </div>;
   render(cc, cont, cont.lastElementChild);
 }
