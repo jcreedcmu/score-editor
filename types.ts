@@ -1,41 +1,13 @@
 export type Note = { pitch: number, time: [number, number] };
 
-// the interface names should probably not be needed outside this
-// module, only the tag names, which I'm by convention keeping the
-// same as them.
-interface SetHover {
-  t: "SetHover";
-  mpoint: mpoint | null;
-}
-interface CreateNote {
-  t: "CreateNote";
-  note: Note;
-}
-interface DeleteNote {
-  t: "DeleteNote";
-  note: Note;
-}
-interface Play {
-  t: "Play";
-  score: Score;
-}
-interface IncrementGridSize {
-  t: "IncrementGridSize";
-  by: number;
-}
-interface Vscroll {
-  t: "Vscroll";
-  top: number;
-}
-interface SetCurrentPlaybackTime { t: "SetCurrentPlaybackTime", v: number }
 export type Action =
-  SetHover
-  | CreateNote
-  | DeleteNote
-  | Play
-  | Vscroll
-  | SetCurrentPlaybackTime
-  | IncrementGridSize;
+  | { t: "SetHover"; mpoint: mpoint | null; }
+  | { t: "CreateNote"; note: Note; }
+  | { t: "DeleteNote"; note: Note; }
+  | { t: "Play"; score: Score; }
+  | { t: "IncrementGridSize"; by: number; }
+  | { t: "Vscroll"; top: number; }
+  | { t: "SetCurrentPlaybackTime"; v: number }
 
 export type Score = {
   duration: number, // ticks
