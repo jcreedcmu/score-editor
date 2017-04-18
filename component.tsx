@@ -163,32 +163,25 @@ function mpoint_of_cpoint(cp: cpoint, scrollOctave: number): mpoint {
   };
 }
 
-function note_of_mpoint({pitch, time}: mpoint): Note {
-  return {pitch, time: [time, time + 3]};
-}
-
 class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
 
   onmousemove(p, e) {
-	 dispatch({t: "SetHover", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
+	 dispatch({t: "Mousemove", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
   }
 
   onmousedown(p, e) {
-	 const mp = mpoint_of_cpoint(p, this.props.scrollOctave);
-	 const note = find_note_at_mpoint(this.props.score.notes, mp);
-	 if (note) {
-		dispatch({t: "DeleteNote", note: note})
-	 }
-	 else {
-		dispatch({t: "CreateNote", note: note_of_mpoint(mp)})
-	 }
+	 dispatch({t: "Mousedown", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
+  }
+
+  onmouseup(p, e) {
+	 dispatch({t: "Mouseup", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
   }
 
   onmouseleave(e) {
-	 dispatch({t: "SetHover", mpoint: null});
+	 dispatch({t: "Mouseleave"});
   }
 
   shouldComponentUpdate(p) {

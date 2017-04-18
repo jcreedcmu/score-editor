@@ -5,6 +5,7 @@ export class Surface< P > extends Component< P, void > {
   ctx: CanvasRenderingContext2D;
   elt: HTMLCanvasElement;
   onmousedown(p: Point, e:MouseEvent): void { }
+  onmouseup(p: Point, e:MouseEvent): void { }
   onmousemove(p: Point, e:MouseEvent): void { }
   onmouseleave(e:MouseEvent): void { }
   className: string = null;
@@ -37,6 +38,7 @@ export class Surface< P > extends Component< P, void > {
 	 const attrs = {
 		ref: rf,
 		onmousedown: this.rel(this.onmousedown),
+		onmouseup: this.rel(this.onmouseup),
 		onmousemove: this.rel(this.onmousemove),
 		onmouseleave: (ev:MouseEvent) => this.onmouseleave(ev),
 		className: this.className,

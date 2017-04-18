@@ -1,6 +1,6 @@
 import { score } from './score';
 import { component_render, find_note_at_mpoint } from './component';
-import { Action, AppState, Note } from './types';
+import { MouseState, MouseAction, Action, AppState, Note, mpoint } from './types';
 import * as _ from "underscore";
 
 export const ad = new AudioContext();
@@ -99,7 +99,7 @@ function unreachable(x: never): never {
 
 let state: AppState = {
   offsetTicks: null,
-  mouseHover: null,
+  mouseState: {t: "absent"},
   previewNote: null,
   score,
   gridSize: 4,
@@ -116,18 +116,59 @@ function snap(gridSize: number, note: Note): Note {
 
 function rederivePreviewNote(state: AppState): AppState {
   function compute(): Note | null {
-	 const mh = state.mouseHover;
-	 if (mh == null)
+	 const ms = state.mouseState;
+	 switch (ms.t) {
+	 case "hover":
+		const mh = ms.mp;
+		const found = find_note_at_mpoint(state.score.notes, mh);
+		if (found) return found;
+		return snap(state.gridSize, {pitch: mh.pitch,
+											  time: [mh.time, mh.time]});
+	 case "absent":
+	 case "down":
 		return null;
-	 const found = find_note_at_mpoint(state.score.notes, mh);
-	 if (found) return found;
-	 return snap(state.gridSize, {pitch: mh.pitch,
-											time: [mh.time, mh.time]});
+	 default: unreachable(ms);
+	 }
   }
-	 // if (a.note != null && !a.exist) {
-	 // 	snap(a.note);
-	 // }
   return {...state, previewNote: compute()};
+
+}
+
+function mouseReduce(a: MouseAction, ms: MouseState): [boolean, MouseState] {
+  switch(a.t) {
+  case "Mousemove":
+	 switch(ms.t) {
+	 case "absent": return [true, {t: "hover", mp: a.mpoint}];
+	 case "hover": return [false, {t: "hover", mp: a.mpoint}];
+	 case "down": return [false, {t: "down", orig: ms.orig, now: a.mpoint}];
+	 default: unreachable(ms);
+	 }
+  case "Mousedown":
+	 switch(ms.t) {
+	 case "absent": throw "impossible";
+	 case "hover": return [true, {t: "down", orig: a.mpoint, now: a.mpoint}];
+	 case "down": throw "impossible";
+	 default: unreachable(ms);
+	 }
+  case "Mouseup":
+	 switch(ms.t) {
+	 case "absent": return [true, {t: "absent"}];
+	 case "hover": throw "impossible";
+	 case "down": return [true, {t: "hover", mp: a.mpoint}];
+	 default: unreachable(ms);
+	 }
+  case "Mouseleave":
+	 switch(ms.t) {
+	 case "absent": throw "impossible";
+	 case "hover": return [true, {t: "absent"}];
+	 case "down": return [true, {t: "absent"}];
+	 default: unreachable(ms);
+	 }
+  }
+}
+
+function note_of_mpoint({pitch, time}: mpoint): Note {
+  return {pitch, time: [time, time + 3]};
 }
 
 // For any f that dispatch causes as a side effect,
@@ -142,15 +183,34 @@ function rederivePreviewNote(state: AppState): AppState {
 //         |                               |
 //       Base -------------------------> Base
 //                      f'
-
 export function dispatch(a: Action) {
   switch (a.t) {
-  case "SetHover":
+  case "Mousemove":
+  case "Mouseleave":
+  case "Mousedown":
+  case "Mouseup":
 	 const old = state;
-	 state = rederivePreviewNote({...state, mouseHover: a.mpoint});
-	 if (JSON.stringify(old.previewNote) != JSON.stringify(state.previewNote)) {
-		component_render(state);
+	 const [redraw, nms] = mouseReduce(a, state.mouseState);
+	 let red = redraw;
+	 if (state.mouseState.t == "down" && a.t == "Mouseup") {
+		const mp = state.mouseState.orig;
+		const note = find_note_at_mpoint(state.score.notes, mp);
+		if (note) {
+		  // Delete note
+		  const notIt = x => JSON.stringify(x) != JSON.stringify(note);
+		  state = rederivePreviewNote({...state, score: {...state.score,
+																		 notes: _.filter(state.score.notes, notIt)}});
+		}
+		else {
+		  // Create note
+		  const sn: Note = snap(state.gridSize, note_of_mpoint(mp));
+		  state = rederivePreviewNote({...state, score: {...state.score, notes: [...state.score.notes, sn]}});
+		}
+		red = true;
 	 }
+	 state = rederivePreviewNote({...state, mouseState: nms});
+	 if (red || (JSON.stringify(old.previewNote) != JSON.stringify(state.previewNote)))
+		component_render(state);
 	 break;
   case "Play":
 	 play(a.score);
