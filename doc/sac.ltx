@@ -1,0 +1,109 @@
+\documentclass{article}
+\input{prooftree}
+\usepackage{stmaryrd}
+\input{linear}
+\def\erule#1#2{\begin{prooftree}#1\justifies #2\end{prooftree}}
+\def\lpar{\bindnasrepma}
+\def\lamp{\binampersand}
+\def\bpush{\mathbf{push}}
+\def\dns{{\downarrow}}
+\def\ups{{\uparrow}}
+\begin{document}
+
+The basic ingredients are types $B$ (`base state'), $C$ (`cache state'), and $D$ (`derived state').
+There are two functions
+\[
+\begin{diagram}
+B&\rTo^d&D\\
+B\times C&\rTo_\delta&D\\
+\end{diagram}
+\]
+that say how to (maybe inefficiently) derive derived state from the base, and how to derive it (more efficiently)
+from additional bit of cache.
+
+Consider the equalizer
+\[
+\begin{diagram}
+G &\rEmbed^g&B\times C&\pile{\rTo^\delta\\\rTo_{d\circ\pi_1}}&D
+\end{diagram}
+\]
+Say an arrow into $B \times C$ is {\em consistent} if it equalizes $\delta$ and $d\pi_1$.
+
+Assume we can factor $\mathrm{inl}:G\to G+1$ through $g$:
+\[
+\begin{diagram}
+G &\rEmbed^g&B\times C\\
+&\rdTo<{\mathrm{inl}}&\dTo>\rho\\
+&&G+1
+\end{diagram}
+\]
+
+
+A change $f: B\times C \to B\times C + 1$ to the state is {\em good} if for
+every consistent $h: H \to B\times C$ there is a unique consistent $f\cdot h$ such that
+\[\begin{diagram}
+H&\rTo^{f\cdot h}&B\times C\\
+\dTo<h&&\dTo>{\mathrm{inl}}\\
+B\times C& \rTo_f&B\times C + 1
+\end{diagram}
+\]
+
+
+\newarrow {Equiv} =====
+\def\ups{{\uparrow}}
+\def\dns{{\downarrow}}
+{\bf Fact 1}: For every good change $f : B \times C \to B \times C + 1$, there is a map $\ups f : G \to G$.
+
+{\bf Proof}: Use the equalizer property on $f \cdot g$:
+\[\begin{diagram}
+G&\rDotsto^{\ups f}&G\\
+\dEquiv&&\dEmbed>g\\
+G&\rTo^{f\cdot g}&B\times C\\
+\dEmbed<g&&\dTo>{\mathrm{inl}}\\
+B\times C& \rTo_f&B\times C + 1
+\end{diagram}
+\]
+
+{\bf Fact 2}: For every map $k : G \to G$, there is a good change $\dns k : B \times C \to B \times C + 1$.
+
+{\bf Proof}: Simply set $\dns k = (g+1) \circ (k+1) \circ \rho$. To see that this is a good change, let
+$\bar h$ arise from the equalizer property coming from a consistent $h$, and let $\dns k \cdot h = g \circ k \circ \bar h$.
+ \[\begin{diagram}
+&&H&\rDotsto^{g\circ k\circ\bar h}&B\times C\\
+&\ldTo<{\bar h}&\dTo<h&&\dTo>{\mathrm{inl}}\\
+G&\rEmbed_g&B\times C& \rTo^{\dns k}&B\times C + 1\\
+&\rdTo<{\mathrm{inl}}&\dTo<\rho&&\uTo>{g+1}\\
+&&G+1&\rTo_{k+1}&G+1\\
+\end{diagram}
+\]
+
+{\bf Fact 3}: For any good $f$, we have $(\dns\ups f)g = fg$.
+
+{\bf Proof}: We know by definition that $\dns\ups f = (g + 1) \circ (\ups f + 1) \circ \rho$.
+Just chase the following diagram to see that the lower right square (with $g$ `tail') commutes:
+\[\begin{diagram}
+&&G&\rDotsto^{\ups f}&G\\
+&&\dEquiv&&\dEmbed>g\\
+\HmeetV&\lLine&G&\rTo^{f\cdot g}&B\times C\\
+&&\dEmbed<g&&\dTo>{\mathrm{inl}}\\
+\dLine<{\mathrm{inl}}&&B\times C& \rTo^{ f}&B\times C + 1\\
+&&\dTo<\rho&&\uTo>{g+1}\\
+\HmeetV&\rTo&G+1&\rTo_{\ups f+1}&G+1\\
+\end{diagram}
+\]
+
+{\bf Fact 4}: $\ups\dns k = k$.
+
+{\bf Proof}: In this case, $h$ happens to be $g$ and $\bar h$ is just $id_G$.
+\[\begin{diagram}
+G&\rDotsto^k&G\\
+\dEquiv&&\dEmbed>g\\
+G&\rTo^{g\circ k}&B\times C\\
+\dTo<g&&\dTo>{\mathrm{inl}}\\
+B\times C& \rTo^{\dns k}&B\times C + 1\\
+\end{diagram}
+\]
+The uniqueness of the equalizer says that since $k$ does fill in the top square, it must be the value
+of $\ups\dns k$.
+
+\end{document}
