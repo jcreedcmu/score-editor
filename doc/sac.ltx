@@ -12,38 +12,34 @@
 
 \begin{document}
 
-The basic ingredients are types $B$ (`base state'), $C_1, \ldots, C_n$ (`cache states'), and $D$ (`derived state').
-For each $C\in C_1, \ldots, C_n$ there are functions
+A cache-type over $d : B \to D$ is  ${\bf C} = (C, G, \pi, \iota, \delta, g)$ such that
 \[
 \begin{diagram}
 B&\lEquiv&B\\
-\uOnto<{\pi_C}&\ldEmbed~{\iota_C}&\dTo>d\\
-C&\rTo_{\delta_C}&D\\
+\uOnto<{\pi}&\ldEmbed~{\iota}&\dTo>d\\
+C&\rTo_{\delta}&D\\
+\end{diagram}
+\qquad\qquad
+\begin{diagram}
+G &\rEmbed^{g}_{\textrm{[eq'izer]}}&C&\pile{\rTo^{\delta}\\\rTo_{d\circ\pi}}&D
 \end{diagram}
 \]
-that say how to (maybe inefficiently) derive derived state from the base ($d$), and how to derive it (more efficiently)
+These say how to (maybe inefficiently) derive derived state from the base ($d$), and how to derive it (more efficiently)
 from state with extra cache ($\delta$), how to project out the base state from the cache state ($\pi$), and
 how to create an empty cache ($\iota$). Note that it's not necessarily the case that $d\pi = \delta$ despite the appearance
 of the diagram.
 
-Demand an equalizer $g_C$ of $d\pi_C$ and $\delta_C$.
-\[
-\begin{diagram}
-G_C &\rEmbed^{g_C}&C&\pile{\rTo^{\delta_C}\\\rTo_{d\circ\pi_C}}&D
-\end{diagram}
-\]
 
-A change $f: C_1 \to C_2$ to the state is {\em consistent} if
-there exist $\ups f$ and $\dns f$ that make
+A morphism ${\bf C}_1 \to {\bf C}_2$ to the state is
+$f : C_1 \to C_2$ such that we can find $\ups f$, $\dns f$ to make the following commute:
 \[\begin{diagram}
 G_1&\rEmbed^{g_1}&C_1&\rOnto^{\pi_1}&B\\
 \dTo<{\ups f}&&\dTo>f&&\dTo>{\dns f}\\
 G_2&\rEmbed_{g_2}&C_2&\rOnto_{\pi_2}&B\\
 \end{diagram}
 \]
-commute.
 
-{\bf Fact 1}: For any consistent $f$, the choices of $\ups f$ and $\dns f$ are unique.
+{\bf Fact 1}: The choices of $\ups f$ and $\dns f$ are uniquely determined by $f$.
 
 {\bf Proof}:
 Because we have $\ups f$, we know $fg_1$ equalizes $\delta_2$ and $d\pi_2$.
