@@ -14,7 +14,8 @@ export type Action =
   | { t: "Vscroll"; top: number; }
   | { t: "SetCurrentPlaybackTime"; v: number }
   | { t: "Key", key: string }
-  | { t: "Exec", cmd: string }
+  | { t: "ExecMinibuf", cmd: string }
+  | { t: "SetMinibuf", v: string }
 
 export type Score = {
   duration: number, // ticks
@@ -37,6 +38,7 @@ export type BaseState = {
   gridSize: number,
   scrollOctave: number,
   minibufferVisible: boolean,
+  minibuf: string,
 };
 
 export type DerivedState = {

@@ -277,14 +277,16 @@ class Minibuffer extends Component < any, any > {
 	 return <div className="mbcont">
 		  <b>{"\u25B6"}</b>
 		  <div className="input_container">
-			 <input ref={e => this._elt = e as HTMLInputElement}
-					  onKeyDown={(e) => { if (e.keyCode == 13) props.send(this.state.value);}}
-					  onInput={x => this.state.value = this._elt.value}
+			 <input contentEditable={false}
+					  ref={e => this._elt = e as HTMLInputElement}
+					  onKeyDown={(e) => { if (e.keyCode == 13) props.send();}}
+					  onInput={x => dispatch({t: "SetMinibuf", v: this._elt.value})}
 					  value={this.props.value}></input>
 		  </div>
 		</div>;
   }
   componentDidMount () {
+	 this._elt.spellcheck = false; // setting this in the input props doesn't work, see https://github.com/developit/preact/issues/651
 	 this._elt.focus();
   }
 }
@@ -306,7 +308,8 @@ export function component_render(scoreprops: AppState) {
 		  <div className="minibuffer">
 			 <CSSTransitionGroup transitionName="minibuf">
 				{props.minibufferVisible ? <Minibuffer key="minibuf"
-																	send={cmd => dispatch({t:"Exec", cmd})} /> : ''}
+																	value={props.minibuf}
+																	send={cmd => dispatch({t:"ExecMinibuf", cmd})} /> : ''}
 			 </CSSTransitionGroup>
 		  </div>
 		</div>

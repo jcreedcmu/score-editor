@@ -99,6 +99,7 @@ const initialState: AppState = {
   gridSize: 4,
   scrollOctave: 3, /* in the range [0 .. 4] for now, higher numbers are lower pitch */
   minibufferVisible: false,
+  minibuf: '',
 };
 
 let state = initialState;
@@ -242,9 +243,13 @@ export function dispatch(a: Action) {
 	 state = rederivePreviewNote({...state, scrollOctave: a.top});
 	 component_render(state);
 	 break;
-  case "Exec":
-	 state = reduceCmd(state, a.cmd);
-	 state = {...state, minibufferVisible: false};
+  case "ExecMinibuf":
+	 state = reduceCmd(state, state.minibuf);
+	 state = {...state, minibufferVisible: false, minibuf: ''};
+	 component_render(state);
+	 break;
+  case "SetMinibuf":
+	 state = {...state, minibuf: a.v};
 	 component_render(state);
 	 break;
   default: unreachable(a);
