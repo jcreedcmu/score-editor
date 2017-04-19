@@ -6,104 +6,71 @@
 \def\lpar{\bindnasrepma}
 \def\lamp{\binampersand}
 \def\bpush{\mathbf{push}}
-\def\dns{{\downarrow}}
-\def\ups{{\uparrow}}
+\newarrow {Equiv} =====
+\def\ups#1{#1^G}
+\def\dns#1{#1^B}
+
 \begin{document}
 
-The basic ingredients are types $B$ (`base state'), $C$ (`cache state'), and $D$ (`derived state').
-There are two functions
+The basic ingredients are types $B$ (`base state'), $C_1, \ldots, C_n$ (`cache states'), and $D$ (`derived state').
+For each $C\in C_1, \ldots, C_n$ there are functions
 \[
 \begin{diagram}
-B&\rTo^d&D\\
-B\times C&\rTo_\delta&D\\
+B&\lEquiv&B\\
+\uOnto<{\pi_C}&\ldEmbed~{\iota_C}&\dTo>d\\
+C&\rTo_{\delta_C}&D\\
 \end{diagram}
 \]
-that say how to (maybe inefficiently) derive derived state from the base, and how to derive it (more efficiently)
-from additional bit of cache.
+that say how to (maybe inefficiently) derive derived state from the base ($d$), and how to derive it (more efficiently)
+from state with extra cache ($\delta$), how to project out the base state from the cache state ($\pi$), and
+how to create an empty cache ($\iota$). Note that it's not necessarily the case that $d\pi = \delta$ despite the appearance
+of the diagram.
 
-Consider the equalizer
+Demand an equalizer $g_C$ of $d\pi_C$ and $\delta_C$.
 \[
 \begin{diagram}
-G &\rEmbed^g&B\times C&\pile{\rTo^\delta\\\rTo_{d\circ\pi_1}}&D
+G_C &\rEmbed^{g_C}&C&\pile{\rTo^{\delta_C}\\\rTo_{d\circ\pi_C}}&D
 \end{diagram}
 \]
-Say an arrow into $B \times C$ is {\em consistent} if it equalizes $\delta$ and $d\pi_1$.
 
-Assume we can factor $\mathrm{inl}:G\to G+1$ through $g$:
+A change $f: C_1 \to C_2$ to the state is {\em consistent} if
+there exist $\ups f$ and $\dns f$ that make
+\[\begin{diagram}
+G_1&\rEmbed^{g_1}&C_1&\rOnto^{\pi_1}&B\\
+\dTo<{\ups f}&&\dTo>f&&\dTo>{\dns f}\\
+G_2&\rEmbed_{g_2}&C_2&\rOnto_{\pi_2}&B\\
+\end{diagram}
+\]
+commute.
+
+{\bf Fact 1}: For any consistent $f$, the choices of $\ups f$ and $\dns f$ are unique.
+
+{\bf Proof}:
+Because we have $\ups f$, we know $fg_1$ equalizes $\delta_2$ and $d\pi_2$.
 \[
 \begin{diagram}
-G &\rEmbed^g&B\times C\\
-&\rdTo<{\mathrm{inl}}&\dTo>\rho\\
-&&G+1
+G_1&\rEmbed^{g_1}&C_1\\
+\dEmbed<{g_1}&\rdTo>{\ups f}&&\rdTo>f\\
+C_1&&G_2&\rEmbed^{g_2}&C_2\\
+&\rdTo<f&\dEmbed<{g_2}&&\dTo>{\delta_2}\\
+&&C_2&\rTo_{d\pi_2}&D\\
+\end{diagram}
+\qquad\qquad
+\]
+Dually, $\dns f$ means $\pi_2 f$ coequalizes $1_C$ and $\iota_1 \pi_1$.
+\[
+\begin{diagram}
+C_1&\rTo^{\pi_1}&B&\rEmbed^{\iota_1}&C_1\\
+\dEquiv&&&\rdEquiv&\dOnto>{\pi_1}&\rdTo>f\\
+C_1&&\rOnto_{\pi_1}&&B&&C_2\\
+&\rdTo_{f}&&&&\rdTo>{\dns f}&\dOnto>{\pi_2}\\
+&&C_2&&\rOnto_{\pi_2}&&B\\
 \end{diagram}
 \]
 
 
-A change $f: B\times C \to B\times C + 1$ to the state is {\em good} if for
-every consistent $h: H \to B\times C$ there is a unique consistent $f\cdot h$ such that
-\[\begin{diagram}
-H&\rTo^{f\cdot h}&B\times C\\
-\dTo<h&&\dTo>{\mathrm{inl}}\\
-B\times C& \rTo_f&B\times C + 1
-\end{diagram}
-\]
+We can use the universal properties of $g_2$ as equalizer of $d\pi_2$ and $\delta_2$,
+and $\pi_1$ as coequalizer of $\iota_1 \pi_1$ and $1_C$ to get the required uniqueness.
 
-
-\newarrow {Equiv} =====
-\def\ups{{\uparrow}}
-\def\dns{{\downarrow}}
-{\bf Fact 1}: For every good change $f : B \times C \to B \times C + 1$, there is a map $\ups f : G \to G$.
-
-{\bf Proof}: Use the equalizer property on $f \cdot g$:
-\[\begin{diagram}
-G&\rDotsto^{\ups f}&G\\
-\dEquiv&&\dEmbed>g\\
-G&\rTo^{f\cdot g}&B\times C\\
-\dEmbed<g&&\dTo>{\mathrm{inl}}\\
-B\times C& \rTo_f&B\times C + 1
-\end{diagram}
-\]
-
-{\bf Fact 2}: For every map $k : G \to G$, there is a good change $\dns k : B \times C \to B \times C + 1$.
-
-{\bf Proof}: Simply set $\dns k = (g+1) \circ (k+1) \circ \rho$. To see that this is a good change, let
-$\bar h$ arise from the equalizer property coming from a consistent $h$, and let $\dns k \cdot h = g \circ k \circ \bar h$.
- \[\begin{diagram}
-&&H&\rDotsto^{g\circ k\circ\bar h}&B\times C\\
-&\ldTo<{\bar h}&\dTo<h&&\dTo>{\mathrm{inl}}\\
-G&\rEmbed_g&B\times C& \rTo^{\dns k}&B\times C + 1\\
-&\rdTo<{\mathrm{inl}}&\dTo<\rho&&\uTo>{g+1}\\
-&&G+1&\rTo_{k+1}&G+1\\
-\end{diagram}
-\]
-
-{\bf Fact 3}: For any good $f$, we have $(\dns\ups f)g = fg$.
-
-{\bf Proof}: We know by definition that $\dns\ups f = (g + 1) \circ (\ups f + 1) \circ \rho$.
-Just chase the following diagram to see that the lower right square (with $g$ `tail') commutes:
-\[\begin{diagram}
-&&G&\rDotsto^{\ups f}&G\\
-&&\dEquiv&&\dEmbed>g\\
-\HmeetV&\lLine&G&\rTo^{f\cdot g}&B\times C\\
-&&\dEmbed<g&&\dTo>{\mathrm{inl}}\\
-\dLine<{\mathrm{inl}}&&B\times C& \rTo^{ f}&B\times C + 1\\
-&&\dTo<\rho&&\uTo>{g+1}\\
-\HmeetV&\rTo&G+1&\rTo_{\ups f+1}&G+1\\
-\end{diagram}
-\]
-
-{\bf Fact 4}: $\ups\dns k = k$.
-
-{\bf Proof}: In this case, $h$ happens to be $g$ and $\bar h$ is just $id_G$.
-\[\begin{diagram}
-G&\rDotsto^k&G\\
-\dEquiv&&\dEmbed>g\\
-G&\rTo^{g\circ k}&B\times C\\
-\dTo<g&&\dTo>{\mathrm{inl}}\\
-B\times C& \rTo^{\dns k}&B\times C + 1\\
-\end{diagram}
-\]
-The uniqueness of the equalizer says that since $k$ does fill in the top square, it must be the value
-of $\ups\dns k$.
 
 \end{document}
