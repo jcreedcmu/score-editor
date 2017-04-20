@@ -57,3 +57,39 @@ export const initialState: AppState = {
   minibufferVisible: false,
   minibuf: '',
 };
+
+
+import { Record } from 'immutable';
+
+type Partial<T> = {
+  [P in keyof T]?: T[P];
+}
+
+type Mod<T> = {
+  [P in keyof T]?: (x: T[P]) => T[P];
+}
+
+
+// modification/generalization of the idea in
+// https://spin.atomicobject.com/2016/11/30/immutable-js-records-in-typescript/
+interface TRecord<T> {
+  with(values: Partial<T>): TRecord<T>;
+}
+
+function TRecord<T>(defaultValues: T): TRecord<T> {
+  class _TRecord extends Record(defaultValues) {
+	 with(values: Partial<T>): this {
+		return this.merge(values) as this;
+	 }
+	 mod(funcs: Mod<T>): this {
+		throw "d";
+	 }
+  }
+  return new _TRecord();
+}
+
+const x: TRecord<AppState> = TRecord(initialState)
+window['z'] = x.with({offsetTicks: 3});
+import { Map } from 'immutable';
+debugger;
+window['w'] = Map({'d': 3})

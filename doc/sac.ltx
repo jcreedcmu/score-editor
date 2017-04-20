@@ -12,7 +12,30 @@
 
 \begin{document}
 
-A cache-type is  ${\bf C} = (C, B, D, G, \pi, \iota, \delta, g)$ such that
+A cache-type is  ${\bf C} = (G, C, B, g, \pi)$ such that
+\[
+\begin{diagram}
+G&\rEmbed^g&C&\rOnto^\pi&B
+\end{diagram}
+\]
+A morphism ${\bf C}_1 \to {\bf C}_2$ is
+$f : C_1 \to C_2$ such that we can find $\ups f$, $\dns f$ to make the following commute:
+\[\begin{diagram}
+G_1&\rEmbed^{g_1}&C_1&\rOnto^{\pi_1}&B_1\\
+\dTo<{\ups f}&&\dTo>f&&\dTo>{\dns f}\\
+G_2&\rEmbed_{g_2}&C_2&\rOnto_{\pi_2}&B_2\\
+\end{diagram}
+\]
+
+{\bf Fact}: The choices of $\ups f$ and $\dns f$ are uniquely determined by $f$.
+
+{\bf Proof}: Because $g_2$ is mono and $\pi_1$ is epi.
+
+\vskip1em
+\hrule
+\vskip1em
+
+We might imagine that we have some types
 \[
 \begin{diagram}
 B&\lEquiv&B\\
@@ -27,22 +50,24 @@ G &\rEmbed^{g}_{\textrm{[eq'izer]}}&C&\pile{\rTo^{\delta}\\\rTo_{d\circ\pi}}&D
 These say how to (maybe inefficiently) derive derived state from the base ($d$), and how to derive it (more efficiently)
 from state with extra cache ($\delta$), how to project out the base state from the cache state ($\pi$), and
 how to create an empty cache ($\iota$). Note that it's not necessarily the case that $d\pi = \delta$ despite the appearance
-of the diagram.
+of the diagram. Then $\begin{diagram}G&\rEmbed~g&C&\rOnto~\pi&B\end{diagram}$ is a cache-type.
 
 
-A morphism ${\bf C}_1 \to {\bf C}_2$ to the state is
-$f : C_1 \to C_2$ such that we can find $\ups f$, $\dns f$ to make the following commute:
-\[\begin{diagram}
-G_1&\rEmbed^{g_1}&C_1&\rOnto^{\pi_1}&B_1\\
-\dTo<{\ups f}&&\dTo>f&&\dTo>{\dns f}\\
-G_2&\rEmbed_{g_2}&C_2&\rOnto_{\pi_2}&B_2\\
-\end{diagram}
-\]
+{\bf Fact}: Suppose we have a couple of different such types.
+then the condition for $f$ being a morphism ${\bf C}_1 \to {\bf C}_2$
+is equivalent to
+\begin{enumerate}
+\item $fg_1$ equalizes $\delta_2$ and $d\pi_2$
+\item $\pi_2 f$ coequalizes $1_C$ and $\iota_1\pi_1$.
+\end{enumerate}
 
-{\bf Fact 1}: The choices of $\ups f$ and $\dns f$ are uniquely determined by $f$.
 
-{\bf Proof}:
-Because we have $\ups f$, we know $fg_1$ equalizes $\delta_2$ and $d\pi_2$.
+{\bf Proof}: If we do know a (co)equalization, the (co)equalizer
+property of $g$ (resp. $\pi$ as split and therefore regular epi) lets
+us fill in the $\ups f$ and $\dns f$.
+
+Conversely, if we have a suitable $\ups f$ and a $\dns f$, we can
+reason according to the following diagrams:
 \[
 \begin{diagram}
 G_1&\rEmbed^{g_1}&C_1\\
@@ -53,7 +78,6 @@ C_1&&G_2&\rEmbed^{g_2}&C_2\\
 \end{diagram}
 \qquad\qquad
 \]
-Dually, $\dns f$ means $\pi_2 f$ coequalizes $1_C$ and $\iota_1 \pi_1$.
 \[
 \begin{diagram}
 C_1&\rTo^{\pi_1}&B&\rEmbed^{\iota_1}&C_1\\
@@ -63,10 +87,6 @@ C_1&&\rOnto_{\pi_1}&&B_1&&C_2\\
 &&C_2&&\rOnto_{\pi_2}&&B_2\\
 \end{diagram}
 \]
-
-
-We can use the universal properties of $g_2$ as equalizer of $d\pi_2$ and $\delta_2$,
-and $\pi_1$ as coequalizer of $\iota_1 \pi_1$ and $1_C$ to get the required uniqueness.
 
 
 \end{document}
