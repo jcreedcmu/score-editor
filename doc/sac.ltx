@@ -35,6 +35,56 @@ G_2&\rEmbed_{g_2}&C_2&\rOnto_{\pi_2}&B_2\\
 \hrule
 \vskip1em
 
+
+A regular cache-type is one where the two morphisms are regular; we have
+equalizer and coequalizer diagrams
+\[
+\begin{diagram}
+G&\rEmbed^g&C&\pile{\rTo^{d}\\\rTo_{d'}}&D
+\end{diagram}
+\qquad
+\begin{diagram}
+E&\pile{\rTo^{e}\\\rTo_{e'}}&C&\rOnto^\pi&B
+\end{diagram}
+\]
+{\bf Fact}: If ${\bf C}_1, {\bf C}_2$ are regular,
+then $f$ is a morphism ${\bf C}_1 \to {\bf C}_2$ iff
+$$d_2fg_1 = d'_2 f g_1 \hbox{ and } \pi_2 fe_1 = \pi_2 fe'_1\eqno(*)$$
+
+
+{\bf Proof}: Reason according to the following diagram, using (co)equalizer property of
+$g_2$ and $\pi_1$ to fill in $\ups f$ and $\dns f$.
+\[\begin{diagram}
+&&G_1&\rDotsto^{\ups f}&G_2\\
+&&\dEmbed<{g_1}&&\dEmbed>{g_2}\\
+E_1&\pile{\rTo^{e_1}\\\rTo_{e'_1}}&C_1&\rTo^{f}&C_2&\pile{\rTo^{d_2}\\\rTo_{d'_2}}&D_2\\
+&&\dOnto<{\pi_1}&&\dOnto>{\pi_2}\\
+&&B_1&\rDotsto_{\dns f}&B_2\\
+\end{diagram}
+\]
+
+%% \[
+%% \begin{diagram}
+%% G_1&\rEmbed^{g_1}&C_1\\
+%% \dEmbed<{g_1}&\rdTo>{\ups f}&&\rdTo>f\\
+%% C_1&&G_2&\rEmbed^{g_2}&C_2\\
+%% &\rdTo<f&\dEmbed<{g_2}&&\dTo>{\delta_2}\\
+%% &&C_2&\rTo_{d_2}&D_2\\
+%% \end{diagram}
+%% \qquad\qquad
+%% \begin{diagram}
+%% E_1&\rTo^{e_1}&C_1\\
+%% \dTo<{\epsilon_1}&&\dOnto>{\pi_1}&\rdTo>f\\
+%% C_1&\rOnto_{\pi_1}&B_1&&C_2\\
+%% &\rdTo_{f}&&\rdTo>{\dns f}&\dOnto>{\pi_2}\\
+%% &&C_2&\rOnto_{\pi_2}&B_2\\
+%% \end{diagram}
+%% \]
+
+\vskip1em
+\hrule
+\vskip1em
+
 We might imagine that we have some types
 \[
 \begin{diagram}
@@ -50,43 +100,8 @@ G &\rEmbed^{g}_{\textrm{[eq'izer]}}&C&\pile{\rTo^{\delta}\\\rTo_{d\circ\pi}}&D
 These say how to (maybe inefficiently) derive derived state from the base ($d$), and how to derive it (more efficiently)
 from state with extra cache ($\delta$), how to project out the base state from the cache state ($\pi$), and
 how to create an empty cache ($\iota$). Note that it's not necessarily the case that $d\pi = \delta$ despite the appearance
-of the diagram. Then $\begin{diagram}G&\rEmbed~g&C&\rOnto~\pi&B\end{diagram}$ is a cache-type.
-
-
-{\bf Fact}: Suppose we have a couple of different such types.
-then the condition for $f$ being a morphism ${\bf C}_1 \to {\bf C}_2$
-is equivalent to
-\begin{enumerate}
-\item $fg_1$ equalizes $\delta_2$ and $d\pi_2$
-\item $\pi_2 f$ coequalizes $1_C$ and $\iota_1\pi_1$.
-\end{enumerate}
-
-
-{\bf Proof}: If we do know a (co)equalization, the (co)equalizer
-property of $g$ (resp. $\pi$ as split and therefore regular epi) lets
-us fill in the $\ups f$ and $\dns f$.
-
-Conversely, if we have a suitable $\ups f$ and a $\dns f$, we can
-reason according to the following diagrams:
-\[
-\begin{diagram}
-G_1&\rEmbed^{g_1}&C_1\\
-\dEmbed<{g_1}&\rdTo>{\ups f}&&\rdTo>f\\
-C_1&&G_2&\rEmbed^{g_2}&C_2\\
-&\rdTo<f&\dEmbed<{g_2}&&\dTo>{\delta_2}\\
-&&C_2&\rTo_{d\pi_2}&D\\
-\end{diagram}
-\qquad\qquad
-\]
-\[
-\begin{diagram}
-C_1&\rTo^{\pi_1}&B&\rEmbed^{\iota_1}&C_1\\
-\dEquiv&&&\rdEquiv&\dOnto>{\pi_1}&\rdTo>f\\
-C_1&&\rOnto_{\pi_1}&&B_1&&C_2\\
-&\rdTo_{f}&&&&\rdTo>{\dns f}&\dOnto>{\pi_2}\\
-&&C_2&&\rOnto_{\pi_2}&&B_2\\
-\end{diagram}
-\]
+of the diagram. Then $\begin{diagram}G&\rEmbed~g&C&\rOnto~\pi&B\end{diagram}$ is a regular cache-type. By construction
+$g$ is a regular mono, and $\pi$ is regular epi because it is split epi.
 
 
 \end{document}
