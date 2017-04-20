@@ -277,8 +277,7 @@ class Minibuffer extends Component < any, any > {
 	 return <div className="mbcont">
 		  <b>{"\u25B6"}</b>
 		  <div className="input_container">
-			 <input contentEditable={false}
-					  ref={e => this._elt = e as HTMLInputElement}
+			 <input ref={e => this._elt = e as HTMLInputElement}
 					  onKeyDown={(e) => { if (e.keyCode == 13) props.send();}}
 					  onInput={x => dispatch({t: "SetMinibuf", v: this._elt.value})}
 					  value={this.props.value}></input>
