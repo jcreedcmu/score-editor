@@ -65,6 +65,9 @@ type Partial<T> = {
   [P in keyof T]?: T[P];
 }
 
+type RecPartial<T> = {
+  [P in keyof T]?: RecPartial<T[P]>;
+}
 type Mod<T> = {
   [P in keyof T]?: (x: T[P]) => T[P];
 }
@@ -74,6 +77,7 @@ type Mod<T> = {
 // https://spin.atomicobject.com/2016/11/30/immutable-js-records-in-typescript/
 interface TRecord<T> {
   with(values: Partial<T>): TRecord<T>;
+  mod(funcs: Mod<T>): TRecord<T>;
 }
 
 function TRecord<T>(defaultValues: T): TRecord<T> {
@@ -82,14 +86,26 @@ function TRecord<T>(defaultValues: T): TRecord<T> {
 		return this.merge(values) as this;
 	 }
 	 mod(funcs: Mod<T>): this {
-		throw "d";
+		let r = this;
+		Object.keys(funcs).forEach((k: keyof T) => {
+		  r = r.set(k, funcs[k](r.get(k))) as this;
+		});
+		return r;
 	 }
   }
   return new _TRecord();
 }
 
-const x: TRecord<AppState> = TRecord(initialState)
-window['z'] = x.with({offsetTicks: 3});
-import { Map } from 'immutable';
-debugger;
-window['w'] = Map({'d': 3})
+type Bar = {
+  c: number,
+  d: string,
+}
+type Foo = {
+  a: number
+  b: TRecord<Bar>
+}
+
+function mod<T>(y: Mod<T>): (x: TRecord<T>) => TRecord<T> { return x => x.mod(y) }
+const x: TRecord<Foo> = TRecord({a: 3, b: TRecord({c: 3, d: "d" })})
+
+const z: TRecord<Foo> = mod<Foo>({a: x => x+1, b: mod<Bar>({c: x => x + 1})})(x);

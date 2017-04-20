@@ -7,53 +7,25 @@
 \def\lamp{\binampersand}
 \def\bpush{\mathbf{push}}
 \newarrow {Equiv} =====
-\def\ups#1{#1^G}
-\def\dns#1{#1^B}
+\def\ups{{\uparrow}}
+\def\dns{{\downarrow}}
 
 \begin{document}
 
-A cache-type is  ${\bf C} = (G, C, B, g, \pi)$ such that
-\[
-\begin{diagram}
-G&\rEmbed^g&C&\rOnto^\pi&B
-\end{diagram}
-\]
-A morphism ${\bf C}_1 \to {\bf C}_2$ is
-$f : C_1 \to C_2$ such that we can find $\ups f$, $\dns f$ to make the following commute:
+A regular cache-type is  ${\bf C} = (G, C, B, D, E)$ with morphisms
 \[\begin{diagram}
-G_1&\rEmbed^{g_1}&C_1&\rOnto^{\pi_1}&B_1\\
-\dTo<{\ups f}&&\dTo>f&&\dTo>{\dns f}\\
-G_2&\rEmbed_{g_2}&C_2&\rOnto_{\pi_2}&B_2\\
+&&G\\
+&&\dEmbed<{g}\\
+E&\pile{\rTo^{e}\\\rTo_{e'}}&C&\pile{\rTo^{d}\\\rTo_{d'}}&D\\
+&&\dOnto<{\pi}\\
+&&B\\
 \end{diagram}
 \]
+Where $g$ is the equalizer of $d,d'$ and $\pi$ the coequalizer of $e,e'$. A morphism ${\bf C}_1 \to {\bf C}_2$ is
+$f : C_1 \to C_2$ such that $d_2fg_1 = d'_2 f g_1$ and $\pi_2 fe_1 = \pi_2 fe'_1$.
 
-{\bf Fact}: The choices of $\ups f$ and $\dns f$ are uniquely determined by $f$.
+{\bf Fact}: $f$ is a morphism iff we can (uniquely!) find $\ups f$ and $\dns f$ such that
 
-{\bf Proof}: Because $g_2$ is mono and $\pi_1$ is epi.
-
-\vskip1em
-\hrule
-\vskip1em
-
-
-A regular cache-type is one where the two morphisms are regular; we have
-equalizer and coequalizer diagrams
-\[
-\begin{diagram}
-G&\rEmbed^g&C&\pile{\rTo^{d}\\\rTo_{d'}}&D
-\end{diagram}
-\qquad
-\begin{diagram}
-E&\pile{\rTo^{e}\\\rTo_{e'}}&C&\rOnto^\pi&B
-\end{diagram}
-\]
-{\bf Fact}: If ${\bf C}_1, {\bf C}_2$ are regular,
-then $f$ is a morphism ${\bf C}_1 \to {\bf C}_2$ iff
-$$d_2fg_1 = d'_2 f g_1 \hbox{ and } \pi_2 fe_1 = \pi_2 fe'_1\eqno(*)$$
-
-
-{\bf Proof}: Reason according to the following diagram, using (co)equalizer property of
-$g_2$ and $\pi_1$ to fill in $\ups f$ and $\dns f$.
 \[\begin{diagram}
 &&G_1&\rDotsto^{\ups f}&G_2\\
 &&\dEmbed<{g_1}&&\dEmbed>{g_2}\\
@@ -100,8 +72,8 @@ G &\rEmbed^{g}_{\textrm{[eq'izer]}}&C&\pile{\rTo^{\delta}\\\rTo_{d\circ\pi}}&D
 These say how to (maybe inefficiently) derive derived state from the base ($d$), and how to derive it (more efficiently)
 from state with extra cache ($\delta$), how to project out the base state from the cache state ($\pi$), and
 how to create an empty cache ($\iota$). Note that it's not necessarily the case that $d\pi = \delta$ despite the appearance
-of the diagram. Then $\begin{diagram}G&\rEmbed~g&C&\rOnto~\pi&B\end{diagram}$ is a regular cache-type. By construction
-$g$ is a regular mono, and $\pi$ is regular epi because it is split epi.
+of the diagram. Then $(G, C, B, D, C)$ is a regular cache-type. Because $\pi$ is split epi, it coequalizes
+$1_C$ and $\iota \pi$.
 
 
 \end{document}
