@@ -2,3 +2,7 @@
 main.js
 js/*
 node_modules/
+doc/*.aux
+doc/*.log
+doc/*.pdf
+doc/*.dvi
