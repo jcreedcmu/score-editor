@@ -3,7 +3,9 @@ import { component_render, find_note_at_mpoint } from './component';
 import { MouseState, MouseAction, Action, AppState, Note, mpoint,
 			initialState } from './types';
 import { keyOf } from './key';
-import * as _ from "underscore";
+import { updateIn } from './util';
+
+import * as _ from "lodash";
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
@@ -157,7 +159,6 @@ function note_of_mpoint({pitch, time}: mpoint): Note {
   return {pitch, time: [time, time + 3]};
 }
 
-
 function reduceCmd(state: AppState, cmd: string): AppState {
   switch (cmd) {
   case "clear":
@@ -192,13 +193,12 @@ export function dispatch(a: Action) {
 		if (note) {
 		  // Delete note
 		  const notIt = x => JSON.stringify(x) != JSON.stringify(note);
-		  state = rederivePreviewNote({...state, score: {...state.score,
-																		 notes: _.filter(state.score.notes, notIt)}});
+		  state = rederivePreviewNote(updateIn<AppState['score']['notes']>(state, ['score', 'notes'], n => _.filter(n, notIt)));
 		}
 		else {
 		  // Create note
 		  const sn: Note = snap(state.gridSize, note_of_mpoint(mp));
-		  state = rederivePreviewNote({...state, score: {...state.score, notes: [...state.score.notes, sn]}});
+		  state = rederivePreviewNote(updateIn<AppState['score']['notes']>(state, ['score', 'notes'], n => n.concat([sn])));
 		}
 		red = true;
 	 }
@@ -211,17 +211,6 @@ export function dispatch(a: Action) {
 	 break;
   case "SetCurrentPlaybackTime":
 	 setState({offsetTicks: a.v});
-	 break;
-  case "CreateNote":
-	 const sn: Note = snap(state.gridSize, a.note);
-	 // maybe I want immutable.js here!
-	 state = rederivePreviewNote({...state, score: {...state.score, notes: [...state.score.notes, sn]}});
-	 component_render(state);
-	 break;
-  case "DeleteNote":
-	 const notIt = x => JSON.stringify(x) != JSON.stringify(a.note);
-	 state = rederivePreviewNote({...state, score: {...state.score, notes: _.filter(state.score.notes, notIt)}});
-	 component_render(state);
 	 break;
   case "Key": {
 	 const old = state;

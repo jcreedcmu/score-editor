@@ -8,8 +8,6 @@ export type MouseAction =
 
 export type Action =
   MouseAction
-  | { t: "CreateNote"; note: Note; }
-  | { t: "DeleteNote"; note: Note; }
   | { t: "Play"; score: Score; }
   | { t: "Vscroll"; top: number; }
   | { t: "SetCurrentPlaybackTime"; v: number }
@@ -57,51 +55,3 @@ export const initialState: AppState = {
   minibufferVisible: false,
   minibuf: '',
 };
-
-
-import { Record, Map } from 'immutable';
-
-type Partial<T> = {
-  [P in keyof T]?: T[P];
-}
-
-type RecPartial<T> = {
-  [P in keyof T]?: RecPartial<T[P]>;
-}
-type Mod<T> = {
-  [P in keyof T]?: (x: T[P]) => T[P];
-}
-
-
-// modification/generalization of the idea in
-// https://spin.atomicobject.com/2016/11/30/immutable-js-records-in-typescript/
-// interface TRecord<T> {
-//   with(values: Partial<T>): TRecord<T>;
-//   mod(funcs: Mod<T>): TRecord<T>;
-// }
-
-// function TRecord<T>(defaultValues: T): TRecord<T> {
-//   class _TRecord extends Record(defaultValues) {
-// 	 with(values: Partial<T>): this {
-// 		return this.merge(values) as this;
-// 	 }
-// 	 mod(funcs: Mod<T>): this {
-// 		let r = this;
-// 		Object.keys(funcs).forEach((k: keyof T) => {
-// 		  r = r.set(k, funcs[k](r.get(k))) as this;
-// 		});
-// 		return r;
-// 	 }
-//   }
-//   return new _TRecord();
-// }
-
-// ype Blerg<T> = Record.Instance<T> & Readonly<T>;
-// function MyRecord<T>(defaultValues: T): Blerg<T>{
-//   return ((new (Record(defaultValues))()) as any) as Blerg<T>;
-// }
-
-class Foo extends Record({b:3, c:"d"}) { }
-class Blerp extends Record({a:0, z: new Foo()}) { }
-
-console.log(new Blerp().update('z', x => x.set('c', "d")));

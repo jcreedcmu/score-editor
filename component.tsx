@@ -3,7 +3,7 @@ import { Surface } from './surface';
 import { dispatch } from './main';
 import { Note, AppState, mpoint, cpoint } from './types';
 import * as CSSTransitionGroup from 'preact-css-transition-group';
-import * as _ from "underscore";
+import * as _ from "lodash";
 
 const SCALE = 2; // units: pixels per fat pixel
 const PIANO_H = 73;
