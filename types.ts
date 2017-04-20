@@ -46,3 +46,14 @@ export type DerivedState = {
 }
 
 export type AppState = BaseState & DerivedState;
+
+export const initialState: AppState = {
+  offsetTicks: null,
+  mouseState: {t: "hover", mp: null},
+  previewNote: null,
+  score: {duration: 32, seconds_per_tick: 0.1, notes: []},
+  gridSize: 4,
+  scrollOctave: 3, /* in the range [0 .. 4] for now, higher numbers are lower pitch */
+  minibufferVisible: false,
+  minibuf: '',
+};

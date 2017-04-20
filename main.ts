@@ -1,6 +1,7 @@
 import { score } from './score';
 import { component_render, find_note_at_mpoint } from './component';
-import { MouseState, MouseAction, Action, AppState, Note, mpoint } from './types';
+import { MouseState, MouseAction, Action, AppState, Note, mpoint,
+			initialState } from './types';
 import { keyOf } from './key';
 import * as _ from "underscore";
 
@@ -91,18 +92,8 @@ function unreachable(x: never): never {
   throw new Error("Shouldn't get here.");
 }
 
-const initialState: AppState = {
-  offsetTicks: null,
-  mouseState: {t: "hover", mp: null},
-  previewNote: null,
-  score,
-  gridSize: 4,
-  scrollOctave: 3, /* in the range [0 .. 4] for now, higher numbers are lower pitch */
-  minibufferVisible: false,
-  minibuf: '',
-};
-
 let state = initialState;
+state.score = score;
 
 // snap to grid
 function snap(gridSize: number, note: Note): Note {
