@@ -59,7 +59,7 @@ export const initialState: AppState = {
 };
 
 
-import { Record } from 'immutable';
+import { Record, Map } from 'immutable';
 
 type Partial<T> = {
   [P in keyof T]?: T[P];
@@ -75,37 +75,33 @@ type Mod<T> = {
 
 // modification/generalization of the idea in
 // https://spin.atomicobject.com/2016/11/30/immutable-js-records-in-typescript/
-interface TRecord<T> {
-  with(values: Partial<T>): TRecord<T>;
-  mod(funcs: Mod<T>): TRecord<T>;
-}
+// interface TRecord<T> {
+//   with(values: Partial<T>): TRecord<T>;
+//   mod(funcs: Mod<T>): TRecord<T>;
+// }
 
-function TRecord<T>(defaultValues: T): TRecord<T> {
-  class _TRecord extends Record(defaultValues) {
-	 with(values: Partial<T>): this {
-		return this.merge(values) as this;
-	 }
-	 mod(funcs: Mod<T>): this {
-		let r = this;
-		Object.keys(funcs).forEach((k: keyof T) => {
-		  r = r.set(k, funcs[k](r.get(k))) as this;
-		});
-		return r;
-	 }
-  }
-  return new _TRecord();
-}
+// function TRecord<T>(defaultValues: T): TRecord<T> {
+//   class _TRecord extends Record(defaultValues) {
+// 	 with(values: Partial<T>): this {
+// 		return this.merge(values) as this;
+// 	 }
+// 	 mod(funcs: Mod<T>): this {
+// 		let r = this;
+// 		Object.keys(funcs).forEach((k: keyof T) => {
+// 		  r = r.set(k, funcs[k](r.get(k))) as this;
+// 		});
+// 		return r;
+// 	 }
+//   }
+//   return new _TRecord();
+// }
 
-type Bar = {
-  c: number,
-  d: string,
-}
-type Foo = {
-  a: number
-  b: TRecord<Bar>
-}
+// ype Blerg<T> = Record.Instance<T> & Readonly<T>;
+// function MyRecord<T>(defaultValues: T): Blerg<T>{
+//   return ((new (Record(defaultValues))()) as any) as Blerg<T>;
+// }
 
-function mod<T>(y: Mod<T>): (x: TRecord<T>) => TRecord<T> { return x => x.mod(y) }
-const x: TRecord<Foo> = TRecord({a: 3, b: TRecord({c: 3, d: "d" })})
+class Foo extends Record({b:3, c:"d"}) { }
+class Blerp extends Record({a:0, z: new Foo()}) { }
 
-const z: TRecord<Foo> = mod<Foo>({a: x => x+1, b: mod<Bar>({c: x => x + 1})})(x);
+console.log(new Blerp().update('z', x => x.set('c', "d")));
