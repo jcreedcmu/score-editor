@@ -12,7 +12,7 @@
 
 \begin{document}
 
-A cache-type over $d : B \to D$ is  ${\bf C} = (C, G, \pi, \iota, \delta, g)$ such that
+A cache-type is  ${\bf C} = (C, B, D, G, \pi, \iota, \delta, g)$ such that
 \[
 \begin{diagram}
 B&\lEquiv&B\\
@@ -33,9 +33,9 @@ of the diagram.
 A morphism ${\bf C}_1 \to {\bf C}_2$ to the state is
 $f : C_1 \to C_2$ such that we can find $\ups f$, $\dns f$ to make the following commute:
 \[\begin{diagram}
-G_1&\rEmbed^{g_1}&C_1&\rOnto^{\pi_1}&B\\
+G_1&\rEmbed^{g_1}&C_1&\rOnto^{\pi_1}&B_1\\
 \dTo<{\ups f}&&\dTo>f&&\dTo>{\dns f}\\
-G_2&\rEmbed_{g_2}&C_2&\rOnto_{\pi_2}&B\\
+G_2&\rEmbed_{g_2}&C_2&\rOnto_{\pi_2}&B_2\\
 \end{diagram}
 \]
 
@@ -58,9 +58,9 @@ Dually, $\dns f$ means $\pi_2 f$ coequalizes $1_C$ and $\iota_1 \pi_1$.
 \begin{diagram}
 C_1&\rTo^{\pi_1}&B&\rEmbed^{\iota_1}&C_1\\
 \dEquiv&&&\rdEquiv&\dOnto>{\pi_1}&\rdTo>f\\
-C_1&&\rOnto_{\pi_1}&&B&&C_2\\
+C_1&&\rOnto_{\pi_1}&&B_1&&C_2\\
 &\rdTo_{f}&&&&\rdTo>{\dns f}&\dOnto>{\pi_2}\\
-&&C_2&&\rOnto_{\pi_2}&&B\\
+&&C_2&&\rOnto_{\pi_2}&&B_2\\
 \end{diagram}
 \]
 
