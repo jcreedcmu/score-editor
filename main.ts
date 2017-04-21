@@ -176,6 +176,16 @@ function reduceMouse(state: AppState, a: MouseAction): [boolean, AppState] {
 
   const [redraw1, nms] = newMouseState();
 
+  // x is a floating point number. We want to return an int, but have
+  // the function feel reasonably responsive even if x isn't that far
+  // from zero.
+  function augment_and_snap(x: number) {
+	 const sgn = x > 0 ? 1 : -1;
+	 const abs = Math.abs(x);
+	 const snap = Math.floor(abs+0.5);
+	 return snap * sgn;
+  }
+
   function newOtherState(): [boolean, AppState] {
 	 switch(ms.t) {
 	 case "down":
@@ -199,7 +209,8 @@ function reduceMouse(state: AppState, a: MouseAction): [boolean, AppState] {
 //		  console.log(xd_of_ticksd(Math.abs(ms.orig.x - ms.now.x)));
 //		  console.log(JSON.stringify(state, null, 2));
 		  const oldLength = (ms.note.time[1] - ms.note.time[0]);
-		  const newLength = Math.max(1, Math.floor(ms.now.time - ms.orig.time) + oldLength);
+		  const lengthDiff = augment_and_snap(ms.now.time - ms.orig.time);
+		  const newLength = Math.max(1, lengthDiff + oldLength);
 		  const newEnd = ms.note.time[0] + newLength;
 		  let rv: [boolean, AppState] = [true, updateIn<number>(state, ['score', 'notes', ms.noteIx, 'time', 1],
 																				  n => newEnd)];
