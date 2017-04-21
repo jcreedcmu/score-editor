@@ -157,8 +157,12 @@ class ScoreEditorMain extends Surface < ScoreEditorMainProps > {
   }
 }
 
+export function xd_of_ticksd(ticksd: number): number {
+  return ticksd * PIXELS_PER_TICK;
+}
+
 function mpoint_of_cpoint(cp: cpoint, scrollOctave: number): mpoint {
-  return {
+  return {...cp,
 	 pitch: y0pitch_of_scrollOctave(scrollOctave) - Math.floor(cp.y / (SCALE * PITCH_HEIGHT)),
 	 time: (cp.x - (PIANO_WIDTH + GUTTER_WIDTH + SCALE)) / PIXELS_PER_TICK,
   };

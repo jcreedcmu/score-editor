@@ -21,13 +21,16 @@ export type Score = {
   notes: Note[],
 };
 
-// XXX rename 'time' to 'ticks'
-export type mpoint = { pitch: number, time: number } // point in "musical coordinates"
 export type cpoint = { x: number, y: number } // point measured in pixels from the topleft of the canvas
+
+// XXX rename 'time' to 'ticks'
+export type mpoint = { pitch: number, time: number } & cpoint // point also in "musical coordinates"
+
 
 export type MouseState =
   | { t: "hover", mp: mpoint | null }
   | { t: "down", orig: mpoint, now: mpoint | null }
+  | { t: "resize", orig: mpoint, now: mpoint | null }
 
 export type BaseState = {
   offsetTicks: number | null,

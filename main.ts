@@ -1,5 +1,5 @@
 import { score } from './score';
-import { component_render, find_note_at_mpoint } from './component';
+import { component_render, find_note_at_mpoint, xd_of_ticksd } from './component';
 import { MouseState, MouseAction, Action, AppState, Note, mpoint,
 			initialState } from './types';
 import { keyOf } from './key';
@@ -118,6 +118,7 @@ function rederivePreviewNote(state: AppState): AppState {
 		return snap(state.gridSize, {pitch: mh.pitch,
 											  time: [mh.time, mh.time]});
 	 case "down":
+	 case "resize":
 		return null;
 	 default: unreachable(ms);
 	 }
@@ -131,25 +132,35 @@ function mouseReduce(a: MouseAction, ms: MouseState): [boolean, MouseState] {
   case "Mousemove":
 	 switch(ms.t) {
 	 case "hover": return [false, {t: "hover", mp: a.mpoint}];
-	 case "down": return [false, {t: "down", orig: ms.orig, now: a.mpoint}];
+	 case "down": {
+		const pa: mpoint = ms.orig;
+		const pb: mpoint = a.mpoint;
+		if (xd_of_ticksd(Math.abs(pa.time - pb.time)) > 5)
+		  return [false, {t: "resize", orig: pa, now: pb}];
+		return [false, {t: "down", orig: pa, now: pb}];
+	 }
+	 case "resize": throw "not impl";
 	 default: unreachable(ms);
 	 }
   case "Mousedown":
 	 switch(ms.t) {
 	 case "hover": return [true, {t: "down", orig: a.mpoint, now: a.mpoint}];
 	 case "down": throw "impossible";
+	 case "resize": throw "not impl";
 	 default: unreachable(ms);
 	 }
   case "Mouseup":
 	 switch(ms.t) {
 	 case "hover": return [false, ms]; // this happens for mouse events that started outside the editor
 	 case "down": return [true, {t: "hover", mp: ms.now}];
+	 case "resize": throw "not impl";
 	 default: unreachable(ms);
 	 }
   case "Mouseleave":
 	 switch(ms.t) {
 	 case "hover": return [true, {...ms, mp: null}];
 	 case "down": return [true, {...ms, now: null}];
+	 case "resize": throw "not impl";
 	 default: unreachable(ms);
 	 }
   }
