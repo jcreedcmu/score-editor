@@ -1,5 +1,5 @@
 import { score } from './score';
-import { component_render, find_note_at_mpoint, xd_of_ticksd } from './component';
+import { component_render, find_note_at_mpoint, find_note_index_at_mpoint, xd_of_ticksd } from './component';
 import { MouseState, MouseAction, Action, AppState, Note, mpoint,
 			initialState } from './types';
 import { keyOf } from './key';
@@ -127,43 +127,92 @@ function rederivePreviewNote(state: AppState): AppState {
 
 }
 
-function mouseReduce(a: MouseAction, ms: MouseState): [boolean, MouseState] {
-  switch(a.t) {
-  case "Mousemove":
+// collateral state changes because of mouse actions
+function reduceMouse(state: AppState, a: MouseAction): [boolean, AppState] {
+  const ms = state.mouseState;
+
+  function newMouseState(): [boolean, MouseState] {
 	 switch(ms.t) {
-	 case "hover": return [false, {t: "hover", mp: a.mpoint}];
-	 case "down": {
-		const pa: mpoint = ms.orig;
-		const pb: mpoint = a.mpoint;
-		if (xd_of_ticksd(Math.abs(pa.time - pb.time)) > 5)
-		  return [false, {t: "resize", orig: pa, now: pb}];
-		return [false, {t: "down", orig: pa, now: pb}];
-	 }
-	 case "resize": throw "not impl";
-	 default: unreachable(ms);
-	 }
-  case "Mousedown":
-	 switch(ms.t) {
-	 case "hover": return [true, {t: "down", orig: a.mpoint, now: a.mpoint}];
-	 case "down": throw "impossible";
-	 case "resize": throw "not impl";
-	 default: unreachable(ms);
-	 }
-  case "Mouseup":
-	 switch(ms.t) {
-	 case "hover": return [false, ms]; // this happens for mouse events that started outside the editor
-	 case "down": return [true, {t: "hover", mp: ms.now}];
-	 case "resize": throw "not impl";
-	 default: unreachable(ms);
-	 }
-  case "Mouseleave":
-	 switch(ms.t) {
-	 case "hover": return [true, {...ms, mp: null}];
-	 case "down": return [true, {...ms, now: null}];
-	 case "resize": throw "not impl";
-	 default: unreachable(ms);
+	 case "hover":
+		switch(a.t) {
+		case "Mousemove": return [false, {t: "hover", mp: a.mpoint}];
+		case "Mousedown": return [true, {t: "down", orig: a.mpoint, now: a.mpoint}];
+		case "Mouseup": return [false, ms]; // this happens for mouse events that started outside the editor
+		case "Mouseleave": return [true, {...ms, mp: null}];
+		default: throw unreachable(a);
+		}
+
+	 case "down":
+		switch(a.t) {
+		case "Mousemove": {
+		  const pa: mpoint = ms.orig;
+		  const pb: mpoint = a.mpoint;
+		  let rv: [boolean, MouseState] = [false, {t: "down", orig: pa, now: pb}];
+		  if (xd_of_ticksd(Math.abs(pa.time - pb.time)) > 5) {
+			 const noteIx = find_note_index_at_mpoint(state.score.notes, pa);
+			 if (noteIx != -1) {
+				const note = state.score.notes[noteIx];
+				rv = [false, {t: "resize", orig: pa, now: pb, note, noteIx}];
+			 }
+		  }
+		  return rv;
+		}
+		case "Mousedown": throw "impossible";
+		case "Mouseup": return [true, {t: "hover", mp: ms.now}];
+		case "Mouseleave": return [true, {...ms, now: null}];
+		default: throw unreachable(a);
+		}
+
+	 case "resize":
+		switch(a.t) {
+		case "Mousemove": return [false, {...ms, now: a.mpoint}];
+		case "Mousedown": throw "impossible";
+		case "Mouseup": return [true, {t: "hover", mp: ms.now}];
+		case "Mouseleave": return [true, {...ms, now: null}];
+		default: throw unreachable(a);
+		}
 	 }
   }
+
+  const [redraw1, nms] = newMouseState();
+
+  function newOtherState(): [boolean, AppState] {
+	 switch(ms.t) {
+	 case "down":
+		if (a.t == "Mouseup") {
+		  const mp = ms.orig;
+		  const note = find_note_at_mpoint(state.score.notes, mp);
+		  if (note) {
+			 // Delete note
+			 const notIt = x => JSON.stringify(x) != JSON.stringify(note);
+			 return [true, updateIn<AppState['score']['notes']>(state, ['score', 'notes'], n => _.filter(n, notIt))];
+		  }
+		  else {
+			 // Create note
+			 const sn: Note = snap(state.gridSize, note_of_mpoint(mp));
+			 return [true, updateIn<AppState['score']['notes']>(state, ['score', 'notes'], n => n.concat([sn]))];
+		  }
+		}
+		break;
+	 case "resize":
+		if (a.t == "Mousemove") {
+//		  console.log(xd_of_ticksd(Math.abs(ms.orig.x - ms.now.x)));
+//		  console.log(JSON.stringify(state, null, 2));
+		  const oldLength = (ms.note.time[1] - ms.note.time[0]);
+		  const newLength = Math.max(1, Math.floor(ms.now.time - ms.orig.time) + oldLength);
+		  const newEnd = ms.note.time[0] + newLength;
+		  let rv: [boolean, AppState] = [true, updateIn<number>(state, ['score', 'notes', ms.noteIx, 'time', 1],
+																				  n => newEnd)];
+//		  console.log(JSON.stringify(state, null, 2));
+		  return rv;
+		}
+		break;
+	 }
+	 return [false, state];
+  }
+
+  const [redraw2, state2] = newOtherState();
+  return [redraw1 || redraw2, {...state2, mouseState: nms}];
 }
 
 function note_of_mpoint({pitch, time}: mpoint): Note {
@@ -196,25 +245,9 @@ export function dispatch(a: Action) {
   case "Mousedown":
   case "Mouseup":
 	 const old = state;
-	 const [redraw, nms] = mouseReduce(a, state.mouseState);
-	 let red = redraw;
-	 if (state.mouseState.t == "down" && a.t == "Mouseup") {
-		const mp = state.mouseState.orig;
-		const note = find_note_at_mpoint(state.score.notes, mp);
-		if (note) {
-		  // Delete note
-		  const notIt = x => JSON.stringify(x) != JSON.stringify(note);
-		  state = rederivePreviewNote(updateIn<AppState['score']['notes']>(state, ['score', 'notes'], n => _.filter(n, notIt)));
-		}
-		else {
-		  // Create note
-		  const sn: Note = snap(state.gridSize, note_of_mpoint(mp));
-		  state = rederivePreviewNote(updateIn<AppState['score']['notes']>(state, ['score', 'notes'], n => n.concat([sn])));
-		}
-		red = true;
-	 }
-	 state = rederivePreviewNote({...state, mouseState: nms});
-	 if (red || (JSON.stringify(old.previewNote) != JSON.stringify(state.previewNote)))
+	 const [redraw, state2] = reduceMouse(state, a);
+	 state = rederivePreviewNote(state2);
+	 if (redraw || (JSON.stringify(old.previewNote) != JSON.stringify(state.previewNote)))
 		component_render(state);
 	 break;
   case "Play":

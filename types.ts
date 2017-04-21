@@ -30,7 +30,8 @@ export type mpoint = { pitch: number, time: number } & cpoint // point also in "
 export type MouseState =
   | { t: "hover", mp: mpoint | null }
   | { t: "down", orig: mpoint, now: mpoint | null }
-  | { t: "resize", orig: mpoint, now: mpoint | null }
+  | { t: "resize", orig: mpoint, now: mpoint | null,
+		note: Note, noteIx: number }
 
 export type BaseState = {
   offsetTicks: number | null,

@@ -53,6 +53,14 @@ export function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined
   });
 }
 
+export function find_note_index_at_mpoint(notes: Note[], mp: mpoint): number {
+  return _.findIndex(notes, note => {
+	 return (note.pitch == mp.pitch
+				&& note.time[0] <= mp.time
+				&& note.time[1] >= mp.time);
+  });
+}
+
 // I find this just helps guide my eye
 function draw_gutter(d, x, y, w) {
   d.fillStyle = "black";
