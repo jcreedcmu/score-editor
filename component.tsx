@@ -6,8 +6,8 @@ import * as CSSTransitionGroup from 'preact-css-transition-group';
 import * as _ from "lodash";
 
 const SCALE = 2; // units: pixels per fat pixel
-const PIANO_H = 73;
-const PIANO_W = 43;
+const PIANO_H = 97;
+const PIANO_W = 58;
 const PIANO_OCTAVE_VSPACE = (PIANO_H - 1) * SCALE;
 const PIANO_WIDTH = (PIANO_W) * SCALE;
 const GUTTER_W = 8;
@@ -16,8 +16,9 @@ const SCORE_W = 250;
 const SCORE_WIDTH = 250 * SCALE;
 const FAT_PIXELS_PER_TICK = 6;
 const PIXELS_PER_TICK = FAT_PIXELS_PER_TICK * SCALE;
-const PITCH_HEIGHT = 6;
+const PITCH_HEIGHT = 8;
 const BASIC_PITCH_AT_Y0 = -1 + 12 * 6;
+const BLACK_NOTE_WIDTH = 34;
 
 function box(d, x, y, w, h, border, c, bc) {
   d.fillStyle = bc;
@@ -70,7 +71,7 @@ function draw_gutter(d, x, y, w) {
 
   for (let n = 0; n < 12; n++) {
 	 if (keytype[n]) {
-		box(d, w - 7, PITCH_HEIGHT * n, 5, 7, 1, "#141414", "black");
+		box(d, w - 7, PITCH_HEIGHT * n, 5, PITCH_HEIGHT+1, 1, "#141414", "black");
 	 }
   }
 
@@ -115,11 +116,11 @@ function draw_piano_octave(d, x, y) {
   d.translate(x, y);
   box(d, 0, 0, PIANO_W, PIANO_H, 1, "#f8f8d8", "black");
   d.fillStyle = "black";
-  [10, 21, 32, 42, 52, 62].forEach(wks =>
+  [14, 28, 42, 56, 69, 83].forEach(wks =>
 											  d.fillRect(0, wks * SCALE, PIANO_W * SCALE, 1 * SCALE)
 											 );
   [1, 3, 5, 8, 10].forEach(bk =>
-									box(d, 0, PITCH_HEIGHT * bk, 25, PITCH_HEIGHT + 1, 1, "#2e2234", "black")
+									box(d, 0, PITCH_HEIGHT * bk, BLACK_NOTE_WIDTH, PITCH_HEIGHT + 1, 1, "#2e2234", "black")
 								  );
 
   d.restore();
