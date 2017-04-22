@@ -239,9 +239,16 @@ function note_of_mpoint({pitch, time}: mpoint): Note {
 }
 
 function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
-  switch (cmd) {
+  const words = cmd.split(/ /);
+  switch (words[0]) {
   case "clear":
 	 return updateCurrentNotes(state, x => fromJS([]));
+  case "edit":
+	 let st = set(state, 'mode', fromJS({t: 'editPattern', patName: words[1]}));
+	 if (getCurrentNotes(st) == undefined) {
+		st = setCurrentNotes(st, []);
+	 }
+	 return st;
   default: return state;
   }
 }
@@ -263,7 +270,15 @@ function getCurrentPattern(state: Im<AppState>): string | undefined {
 function getCurrentNotes(state: Im<AppState>): Note[] | undefined {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return undefined; // maybe console.log in this case?
-  return toJS(getIn(state, x => x.score.patterns[pat]));
+  const notes = getIn(state, x => x.score.patterns[pat])
+  if (notes == undefined) return undefined; // this is definitely a non-exceptional case
+  return toJS(notes);
+}
+
+function setCurrentNotes(state: Im<AppState>, notes: Note[]): Im<AppState> {
+  const pat = getCurrentPattern(state);
+  if (pat == undefined) return undefined; // maybe console.log in this case?
+  return setIn(state, x => x.score.patterns[pat], fromJS(notes))
 }
 
 // For any f that dispatch causes as a side effect,
