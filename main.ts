@@ -154,7 +154,9 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState
 			 const noteIx = find_note_index_at_mpoint(notes, pa);
 			 if (noteIx != -1) {
 				const note = notes[noteIx];
-				rv = [false, {t: "resize", orig: pa, now: pb, note, noteIx}];
+				const fromRight = pa.time > (note.time[0] + note.time[1]) / 2;
+				console.log(fromRight);
+				rv = [false, {t: "resize", fromRight, orig: pa, now: pb, note, noteIx}];
 			 }
 		  }
 		  return rv;
@@ -208,16 +210,19 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState
 		break;
 	 case "resize":
 		if (a.t == "Mousemove") {
-//		  console.log(xd_of_ticksd(Math.abs(ms.orig.x - ms.now.x)));
-//		  console.log(JSON.stringify(state, null, 2));
 		  const oldLength = (ms.note.time[1] - ms.note.time[0]);
 		  const lengthDiff = augment_and_snap(ms.now.time - ms.orig.time);
-		  const newLength = Math.max(1, lengthDiff + oldLength);
-		  const newEnd = ms.note.time[0] + newLength;
-		  let rv: [boolean, Im<AppState>] = [true, updateIn(state, x => x.score.notes[ms.noteIx].time[1],
-																						n => newEnd)];
-//		  console.log(JSON.stringify(state, null, 2));
-		  return rv;
+		  if (ms.fromRight) {
+			 const newLength = Math.max(1, lengthDiff + oldLength);
+			 const newEnd = ms.note.time[0] + newLength;
+			 return [true, setIn(state, x => x.score.notes[ms.noteIx].time[1], newEnd)];
+		  }
+		  else {
+			 const newLength = Math.max(1, oldLength - lengthDiff);
+			 const newBegin = ms.note.time[1] - newLength;
+			 return [true, setIn(state, x => x.score.notes[ms.noteIx].time[0], newBegin)];
+		  }
+
 		}
 		break;
 	 }
