@@ -253,6 +253,7 @@ function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
 //       Base -------------------------> Base
 //                      f'
 export function dispatch(a: Action) {
+//  const d = Date.now();
   switch (a.t) {
   case "Mousemove":
   case "Mouseleave":
@@ -269,6 +270,7 @@ export function dispatch(a: Action) {
 	 break;
   case "SetCurrentPlaybackTime":
 	 state = set(state, 'offsetTicks', a.v);
+	 render();
 	 break;
   case "Key": {
 	 const old = state;
@@ -293,6 +295,7 @@ export function dispatch(a: Action) {
 	 break;
   default: unreachable(a);
   }
+//  console.log(a.t, Date.now() - d);
 }
 
 function reduceKey(state: Im<AppState>, key: string): Im<AppState> {
