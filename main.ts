@@ -1,5 +1,6 @@
 import { score } from './score';
-import { component_render, find_note_at_mpoint, find_note_index_at_mpoint, xd_of_ticksd } from './component';
+import { component_render } from './component';
+import { find_note_at_mpoint, find_note_index_at_mpoint, xd_of_ticksd } from './roll';
 import { MouseState, MouseAction, Action, AppState, Note, mpoint,
 			initialState } from './types';
 import { keyOf } from './key';
