@@ -23,6 +23,10 @@ function adsr(params, length) {
   }
 }
 
+const noise = [];
+for (var i = 0; i < 10000; i++) {
+  noise[i] = Math.random() - 0.5;
+}
 
 function audio_render_notes(ad, score: Score, progress: (t: number) => void) {
   const segmentTime = score.duration * score.seconds_per_tick;
@@ -37,12 +41,22 @@ function audio_render_notes(ad, score: Score, progress: (t: number) => void) {
 		const note_term_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE + real_length * RATE);
 		const state = {phase: 0, amp: 1, f: freq_of_pitch(note.pitch)};
 
-		for (var t = note_start_frame; t < note_term_frame; t++) {
-		  state.phase += state.f / RATE;
-		  let e = env_f((t - note_start_frame) / RATE);
-		  const wav = 0.15 * Math.sin(3.1415926535 * 2 * state.phase);
-		  //		const wav = 0.05 * ((state.phase - Math.floor(state.phase) < 0.5) ? 1 : -1);
-		  dat[t] += e * state.amp * wav ;
+		if (patName == "drums") {
+		  for (var t = note_start_frame; t < note_term_frame; t++) {
+			 state.phase += 100 * state.f / RATE;
+			 let e = env_f((t - note_start_frame) / RATE);
+			 const wav = noise[Math.floor(state.phase) % 10000];
+			 dat[t] += e * state.amp * wav * (1 - (t - note_start_frame) / (note_term_frame - note_start_frame)) ;
+		  }
+		}
+		else {
+		  for (var t = note_start_frame; t < note_term_frame; t++) {
+			 state.phase += state.f / RATE;
+			 let e = env_f((t - note_start_frame) / RATE);
+			 //const wav = 0.15 * Math.sin(3.1415926535 * 2 * state.phase);
+			 const wav = 0.05 * ((state.phase - Math.floor(state.phase) < 0.5) ? 1 : -1);
+			 dat[t] += e * state.amp * wav ;
+		  }
 		}
 	 });
   });
