@@ -9,7 +9,7 @@ canvas { cursor: url(pencil.png) 5 16, auto; }
 }
 .scroll_content {
 }
-#canvas_container { display: inline-block; }
+
 .minibuffer {
   position: fixed;
   bottom: 0px;
@@ -66,4 +66,18 @@ canvas { cursor: url(pencil.png) 5 16, auto; }
 .minibuf-leave.minibuf-leave-active   {
   top: 44px;
   transition: top 200ms ease-in;
+}
+
+.workspace { padding: 10px; }
+
+.modeHeader {
+
+  padding: 10px;
+  padding-left: 20px;
+  font-variant: small-caps;
+  font-size: 24px;
+  font-weight: bold;
+  background-color: black;
+  color: white;
+  font-family: sans-serif;
 }
