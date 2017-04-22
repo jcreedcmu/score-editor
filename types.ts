@@ -1,3 +1,5 @@
+import { fromJS, Immutable } from './immutable';
+
 export type Note = { pitch: number, time: [number, number] };
 
 export type MouseAction =
@@ -49,7 +51,7 @@ export type DerivedState = {
 
 export type AppState = BaseState & DerivedState;
 
-export const initialState: AppState = {
+export const initialState: Immutable<AppState> = fromJS({
   offsetTicks: null,
   mouseState: {t: "hover", mp: null},
   previewNote: null,
@@ -58,4 +60,4 @@ export const initialState: AppState = {
   scrollOctave: 3, /* in the range [0 .. 4] for now, higher numbers are lower pitch */
   minibufferVisible: false,
   minibuf: '',
-};
+});

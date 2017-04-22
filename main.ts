@@ -3,7 +3,7 @@ import { component_render, find_note_at_mpoint, find_note_index_at_mpoint, xd_of
 import { MouseState, MouseAction, Action, AppState, Note, mpoint,
 			initialState } from './types';
 import { keyOf } from './key';
-import { updateIn } from './util';
+import { Immutable as Im, get, set, update, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
 
 import * as _ from "lodash";
 
@@ -84,7 +84,7 @@ function play(score) {
 window.onload = () => {
   document.onkeydown = (e) => dispatch({t: "Key", key: keyOf(e)});
   document.onmouseup = (e) => dispatch({t: "Mouseup"});
-  component_render(state);
+  render();
 }
 
 // Picked up this notion from
@@ -94,8 +94,8 @@ function unreachable(x: never): never {
   throw new Error("Shouldn't get here.");
 }
 
-let state = initialState;
-state.score = score;
+let state: Im<AppState> = set(initialState, 'score', fromJS(score));
+
 
 // snap to grid
 function snap(gridSize: number, note: Note): Note {
@@ -105,31 +105,33 @@ function snap(gridSize: number, note: Note): Note {
 			 time: [b, b + gs]};
 }
 
-function rederivePreviewNote(state: AppState): AppState {
+function rederivePreviewNote(state: Im<AppState>): Im<AppState> {
   function compute(): Note | null {
-	 const ms = state.mouseState;
+	 const notes = toJS(getIn(state, x => x.score.notes));
+	 const ms = toJS<MouseState>(get(state, 'mouseState'));
 	 switch (ms.t) {
 	 case "hover":
 		const mh = ms.mp;
 		if (mh == null)
 		  return null;
-		const found = find_note_at_mpoint(state.score.notes, mh);
+		const found = find_note_at_mpoint(notes, mh);
 		if (found) return found;
-		return snap(state.gridSize, {pitch: mh.pitch,
-											  time: [mh.time, mh.time]});
+		return snap(get(state, 'gridSize'), {pitch: mh.pitch,
+														 time: [mh.time, mh.time]});
 	 case "down":
 	 case "resize":
 		return null;
 	 default: unreachable(ms);
 	 }
   }
-  return {...state, previewNote: compute()};
-
+  const cv = compute();
+  return set(state, 'previewNote', fromJS(cv));
 }
 
 // collateral state changes because of mouse actions
-function reduceMouse(state: AppState, a: MouseAction): [boolean, AppState] {
-  const ms = state.mouseState;
+function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState>] {
+  const notes = toJS(getIn(state, x => x.score.notes));
+  const ms = toJS<MouseState>(get(state, 'mouseState'));
 
   function newMouseState(): [boolean, MouseState] {
 	 switch(ms.t) {
@@ -149,9 +151,9 @@ function reduceMouse(state: AppState, a: MouseAction): [boolean, AppState] {
 		  const pb: mpoint = a.mpoint;
 		  let rv: [boolean, MouseState] = [false, {t: "down", orig: pa, now: pb}];
 		  if (xd_of_ticksd(Math.abs(pa.time - pb.time)) > 5) {
-			 const noteIx = find_note_index_at_mpoint(state.score.notes, pa);
+			 const noteIx = find_note_index_at_mpoint(notes, pa);
 			 if (noteIx != -1) {
-				const note = state.score.notes[noteIx];
+				const note = notes[noteIx];
 				rv = [false, {t: "resize", orig: pa, now: pb, note, noteIx}];
 			 }
 		  }
@@ -186,21 +188,21 @@ function reduceMouse(state: AppState, a: MouseAction): [boolean, AppState] {
 	 return snap * sgn;
   }
 
-  function newOtherState(): [boolean, AppState] {
+  function newOtherState(): [boolean, Im<AppState>] {
 	 switch(ms.t) {
 	 case "down":
 		if (a.t == "Mouseup") {
 		  const mp = ms.orig;
-		  const note = find_note_at_mpoint(state.score.notes, mp);
+		  const note = find_note_at_mpoint(notes, mp);
 		  if (note) {
 			 // Delete note
 			 const notIt = x => JSON.stringify(x) != JSON.stringify(note);
-			 return [true, updateIn<AppState['score']['notes']>(state, ['score', 'notes'], n => _.filter(n, notIt))];
+			 return [true, updateIn(state, x => x.score.notes, n => fromJS(_.filter(toJS(n), notIt)))];
 		  }
 		  else {
 			 // Create note
-			 const sn: Note = snap(state.gridSize, note_of_mpoint(mp));
-			 return [true, updateIn<AppState['score']['notes']>(state, ['score', 'notes'], n => n.concat([sn]))];
+			 const sn: Note = snap(get(state, 'gridSize'), note_of_mpoint(mp));
+			 return [true, updateIn(state, x => x.score.notes, n => fromJS(toJS(n).concat([sn])))];
 		  }
 		}
 		break;
@@ -212,8 +214,8 @@ function reduceMouse(state: AppState, a: MouseAction): [boolean, AppState] {
 		  const lengthDiff = augment_and_snap(ms.now.time - ms.orig.time);
 		  const newLength = Math.max(1, lengthDiff + oldLength);
 		  const newEnd = ms.note.time[0] + newLength;
-		  let rv: [boolean, AppState] = [true, updateIn<number>(state, ['score', 'notes', ms.noteIx, 'time', 1],
-																				  n => newEnd)];
+		  let rv: [boolean, Im<AppState>] = [true, updateIn(state, x => x.score.notes[ms.noteIx].time[1],
+																						n => newEnd)];
 //		  console.log(JSON.stringify(state, null, 2));
 		  return rv;
 		}
@@ -223,20 +225,21 @@ function reduceMouse(state: AppState, a: MouseAction): [boolean, AppState] {
   }
 
   const [redraw2, state2] = newOtherState();
-  return [redraw1 || redraw2, {...state2, mouseState: nms}];
+  return [redraw1 || redraw2, set(state2, 'mouseState', fromJS(nms))];
 }
 
 function note_of_mpoint({pitch, time}: mpoint): Note {
   return {pitch, time: [time, time + 3]};
 }
 
-function reduceCmd(state: AppState, cmd: string): AppState {
+function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
   switch (cmd) {
   case "clear":
-	 return {...state, score: {...state.score, notes: []}};
+	 return setIn(state, x => x.score.notes, fromJS([]));
   default: return state;
   }
 }
+
 // For any f that dispatch causes as a side effect,
 // there should exist an f' that makes the following
 // diagram commute:
@@ -255,64 +258,59 @@ export function dispatch(a: Action) {
   case "Mouseleave":
   case "Mousedown":
   case "Mouseup":
-	 const old = state;
+	 const old: Im<AppState> = state;
 	 const [redraw, state2] = reduceMouse(state, a);
 	 state = rederivePreviewNote(state2);
-	 if (redraw || (JSON.stringify(old.previewNote) != JSON.stringify(state.previewNote)))
-		component_render(state);
+	 if (redraw || (JSON.stringify(get(old, 'previewNote')) != JSON.stringify(get(state, 'previewNote'))))
+		render();
 	 break;
   case "Play":
 	 play(a.score);
 	 break;
   case "SetCurrentPlaybackTime":
-	 setState({offsetTicks: a.v});
+	 state = set(state, 'offsetTicks', a.v);
 	 break;
   case "Key": {
 	 const old = state;
 	 state = reduceKey(state, a.key);
 	 if (state != old)
-		component_render(state);
+		render();
 	 break;
   }
   case "Vscroll":
-	 state = rederivePreviewNote({...state, scrollOctave: a.top});
-	 component_render(state);
+	 state = rederivePreviewNote(set(state, 'scrollOctave', a.top));
+	 render();
 	 break;
   case "ExecMinibuf":
-	 state = reduceCmd(state, state.minibuf);
-	 state = {...state, minibufferVisible: false, minibuf: ''};
-	 component_render(state);
+	 state = reduceCmd(state, get(state, 'minibuf'));
+	 state = set(state, 'minibufferVisible', false);
+	 state = set(state, 'minibuf', '');
+	 render();
 	 break;
   case "SetMinibuf":
-	 state = {...state, minibuf: a.v};
-	 component_render(state);
+	 state = set(state, 'minibuf', a.v);
+	 render();
 	 break;
   default: unreachable(a);
   }
 }
 
-function reduceKey(state: AppState, key: string): AppState {
+function reduceKey(state: Im<AppState>, key: string): Im<AppState> {
   switch(key) {
   case "A-x":
-	 return {...state, minibufferVisible: !state.minibufferVisible};
+	 return update(state, 'minibufferVisible', x => !x);
   case ",":
 	 if (state.minibufferVisible) return state;
-	 return rederivePreviewNote({...state, gridSize: state.gridSize / 2});
+	 return rederivePreviewNote(update(state, 'gridSize', x => x / 2));
   case ".":
 	 if (state.minibufferVisible) return state;
-	 return rederivePreviewNote({...state, gridSize: state.gridSize * 2});
+	 return rederivePreviewNote(update(state, 'gridSize', x => x * 2));
   default: return state;
   }
 }
 
-function setState(extra) {
-  state = {...state, ...extra};
-  component_render(state);
-}
-
-function effState(f : (a: AppState) => AppState) {
-  state = f(state);
-  component_render(state);
+function render() {
+  component_render(toJS(state));
 }
 
 // debugging
