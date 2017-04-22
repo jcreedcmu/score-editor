@@ -1,7 +1,7 @@
 import { score } from './score';
 import { component_render } from './component';
 import { find_note_at_mpoint, find_note_index_at_mpoint, xd_of_ticksd } from './roll';
-import { MouseState, MouseAction, Action, AppState, Note, mpoint,
+import { MouseState, MouseAction, Action, AppState, Note, mpoint, Mode, Score,
 			initialState } from './types';
 import { keyOf } from './key';
 import { Immutable as Im, get, set, update, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
@@ -13,7 +13,7 @@ const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
 
 declare const debug_glob: any;
 
-const notes = score.notes;
+const notes = score.patterns['default'];
 notes.forEach(note => note.pitch += 12);
 
 function freq_of_pitch(pitch) {
@@ -36,26 +36,27 @@ function adsr(params, length) {
 }
 
 
-function audio_render_notes(ad, score) {
+function audio_render_notes(ad, score: Score) {
   const segmentTime = score.duration * score.seconds_per_tick;
   const len = segmentTime * RATE; // in frames
   var buf = ad.createBuffer(1, len, RATE);
   var dat = buf.getChannelData(0);
+  _.each(score.patterns, (pat: Note[], patName: string) => {
+	 pat.forEach(note => {
+		const {env_f, real_length} = adsr(global_adsr_params,
+													 (note.time[1] - note.time[0]) * score.seconds_per_tick);
+		const note_start_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE);
+		const note_term_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE + real_length * RATE);
+		const state = {phase: 0, amp: 1, f: freq_of_pitch(note.pitch)};
 
-  score.notes.forEach(note => {
-	 const {env_f, real_length} = adsr(global_adsr_params,
-												  (note.time[1] - note.time[0]) * score.seconds_per_tick);
-	 const note_start_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE);
-	 const note_term_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE + real_length * RATE);
-	 const state = {phase: 0, amp: 1, f: freq_of_pitch(note.pitch)};
-
-	 for (var t = note_start_frame; t < note_term_frame; t++) {
-		state.phase += state.f / RATE;
-		let e = env_f((t - note_start_frame) / RATE);
-		const wav = 0.15 * Math.sin(3.1415926535 * 2 * state.phase);
-//		const wav = 0.05 * ((state.phase - Math.floor(state.phase) < 0.5) ? 1 : -1);
-		dat[t] += e * state.amp * wav ;
-	 }
+		for (var t = note_start_frame; t < note_term_frame; t++) {
+		  state.phase += state.f / RATE;
+		  let e = env_f((t - note_start_frame) / RATE);
+		  const wav = 0.15 * Math.sin(3.1415926535 * 2 * state.phase);
+		  //		const wav = 0.05 * ((state.phase - Math.floor(state.phase) < 0.5) ? 1 : -1);
+		  dat[t] += e * state.amp * wav ;
+		}
+	 });
   });
 
   var src = ad.createBufferSource();
@@ -91,7 +92,7 @@ window.onload = () => {
 // Picked up this notion from
 // http://stackoverflow.com/questions/39419170/how-do-i-check-that-a-switch-block-is-exhaustive-in-typescript
 // not sure if there's a better way of doing it.
-function unreachable(x: never): never {
+export function unreachable(x: never): never {
   throw new Error("Shouldn't get here.");
 }
 
@@ -108,7 +109,7 @@ function snap(gridSize: number, note: Note): Note {
 
 function rederivePreviewNote(state: Im<AppState>): Im<AppState> {
   function compute(): Note | null {
-	 const notes = toJS(getIn(state, x => x.score.notes));
+	 const notes = getCurrentNotes(state);
 	 const ms = toJS<MouseState>(get(state, 'mouseState'));
 	 switch (ms.t) {
 	 case "hover":
@@ -131,7 +132,7 @@ function rederivePreviewNote(state: Im<AppState>): Im<AppState> {
 
 // collateral state changes because of mouse actions
 function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState>] {
-  const notes = toJS(getIn(state, x => x.score.notes));
+  const notes = getCurrentNotes(state);
   const ms = toJS<MouseState>(get(state, 'mouseState'));
 
   function newMouseState(): [boolean, MouseState] {
@@ -199,12 +200,12 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState
 		  if (note) {
 			 // Delete note
 			 const notIt = x => JSON.stringify(x) != JSON.stringify(note);
-			 return [true, updateIn(state, x => x.score.notes, n => fromJS(_.filter(toJS(n), notIt)))];
+			 return [true, updateCurrentNotes(state, n => fromJS(_.filter(toJS(n), notIt)))];
 		  }
 		  else {
 			 // Create note
 			 const sn: Note = snap(get(state, 'gridSize'), note_of_mpoint(mp));
-			 return [true, updateIn(state, x => x.score.notes, n => fromJS(toJS(n).concat([sn])))];
+			 return [true, updateCurrentNotes(state, n => fromJS(toJS(n).concat([sn])))];
 		  }
 		}
 		break;
@@ -215,12 +216,12 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState
 		  if (ms.fromRight) {
 			 const newLength = Math.max(1, lengthDiff + oldLength);
 			 const newEnd = ms.note.time[0] + newLength;
-			 return [true, setIn(state, x => x.score.notes[ms.noteIx].time[1], newEnd)];
+			 return [true, updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[1], newEnd))];
 		  }
 		  else {
 			 const newLength = Math.max(1, oldLength - lengthDiff);
 			 const newBegin = ms.note.time[1] - newLength;
-			 return [true, setIn(state, x => x.score.notes[ms.noteIx].time[0], newBegin)];
+			 return [true, updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[0], newBegin))];
 		  }
 
 		}
@@ -240,9 +241,29 @@ function note_of_mpoint({pitch, time}: mpoint): Note {
 function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
   switch (cmd) {
   case "clear":
-	 return setIn(state, x => x.score.notes, fromJS([]));
+	 return updateCurrentNotes(state, x => fromJS([]));
   default: return state;
   }
+}
+
+function updateCurrentNotes(state: Im<AppState>, f: (x: Im<Note[]>) => Im<Note[]>): Im<AppState> {
+  const pat = getCurrentPattern(state);
+  if (pat == undefined) return state; // maybe console.log in this case?
+  return updateIn(state, x => x.score.patterns[pat], f);
+}
+
+function getCurrentPattern(state: Im<AppState>): string | undefined {
+  const mode = toJS<Mode>(get(state, "mode"));
+  switch(mode.t) {
+  case "editPattern": return mode.patName;
+  default: return undefined;
+  }
+}
+
+function getCurrentNotes(state: Im<AppState>): Note[] | undefined {
+  const pat = getCurrentPattern(state);
+  if (pat == undefined) return undefined; // maybe console.log in this case?
+  return toJS(getIn(state, x => x.score.patterns[pat]));
 }
 
 // For any f that dispatch causes as a side effect,

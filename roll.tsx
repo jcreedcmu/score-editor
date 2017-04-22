@@ -1,7 +1,7 @@
 import { h as hh, render, Component } from 'preact';
 import { Surface } from './surface';
 import { dispatch } from './main';
-import { Note, AppState, mpoint, cpoint } from './types';
+import { Note, AppState, mpoint, cpoint, Mode, MouseState, Score, DerivedState } from './types';
 import * as _ from "lodash";
 
 const SCALE = 2; // units: pixels per fat pixel
@@ -149,12 +149,12 @@ class RollEditorMain extends Surface < RollEditorMainProps > {
   }
 
   shouldComponentUpdate(p) {
-	 return JSON.stringify(p.score) != JSON.stringify(this.props.score) ||
+	 return JSON.stringify(p.notes) != JSON.stringify(this.props.notes) ||
 	 p.scrollOctave != this.props.scrollOctave;
   }
 
   paint(props: RollEditorMainProps) {
-	 const {scrollOctave, score: {notes}} = props;
+	 const {scrollOctave, notes} = props;
 
 	 const d = this.ctx;
 	 if (this.w != props.w || this.h != props.h)
@@ -290,7 +290,13 @@ export class RollEditor extends Component < any, any > {
   }
 }
 
-type RollEditorProps = AppState & {w: number, h: number};
+export type RollEditorProps = {
+  offsetTicks: number | null,
+  mouseState: MouseState,
+  gridSize: number,
+  scrollOctave: number,
+  notes: Note[],
+} & DerivedState & {w: number, h: number};
 
 declare global {
    interface Window {

@@ -20,7 +20,7 @@ export type Action =
 export type Score = {
   duration: number, // ticks
   seconds_per_tick: number,
-  notes: Note[],
+  patterns: {[P in string]: Note[]},
 };
 
 export type cpoint = { x: number, y: number } // point measured in pixels from the topleft of the canvas
@@ -35,10 +35,15 @@ export type MouseState =
   | { t: "resize", fromRight: boolean, orig: mpoint, now: mpoint | null,
 		note: Note, noteIx: number }
 
+export type Mode =
+  | {t: "editPattern", patName: string }
+  | {t: "fake", patName: string }
+
 export type BaseState = {
   offsetTicks: number | null,
   mouseState: MouseState,
   score: Score,
+  mode: Mode,
   gridSize: number,
   scrollOctave: number,
   minibufferVisible: boolean,
@@ -55,9 +60,10 @@ export const initialState: Immutable<AppState> = fromJS({
   offsetTicks: null,
   mouseState: {t: "hover", mp: null},
   previewNote: null,
-  score: {duration: 32, seconds_per_tick: 0.1, notes: []},
+  score: {duration: 32, seconds_per_tick: 0.1, patterns: {default: {notes: []}}},
   gridSize: 4,
   scrollOctave: 3, /* in the range [0 .. 4] for now, higher numbers are lower pitch */
   minibufferVisible: false,
   minibuf: '',
+  mode: {t: "editPattern", patName: "default" },
 });
