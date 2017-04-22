@@ -22,7 +22,8 @@ function ModeComponent({props}:{props: AppState}): JSX.Element {
 		const rollProps: RollEditorProps = {
         ...rollDims,
 		  offsetTicks, mouseState, gridSize, scrollOctave, previewNote,
-		  notes: props.score.patterns[props.mode.patName],
+		  style: mode.patName == "drums" ? "drums" : "piano",
+		  notes: props.score.patterns[mode.patName],
 		};
 		return <RollEditor {...rollProps}/>;
 	 case "fake":

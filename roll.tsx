@@ -48,6 +48,9 @@ const colors = [
   "#75c4c5",
 ];
 
+const LIGHTER_DARK_GRAY = "#262626";
+const DARKER_DARK_GRAY = "#141414";
+
 const keytype = [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0];
 
 export function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined {
@@ -67,15 +70,17 @@ export function find_note_index_at_mpoint(notes: Note[], mp: mpoint): number {
 }
 
 // I find this just helps guide my eye
-function draw_gutter(d, x, y, w) {
+function draw_gutter(d, x, y, w, style: Style) {
   d.fillStyle = "black";
   d.save();
   d.translate(x, y);
-  box(d, 0, 0, w, PIANO_H, 1, "#262626", "black")
+  box(d, 0, 0, w, PIANO_H, 1, LIGHTER_DARK_GRAY, "black")
 
-  for (let n = 0; n < 12; n++) {
-	 if (keytype[n]) {
-		box(d, w - 7, PITCH_HEIGHT * n, 5, PITCH_HEIGHT+1, 1, "#141414", "black");
+  if (style == "piano") {
+	 for (let n = 0; n < 12; n++) {
+		if (keytype[n]) {
+		  box(d, w - 7, PITCH_HEIGHT * n, 5, PITCH_HEIGHT+1, 1, DARKER_DARK_GRAY, "black");
+		}
 	 }
   }
 
@@ -130,13 +135,13 @@ function draw_piano_octave(d, x, y) {
   d.restore();
 }
 
-function draw_staff_octave(d, x, y, w) {
+function draw_staff_octave(d, x, y, w, style: Style) {
   d.fillStyle = "black";
   d.save();
   d.translate(x, y);
   d.fillRect(0, 0, w * SCALE, PIANO_H * SCALE);
   for (let n = 0; n < 12; n++) {
-	 d.fillStyle = keytype[n] ? "#141414" : "#262626";
+	 d.fillStyle = keytype[n] || style == "drums" ? DARKER_DARK_GRAY : LIGHTER_DARK_GRAY;
 	 d.fillRect(SCALE, (PITCH_HEIGHT * n + 1) * SCALE, (w-2) * SCALE, (PITCH_HEIGHT - 1) * SCALE);
   }
   d.restore();
@@ -162,9 +167,11 @@ class RollEditorMain extends Surface < RollEditorMainProps > {
 
 	 d.clearRect(0, 0, this.w, this.h);
 	 for (let oc = 0; oc < 3; oc++) {
-		draw_piano_octave(d, 0, oc * PIANO_OCTAVE_VSPACE);
-		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10);
-		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250);
+		if (props.style == "piano") {
+		  draw_piano_octave(d, 0, oc * PIANO_OCTAVE_VSPACE);
+		}
+		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10, props.style);
+		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250, props.style);
 	 }
 	 draw_notes(d, notes, get_camera(scrollOctave));
   }
@@ -221,7 +228,9 @@ class RollEditorOverlay extends Surface < RollEditorProps > {
 		d.textBaseline = "middle";
 		d.font = "bold 10px sans-serif ";
 
-		d.fillText(note_name[props.previewNote.pitch % 12], rect[0] - 1, rect[1] + 1 + rect[3] / 2);
+		const pitch = props.previewNote.pitch;
+		const annot = (props.style == "drums" ? pitch : note_name[pitch % 12]) as string;
+		d.fillText(annot, rect[0] - 1, rect[1] + 1 + rect[3] / 2);
 		d.fillRect.apply(d, rect);
 		d.clearRect.apply(d, inset(rect));
 	 }
@@ -290,11 +299,14 @@ export class RollEditor extends Component < any, any > {
   }
 }
 
+export type Style = "piano" | "drums";
+
 export type RollEditorProps = {
   offsetTicks: number | null,
   mouseState: MouseState,
   gridSize: number,
   scrollOctave: number,
+  style: Style,
   notes: Note[],
 } & DerivedState & {w: number, h: number};
 
