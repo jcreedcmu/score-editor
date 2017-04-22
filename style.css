@@ -1,6 +1,8 @@
 body { margin: 0px; }
 /* canvas { position: absolute; top: 0; left: 0; z-index: -100; } */
 canvas { cursor: url(pencil.png) 5 16, auto; }
+.resize canvas { cursor: url(resize.png) 9 4, auto; }
+
 .scroll_container {
   position: absolute;
   overflow-y: scroll;

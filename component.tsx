@@ -138,8 +138,8 @@ function draw_staff_octave(d, x, y, w) {
   d.restore();
 }
 
-type ScoreEditorMainProps = ScoreEditorProps & { scroll: number };
-class ScoreEditorMain extends Surface < ScoreEditorMainProps > {
+type RollEditorMainProps = RollEditorProps & { scroll: number };
+class RollEditorMain extends Surface < RollEditorMainProps > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
@@ -149,7 +149,7 @@ class ScoreEditorMain extends Surface < ScoreEditorMainProps > {
 	 p.scrollOctave != this.props.scrollOctave;
   }
 
-  paint(props: ScoreEditorMainProps) {
+  paint(props: RollEditorMainProps) {
 	 const {scrollOctave, score: {notes}} = props;
 
 	 const d = this.ctx;
@@ -177,7 +177,7 @@ function mpoint_of_cpoint(cp: cpoint, scrollOctave: number): mpoint {
   };
 }
 
-class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
+class RollEditorOverlay extends Surface < RollEditorProps > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
@@ -205,7 +205,7 @@ class ScoreEditorOverlay extends Surface < ScoreEditorProps > {
 	 (now.gridSize != p.gridSize);
   }
 
-  paint(props: ScoreEditorProps) {
+  paint(props: RollEditorProps) {
 	 if (this.w != props.w || this.h != props.h)
 		this.setDims(props.w, props.h);
 	 const d = this.ctx;
@@ -254,8 +254,8 @@ class VScrollBar extends Component < any, any > {
   }
 }
 
-class ScoreEditor extends Component < any, any > {
-  render(props, state) {
+class RollEditor extends Component < any, any > {
+  render(props: RollEditorProps, state) {
 	 const {w, h} = props;
 	 const s = getScrollbarDims();
 	 const style = {width: w, height: h,
@@ -273,10 +273,12 @@ class ScoreEditor extends Component < any, any > {
 		<div style={{width: 2*w}}>&nbsp;</div>
 	 </div>;
 
+	 const cursorState = props.mouseState.t == "resize" ? "resize" : null;
+
 	 const c =
-	 <div style={style}>
-		<ScoreEditorMain {...props} scroll={0}/>
-		<ScoreEditorOverlay {...props}/>
+	 <div style={style} className={cursorState} >
+		<RollEditorMain {...props} scroll={0}/>
+		<RollEditorOverlay {...props}/>
 		{vscroller}
 		{hscroller}
 	 </div>;
@@ -303,7 +305,7 @@ class Minibuffer extends Component < any, any > {
   }
 }
 
-type ScoreEditorProps = AppState & {w: number, h: number};
+type RollEditorProps = AppState & {w: number, h: number};
 export function component_render(scoreprops: AppState) {
   const props = {
 	  ...scoreprops,
@@ -315,7 +317,7 @@ export function component_render(scoreprops: AppState) {
 
   const cc = <div>
 		<button onClick={playClick}>Play</button><br/>
-		<ScoreEditor {...props}/>
+		<RollEditor {...props}/>
 		<div>
 		  <div className="minibuffer">
 			 <CSSTransitionGroup transitionName="minibuf">

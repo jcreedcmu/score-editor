@@ -155,7 +155,6 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState
 			 if (noteIx != -1) {
 				const note = notes[noteIx];
 				const fromRight = pa.time > (note.time[0] + note.time[1]) / 2;
-				console.log(fromRight);
 				rv = [false, {t: "resize", fromRight, orig: pa, now: pb, note, noteIx}];
 			 }
 		  }
