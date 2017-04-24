@@ -5,75 +5,106 @@
 \def\erule#1#2{\begin{prooftree}#1\justifies #2\end{prooftree}}
 \def\lpar{\bindnasrepma}
 \def\lamp{\binampersand}
-\def\bpush{\mathbf{push}}
+\def\bsome{\mathrel\mathbf{some}}
+\def\bnone{\mathrel\mathbf{none}}
+\def\bfull{\textrm{full}}
 \newarrow {Equiv} =====
 \def\ups{{\uparrow}}
 \def\dns{{\downarrow}}
-
+\def\op{^\mathrm{op}}
 \begin{document}
 
-A regular cache-type is  ${\bf C} = (G, C, B, D, E)$ with morphisms
-\[\begin{diagram}
-&&G\\
-&&\dEmbed<{g}\\
-E&\pile{\rTo^{e}\\\rTo_{e'}}&C&\pile{\rTo^{d}\\\rTo_{d'}}&D\\
-&&\dOnto<{\pi}\\
-&&B\\
-\end{diagram}
-\]
-Where $g$ is the equalizer of $d,d'$ and $\pi$ the coequalizer of $e,e'$. A morphism ${\bf C}_1 \to {\bf C}_2$ is
-$f : C_1 \to C_2$ such that $d_2fg_1 = d'_2 f g_1$ and $\pi_2 fe_1 = \pi_2 fe'_1$.
-
-{\bf Fact}: $f$ is a morphism iff we can (uniquely!) find $\ups f$ and $\dns f$ such that
-
-\[\begin{diagram}
-&&G_1&\rDotsto^{\ups f}&G_2\\
-&&\dEmbed<{g_1}&&\dEmbed>{g_2}\\
-E_1&\pile{\rTo^{e_1}\\\rTo_{e'_1}}&C_1&\rTo^{f}&C_2&\pile{\rTo^{d_2}\\\rTo_{d'_2}}&D_2\\
-&&\dOnto<{\pi_1}&&\dOnto>{\pi_2}\\
-&&B_1&\rDotsto_{\dns f}&B_2\\
-\end{diagram}
-\]
-
-%% \[
-%% \begin{diagram}
-%% G_1&\rEmbed^{g_1}&C_1\\
-%% \dEmbed<{g_1}&\rdTo>{\ups f}&&\rdTo>f\\
-%% C_1&&G_2&\rEmbed^{g_2}&C_2\\
-%% &\rdTo<f&\dEmbed<{g_2}&&\dTo>{\delta_2}\\
-%% &&C_2&\rTo_{d_2}&D_2\\
-%% \end{diagram}
-%% \qquad\qquad
-%% \begin{diagram}
-%% E_1&\rTo^{e_1}&C_1\\
-%% \dTo<{\epsilon_1}&&\dOnto>{\pi_1}&\rdTo>f\\
-%% C_1&\rOnto_{\pi_1}&B_1&&C_2\\
-%% &\rdTo_{f}&&\rdTo>{\dns f}&\dOnto>{\pi_2}\\
-%% &&C_2&\rOnto_{\pi_2}&B_2\\
-%% \end{diagram}
-%% \]
-
-\vskip1em
-\hrule
-\vskip1em
-
-We might imagine that we have some types
+Let's define the diretraction category $Di(\C)$ of $\C$. An object of it is
+a triple $(G, C, B)$ of objects of $\C$, together with two injection/retraction pairs
 \[
 \begin{diagram}
-B&\lEquiv&B\\
-\uOnto<{\pi}&\ldEmbed~{\iota}&\dTo>d\\
-C&\rTo_{\delta}&D\\
-\end{diagram}
-\qquad\qquad
-\begin{diagram}
-G &\rEmbed^{g}_{\textrm{[eq'izer]}}&C&\pile{\rTo^{\delta}\\\rTo_{d\circ\pi}}&D
+G&\pile{\rEmbed^g\\\lOnto_p}&  C &\pile{\rOnto^\pi\\\lEmbed_\iota}& B
 \end{diagram}
 \]
-These say how to (maybe inefficiently) derive derived state from the base ($d$), and how to derive it (more efficiently)
-from state with extra cache ($\delta$), how to project out the base state from the cache state ($\pi$), and
-how to create an empty cache ($\iota$). Note that it's not necessarily the case that $d\pi = \delta$ despite the appearance
-of the diagram. Then $(G, C, B, D, C)$ is a regular cache-type. Because $\pi$ is split epi, it coequalizes
-$1_C$ and $\iota \pi$.
+such that $\pi \iota = 1_B$ and $pg = 1_G$.
 
+A morphism from $(G_1, C_1, B_1)$ to $(G_2, C_2, B_2)$
+is $(f, \ups f, \dns f)$ such that
+\[\begin{diagram}
+  G_1&\rTo^{\ups f}&G_2\\
+\dEmbed<{g_1}&&\dEmbed>{g_2}\\
+  C_1&\rTo^f&C_2\\
+\dOnto<{\pi_1}&&\dOnto>{\pi_2}\\
+  B_1&\rTo_{\dns f}&B_2\\
+\end{diagram}\]
+Becaue $\pi_1$ is epi, and $g_2$ is mono, $\dns f$ and $\ups f$ are uniquely determined when they exist.
+And because $\pi_1$ is {\em split} epi and $g_2$ is {\em split} mono, we know
+that $\pi_1$ is the coequalizer of $1_{C_1}$ and $\iota_1 \pi_1$,
+and $g_2$ is the equalizer of $1_{C_2}$ and $g_2 p_2$.
 
+This means we can give a simple equational condition on $f$
+that characterizes when $\dns f, \ups f$ (uniquely!) exist: namely, whenever
+
+\begin{enumerate}
+\item $\pi_2 f = \pi_2 f \iota_1 \pi_1$
+\item $ f g_1 = g_2 p_2 f g_1$
+\end{enumerate}
+
+One class of morphisms that always works is anything of the shape $g_2 z \pi_1$
+for any $z : B_1 \to G_2$. If we already have an $f:C_1\to C_2$ in mind,
+we can construct $g_2 p_2 f \iota_1 \pi_1$, and this will definitely be a diretraction morphism.
+
+Let's consider an example. $B$ is the {\em base state} of some
+evolving system. $C$ is the {\em cache state}, an expanded version of
+$B$ that also includes some results of derived computations. Let's say
+$C = B \times (D + 1)$ for some $D$, and suppose that we have an
+expensive to compute function $f: B\to D$ that computes the derived
+state from the base state. The $+1$ is there to reflect that the cache
+may be full of derived data, or it may be empty. The type $G$ is the
+type of `good' cache states, and is isomorphic $B \times 2$. There are
+`bad' states in $C$, namely $(b, \bsome d)$ where $d \ne f(b)$. If we
+exclude them all, the amount of information remaining is just what the
+base state is, and {\em whether} the cache is full or not. What the
+cache is full of is determined by the base state.
+
+\vfil\eject
+Now we can specify the morphisms involved:
+
+\begin{itemize}
+\item $p(b: B, \chi: D + 1) = (b, \bcase \chi \bof \bsome \_ \imp \btrue\celse  \bnone \imp \bfalse)$
+\item $g(b: B, \bfull: 2) = (b, \bif \bfull \bthen \bsome (d(b)) \belse \bnone)$
+\item $\pi(b: B, \chi: D + 1) = b$
+\item $\iota(b: B) = (b, \bnone)$
+\end{itemize}
+
+here's some endomorphisms on $(G, C, B)$ in $Di(\C)$, supposing we have some $f : B \to B$;
+\begin{itemize}
+\item $k_1(b: B, \chi: D + 1) = (f(b), \bnone)$ (Compute new base state, clearing cache)
+\item $k_2(b: B, \chi: D + 1) = (f(b), \bif b = f(b) \bthen \chi \belse \bnone)$ (works for any $f : B \to B$. Compute new base state, clearing cache if it's different)
+\item $k_3(b: B, \chi: D + 1) = (b, \bsome(d(b)))$ (compute cached value)
+\end{itemize}
+
+Let's prove $k_2$ is correct.
+\begin{enumerate}
+\item $\pi k_2 = \pi k_2 \iota \pi$ is just $f(b) = f(b)$
+\item To see $ k_2 g = g p k_2 g$, we observe that
+$$k_2 g(b: B, \bfull: 2) = (f(b), \bif b = f(b) \land \bfull \bthen \bsome (d(b)) \belse \bnone)$$
+$$p k_2 g(b: B, \bfull: 2) = (f(b), b = f(b) \land \bfull)$$
+$$g k_2 g(b: B, \bfull: 2) = (f(b), \bif b = f(b) \land \bfull \bthen \bsome (d(f(b))) \belse \bnone)$$
+\end{enumerate}
+
+here's some failed morphisms:
+\begin{itemize}
+\item $h_1(b: B, \chi: D + 1) = (\bcase \chi \bof \bsome\_ \imp b \celse \bnone \imp f(b), \bnone)$ (leak cache into base state, fails equation 1)
+\item $h_2(b: B, \chi: D + 1) = (f(b), \chi)$ (Compute new base state, without clearing cache, fails equation 2)
+\end{itemize}
+
+\vfil\eject
+\vskip 1em\hrule \vskip 1em
+
+How about soft thresholds?
+\def\R{\mathbb R}
+
+\[B = \R \qquad C = \R \times (\R+1)\]
+\[G = \Sigma x:\R . (\{ y \in \R  \st \exists x' \in B_\epsilon(x) . f(x') = y\} + 1)\]
+
+\[p : C \to G = \lambda (x, y) . (x, y)\]
+\[g : G \to C = \lambda (x, y) . (x, y)\]
+
+Not sure.
 \end{document}
