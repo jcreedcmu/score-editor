@@ -1,8 +1,8 @@
 import { h as hh, render, Component } from 'preact';
 import { Surface } from './surface';
 import { dispatch } from './main';
-import { Note, AppState, mpoint, cpoint, Mode, MouseState, Score, DerivedState } from './types';
-import * as _ from "lodash";
+import { Note, AppState, mpoint, cpoint, Mode,
+			MouseState, Score, Pattern, DerivedState } from './types';
 
 const SCALE = 2; // units: pixels per fat pixel
 const PIANO_H = 97;
@@ -23,6 +23,23 @@ export const rollDims = {
   w: PIANO_WIDTH + GUTTER_WIDTH + SCORE_WIDTH,
   h: PIANO_OCTAVE_VSPACE * 3 + SCALE
 };
+
+export type Style = "piano" | "drums";
+
+export type RollEditorProps = {
+  offsetTicks: number | null,
+  mouseState: MouseState,
+  gridSize: number,
+  noteSize: number,
+  scrollOctave: number,
+  style: Style,
+  pattern: Pattern,
+} & DerivedState & {w: number, h: number};
+
+type RollEditorMainProps = RollEditorProps & { scroll: number };
+
+type Rect = [number, number, number, number]; // x y w h, in canvas pixels
+type Camera = {x: number, y: number};
 
 function box(d, x, y, w, h, border, c, bc) {
   d.fillStyle = bc;
@@ -54,7 +71,7 @@ const DARKER_DARK_GRAY = "#141414";
 const keytype = [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0];
 
 export function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined {
-  return _.find(notes, note => {
+  return notes.find(note => {
 	 return (note.pitch == mp.pitch
 				&& note.time[0] <= mp.time
 				&& note.time[1] >= mp.time);
@@ -62,7 +79,7 @@ export function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined
 }
 
 export function find_note_index_at_mpoint(notes: Note[], mp: mpoint): number {
-  return _.findIndex(notes, note => {
+  return notes.findIndex(note => {
 	 return (note.pitch == mp.pitch
 				&& note.time[0] <= mp.time
 				&& note.time[1] >= mp.time);
@@ -86,9 +103,6 @@ function draw_gutter(d, x, y, w, style: Style) {
 
   d.restore();
 }
-
-type Rect = [number, number, number, number]; // x y w h, in canvas pixels
-type Camera = {x: number, y: number};
 
 function rect_of_note(n: Note, c: Camera): Rect {
   return [c.x + n.time[0] * PIXELS_PER_TICK,
@@ -152,21 +166,21 @@ function draw_staff_octave(d, x, y, w, style: Style, gridSize: number) {
   d.restore();
 }
 
-type RollEditorMainProps = RollEditorProps & { scroll: number };
 class RollEditorMain extends Surface < RollEditorMainProps > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
 
   shouldComponentUpdate(p) {
-	 return JSON.stringify(p.notes) != JSON.stringify(this.props.notes) ||
+	 return JSON.stringify(p.pattern) != JSON.stringify(this.props.pattern) ||
 	 p.scrollOctave != this.props.scrollOctave ||
 	 p.noteSize != this.props.noteSize ||
 	 p.gridSize != this.props.gridSize;
   }
 
   paint(props: RollEditorMainProps) {
-	 const {scrollOctave, notes} = props;
+	 const {scrollOctave, pattern} = props;
+	 const {notes, length} = pattern;
 
 	 const d = this.ctx;
 	 if (this.w != props.w || this.h != props.h)
@@ -302,18 +316,6 @@ export class RollEditor extends Component < any, any > {
 	 return c;
   }
 }
-
-export type Style = "piano" | "drums";
-
-export type RollEditorProps = {
-  offsetTicks: number | null,
-  mouseState: MouseState,
-  gridSize: number,
-  noteSize: number,
-  scrollOctave: number,
-  style: Style,
-  notes: Note[],
-} & DerivedState & {w: number, h: number};
 
 declare global {
    interface Window {

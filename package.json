@@ -4,11 +4,9 @@
   "description": "",
   "main": "main.js",
   "dependencies": {
-    "@types/lodash": "^4.14.62",
-    "lodash": "^4.17.4",
+    "immutable": "git://github.com/facebook/immutable-js#v4.0.0-rc.2",
     "preact": "^7.2.1",
-    "preact-css-transition-group": "^1.2.0",
-    "immutable": "git://github.com/facebook/immutable-js#v4.0.0-rc.2"
+    "preact-css-transition-group": "^1.2.0"
   },
   "devDependencies": {
     "ts-loader": "^2.0.3",

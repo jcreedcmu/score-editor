@@ -1,5 +1,4 @@
-import { Score, Note } from './types';
-import * as _ from "lodash";
+import { Score, Note, Pattern } from './types';
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
@@ -33,8 +32,8 @@ function audio_render_notes(ad, score: Score, progress: (t: number) => void) {
   const len = segmentTime * RATE; // in frames
   var buf = ad.createBuffer(1, len, RATE);
   var dat = buf.getChannelData(0);
-  _.each(score.patterns, (pat: Note[], patName: string) => {
-	 pat.forEach(note => {
+  for (let [patName, pat] of Object.entries(score.patterns)) {
+	 pat.notes.forEach(note => {
 		const {env_f, real_length} = adsr(global_adsr_params,
 													 (note.time[1] - note.time[0]) * score.seconds_per_tick);
 		const note_start_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE);
@@ -59,7 +58,7 @@ function audio_render_notes(ad, score: Score, progress: (t: number) => void) {
 		  }
 		}
 	 });
-  });
+  }
 
   var src = ad.createBufferSource();
 

@@ -17,10 +17,15 @@ export type Action =
   | { t: "ExecMinibuf", cmd: string }
   | { t: "SetMinibuf", v: string }
 
+export type Pattern = {
+  length: number,
+  notes: Note[],
+};
+
 export type Score = {
   duration: number, // ticks
   seconds_per_tick: number,
-  patterns: {[P in string]: Note[]},
+  patterns: {[P in string]: Pattern},
 };
 
 export type cpoint = { x: number, y: number } // point measured in pixels from the topleft of the canvas

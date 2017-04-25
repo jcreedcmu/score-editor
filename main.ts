@@ -6,11 +6,10 @@ import { MouseState, MouseAction, Action, AppState, BaseState, Note, mpoint, Mod
 import { keyOf } from './key';
 import { Immutable as Im, get, set, update, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
 import { play } from './audio';
-import * as _ from "lodash";
 
 declare const debug_glob: any;
 
-const notes = score.patterns['default'];
+const notes = score.patterns['default'].notes;
 notes.forEach(note => note.pitch += 12);
 
 window.onload = () => {
@@ -129,7 +128,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		  if (note) {
 			 // Delete note
 			 const notIt = x => JSON.stringify(x) != JSON.stringify(note);
-			 const s = updateCurrentNotes(state, n => fromJS(_.filter(toJS(n), notIt)));
+			 const s = updateCurrentNotes(state, n => fromJS(toJS(n).filter(notIt)));
 			 return set(s, 'noteSize', note.time[1] - note.time[0]);
 		  }
 		  else {
@@ -186,7 +185,7 @@ function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
 function updateCurrentNotes(state: Im<AppState>, f: (x: Im<Note[]>) => Im<Note[]>): Im<AppState> {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return state; // maybe console.log in this case?
-  return updateIn(state, x => x.score.patterns[pat], f);
+  return updateIn(state, x => x.score.patterns[pat].notes, f);
 }
 
 function getCurrentPattern(state: Im<AppState>): string | undefined {
@@ -200,7 +199,7 @@ function getCurrentPattern(state: Im<AppState>): string | undefined {
 function getCurrentNotes(state: Im<AppState>): Note[] | undefined {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return undefined; // maybe console.log in this case?
-  const notes = getIn(state, x => x.score.patterns[pat])
+  const notes = getIn(state, x => x.score.patterns[pat].notes)
   if (notes == undefined) return undefined; // this is definitely a non-exceptional case
   return toJS(notes);
 }
@@ -208,7 +207,7 @@ function getCurrentNotes(state: Im<AppState>): Note[] | undefined {
 function setCurrentNotes(state: Im<AppState>, notes: Note[]): Im<AppState> {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return undefined; // maybe console.log in this case?
-  return setIn(state, x => x.score.patterns[pat], fromJS(notes))
+  return setIn(state, x => x.score.patterns[pat].notes, fromJS(notes))
 }
 
 export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
