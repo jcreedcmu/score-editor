@@ -57,11 +57,12 @@ function rederivePreviewNote(state: Im<AppState>): Im<AppState> {
 	 }
   }
   const cv = compute();
-  return set(state, 'previewNote', fromJS(cv));
+  const different = JSON.stringify(cv) != JSON.stringify(get(state, 'previewNote'));
+  return setDirtyIf(set(state, 'previewNote', fromJS(cv)), different);
 }
 
 // collateral state changes because of mouse actions
-function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState>] {
+function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
   const notes = getCurrentNotes(state);
   const ms = toJS<MouseState>(get(state, 'mouseState'));
 
@@ -121,7 +122,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState
 	 return snap * sgn;
   }
 
-  function newOtherState(): [boolean, Im<AppState>] {
+  function newOtherState(): Im<AppState> {
 	 switch(ms.t) {
 	 case "down":
 		if (a.t == "Mouseup") {
@@ -130,12 +131,12 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState
 		  if (note) {
 			 // Delete note
 			 const notIt = x => JSON.stringify(x) != JSON.stringify(note);
-			 return [true, updateCurrentNotes(state, n => fromJS(_.filter(toJS(n), notIt)))];
+			 return setDirty(updateCurrentNotes(state, n => fromJS(_.filter(toJS(n), notIt))));
 		  }
 		  else {
 			 // Create note
 			 const sn: Note = snap(get(state, 'gridSize'), note_of_mpoint(mp));
-			 return [true, updateCurrentNotes(state, n => fromJS(toJS(n).concat([sn])))];
+			 return setDirty(updateCurrentNotes(state, n => fromJS(toJS(n).concat([sn]))));
 		  }
 		}
 		break;
@@ -146,22 +147,25 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): [boolean, Im<AppState
 		  if (ms.fromRight) {
 			 const newLength = Math.max(1, lengthDiff + oldLength);
 			 const newEnd = ms.note.time[0] + newLength;
-			 return [true, updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[1], newEnd))];
+			 // XXX preview not always dirty?
+			 return setDirty(updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[1], newEnd)));
 		  }
 		  else {
 			 const newLength = Math.max(1, oldLength - lengthDiff);
 			 const newBegin = ms.note.time[1] - newLength;
-			 return [true, updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[0], newBegin))];
+			 // XXX preview not always dirty?
+			 return setDirty(updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[0], newBegin)));
 		  }
 
 		}
 		break;
 	 }
-	 return [false, state];
+	 return state;
   }
 
-  const [redraw2, state2] = newOtherState();
-  return [redraw1 || redraw2, set(state2, 'mouseState', fromJS(nms))];
+  const state2 = newOtherState();
+  const state3 = redraw1 ? setDirty(state2) : state2;
+  return set(state3, 'mouseState', fromJS(nms));
 }
 
 function note_of_mpoint({pitch, time}: mpoint): Note {
@@ -211,62 +215,52 @@ function setCurrentNotes(state: Im<AppState>, notes: Note[]): Im<AppState> {
   return setIn(state, x => x.score.patterns[pat], fromJS(notes))
 }
 
-// For any f that dispatch causes as a side effect,
-// there should exist an f' that makes the following
-// diagram commute:
-//                        f
-//    Base x Derived ---------------> Base x Derived
-//         ^                               ^
-//  <id,   |                               |<id,
-//  derive>|                               | derive>
-//         |                               |
-//         |                               |
-//       Base -------------------------> Base
-//                      f'
-export function dispatch(a: Action) {
-//  const d = Date.now();
+function setDirty(s: Im<AppState>): Im<AppState> {
+  return set(s, 'dirty', true);
+}
+
+function setDirtyIf(s: Im<AppState>, b: boolean): Im<AppState> {
+  return b ? set(s, 'dirty', true) : s;
+}
+
+export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
   switch (a.t) {
   case "Mousemove":
   case "Mouseleave":
   case "Mousedown":
   case "Mouseup":
-	 const old: Im<AppState> = state;
-	 const [redraw, state2] = reduceMouse(state, a);
-	 state = rederivePreviewNote(state2);
-	 if (redraw || (JSON.stringify(get(old, 'previewNote')) != JSON.stringify(get(state, 'previewNote'))))
-		render();
-	 break;
+	 return rederivePreviewNote(reduceMouse(state, a));
+
   case "Play":
 	 play(a.score, v => dispatch({t: "SetCurrentPlaybackTime", v}));
-	 break;
+	 return state;
+
   case "SetCurrentPlaybackTime":
-	 state = set(state, 'offsetTicks', a.v);
-	 render();
-	 break;
-  case "Key": {
-	 const old = state;
-	 state = reduceKey(state, a.key);
-	 if (state != old)
-		render();
-	 break;
-  }
-  case "Vscroll":
-	 state = rederivePreviewNote(set(state, 'scrollOctave', a.top));
-	 render();
-	 break;
+	 return setDirty(set(state, 'offsetTicks', a.v));
+
+  case "Key": return reduceKey(state, a.key); // reduceKey responsible for setting dirty
+
+  case "Vscroll": return setDirty(rederivePreviewNote(set(state, 'scrollOctave', a.top)));
+
   case "ExecMinibuf":
-	 state = reduceCmd(state, get(state, 'minibuf'));
-	 state = set(state, 'minibufferVisible', false);
-	 state = set(state, 'minibuf', '');
-	 render();
-	 break;
+	 let s = reduceCmd(state, get(state, 'minibuf'));
+	 s = set(s, 'minibufferVisible', false);
+	 s = set(s, 'minibuf', '');
+	 return setDirty(s);
+
   case "SetMinibuf":
-	 state = set(state, 'minibuf', a.v);
-	 render();
-	 break;
+	 return setDirty(set(state, 'minibuf', a.v));
+
   default: unreachable(a);
   }
-//  console.log(a.t, Date.now() - d);
+}
+
+export function dispatch(a: Action): void {
+  state = reduce(state, a);
+  if (get(state, 'dirty')) {
+	 render();
+	 state = set(state, 'dirty', false);
+  }
 }
 
 function reduceKey(state: Im<AppState>, key: string): Im<AppState> {

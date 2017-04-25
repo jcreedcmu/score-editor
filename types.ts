@@ -48,9 +48,11 @@ export type BaseState = {
   scrollOctave: number,
   minibufferVisible: boolean,
   minibuf: string,
+  dirty: boolean,
 };
 
 export type DerivedState = {
+  // XXX this belongs scoped to editpattern mode data I think?
   previewNote: Note | null,
 }
 
@@ -66,4 +68,6 @@ export const initialState: Immutable<AppState> = fromJS({
   minibufferVisible: false,
   minibuf: '',
   mode: {t: "editPattern", patName: "default" },
+
+  dirty: true,
 });
