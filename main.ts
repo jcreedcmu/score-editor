@@ -66,14 +66,14 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
   const notes = getCurrentNotes(state);
   const ms = toJS<MouseState>(get(state, 'mouseState'));
 
-  function newMouseState(): [boolean, MouseState] {
+  function newMouseState(): MouseState {
 	 switch(ms.t) {
 	 case "hover":
 		switch(a.t) {
-		case "Mousemove": return [false, {t: "hover", mp: a.mpoint}];
-		case "Mousedown": return [true, {t: "down", orig: a.mpoint, now: a.mpoint}];
-		case "Mouseup": return [false, ms]; // this happens for mouse events that started outside the editor
-		case "Mouseleave": return [true, {...ms, mp: null}];
+		case "Mousemove": return {t: "hover", mp: a.mpoint};
+		case "Mousedown": return {t: "down", orig: a.mpoint, now: a.mpoint};
+		case "Mouseup": return ms; // this happens for mouse events that started outside the editor
+		case "Mouseleave": return {...ms, mp: null};
 		default: throw unreachable(a);
 		}
 
@@ -82,35 +82,33 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		case "Mousemove": {
 		  const pa: mpoint = ms.orig;
 		  const pb: mpoint = a.mpoint;
-		  let rv: [boolean, MouseState] = [false, {t: "down", orig: pa, now: pb}];
+		  let rv: MouseState = {t: "down", orig: pa, now: pb};
 		  if (xd_of_ticksd(Math.abs(pa.time - pb.time)) > 5) {
 			 const noteIx = find_note_index_at_mpoint(notes, pa);
 			 if (noteIx != -1) {
 				const note = notes[noteIx];
 				const fromRight = pa.time > (note.time[0] + note.time[1]) / 2;
-				rv = [false, {t: "resize", fromRight, orig: pa, now: pb, note, noteIx}];
+				rv = {t: "resize", fromRight, orig: pa, now: pb, note, noteIx};
 			 }
 		  }
 		  return rv;
 		}
 		case "Mousedown": throw "impossible";
-		case "Mouseup": return [true, {t: "hover", mp: ms.now}];
-		case "Mouseleave": return [true, {...ms, now: null}];
+		case "Mouseup": return {t: "hover", mp: ms.now};
+		case "Mouseleave": return {...ms, now: null};
 		default: throw unreachable(a);
 		}
 
 	 case "resize":
 		switch(a.t) {
-		case "Mousemove": return [false, {...ms, now: a.mpoint}];
+		case "Mousemove": return {...ms, now: a.mpoint};
 		case "Mousedown": throw "impossible";
-		case "Mouseup": return [true, {t: "hover", mp: ms.now}];
-		case "Mouseleave": return [true, {...ms, now: null}];
+		case "Mouseup": return {t: "hover", mp: ms.now};
+		case "Mouseleave": return {...ms, now: null};
 		default: throw unreachable(a);
 		}
 	 }
   }
-
-  const [redraw1, nms] = newMouseState();
 
   // x is a floating point number. We want to return an int, but have
   // the function feel reasonably responsive even if x isn't that far
@@ -167,7 +165,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
   }
 
   const state2 = newOtherState();
-  return set(state2, 'mouseState', fromJS(nms));
+  return set(state2, 'mouseState', fromJS(newMouseState()));
 }
 
 function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
