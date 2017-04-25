@@ -285,6 +285,12 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
   case "SetMinibuf":
 	 return set(state, 'minibuf', a.v);
 
+  case "EditSong":
+	 return set(state, 'mode', fromJS<Mode>({t: "editSong"}));
+
+  case "EditPat":
+	 return set(state, 'mode', fromJS<Mode>({t: "editPattern", patName: a.patName}));
+
   default: unreachable(a);
   }
 }

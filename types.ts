@@ -16,15 +16,24 @@ export type Action =
   | { t: "Key", key: string }
   | { t: "ExecMinibuf", cmd: string }
   | { t: "SetMinibuf", v: string }
+  | { t: "EditSong" }
+  | { t: "EditPat", patName: string }
 
 export type Pattern = {
   length: number,
   notes: Note[],
 };
 
+export type PatUse = {
+  patName: string,
+  start: number,
+  duration: number,
+}
+
 export type Score = {
   duration: number, // ticks
   seconds_per_tick: number,
+  song: PatUse[],
   patterns: {[P in string]: Pattern},
 };
 
@@ -42,7 +51,7 @@ export type MouseState =
 
 export type Mode =
   | {t: "editPattern", patName: string }
-  | {t: "fake", patName: string }
+  | {t: "editSong" }
 
 export type BaseState = {
   offsetTicks: number | null,

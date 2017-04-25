@@ -1,5 +1,6 @@
 import { h as hh, render, Component } from 'preact';
 import { RollEditor, RollEditorProps, rollDims } from './roll';
+import { SongEditor } from './song_editor';
 import { Minibuffer } from './minibuf';
 import { dispatch, unreachable } from './main';
 import { AppState, Mode } from './types';
@@ -8,9 +9,9 @@ import * as CSSTransitionGroup from 'preact-css-transition-group';
 function ModeHeader({mode}:{mode: Mode}): JSX.Element {
   switch (mode.t) {
 	 case "editPattern":
-		return <div className="modeHeader">{mode.patName}</div>;
+		return <div className="modeHeader">Pattern: {mode.patName}</div>;
 	 default:
-		return <div className="modeHeader">???</div>;
+		return <div className="modeHeader">Song</div>;
   }
 }
 
@@ -26,9 +27,8 @@ function ModeComponent({props}:{props: AppState}): JSX.Element {
 		  pattern: props.score.patterns[mode.patName],
 		};
 		return <RollEditor {...rollProps}/>;
-	 case "fake":
-		// typescript doesn't like reasoning about unary branch types??
-		break;
+	 case "editSong":
+		return <SongEditor {...props}/>;
 	 default:
 		throw unreachable(mode);
   }

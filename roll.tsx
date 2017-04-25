@@ -308,11 +308,14 @@ export class RollEditor extends Component < any, any > {
 	 const cursorState = props.mouseState.t == "resize" ? "resize" : null;
 
 	 const c =
-	 <div style={style} className={cursorState} >
-		<RollEditorMain {...props} scroll={0}/>
-		<RollEditorOverlay {...props}/>
-		{vscroller}
-		{hscroller}
+	 <div>
+		<img src="back.png" onClick={() => dispatch({t: "EditSong"})}></img><br/>
+		<div style={style} className={cursorState} >
+		  <RollEditorMain {...props} scroll={0}/>
+		  <RollEditorOverlay {...props}/>
+		  {vscroller}
+		  {hscroller}
+		</div>
 	 </div>;
 	 return c;
   }

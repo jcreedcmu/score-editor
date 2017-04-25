@@ -81,3 +81,30 @@ canvas { cursor: url(pencil.png) 5 16, auto; }
   color: white;
   font-family: sans-serif;
 }
+
+.songEditor {
+  width: 800px;
+  height: 500px;
+  background-color: #262626;
+  border: 1px solid black;
+  position: relative;
+}
+
+.songEditor .use {
+  position: absolute;
+  background-color: #075152;
+  border: 1px solid black;
+  height: 50px;
+  cursor: pointer;
+}
+
+.songEditor .use div {
+  margin: 10px;
+  color: white;
+}
+.songEditor .cursor {
+  position: absolute;
+  height: 100%;
+  width: 2px;
+  background-color: white;
+}

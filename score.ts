@@ -7,6 +7,7 @@ import { Score } from './types';
 export const score: Score = {
   "duration": 33, // extra 1 to make it not click when I do a release
   "seconds_per_tick": 0.09,
+  song: [{"patName": "default", "start": 0, "duration": 32}],
   "patterns": {
 	 "default":  {length: 32, notes: [
       {
