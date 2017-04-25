@@ -44,7 +44,7 @@ function audio_render_notes(ad, score: Score, progress: (t: number) => void) {
 		  for (var t = note_start_frame; t < note_term_frame; t++) {
 			 state.phase += 100 * state.f / RATE;
 			 let e = env_f((t - note_start_frame) / RATE);
-			 const wav = noise[Math.floor(state.phase) % 10000];
+			 const wav = 0.3 * noise[Math.floor(state.phase) % 10000];
 			 dat[t] += e * state.amp * wav * (1 - (t - note_start_frame) / (note_term_frame - note_start_frame)) ;
 		  }
 		}
