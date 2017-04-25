@@ -163,18 +163,22 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		break;
 	 case "resize":
 		if (a.t == "Mousemove") {
+		  if (ms.now == null) return state;
 		  const oldLength = (ms.note.time[1] - ms.note.time[0]);
 		  const lengthDiff = augment_and_snap(ms.now.time - ms.orig.time);
 		  if (ms.fromRight) {
 			 const newLength = Math.max(1, lengthDiff + oldLength);
-			 const newEnd = ms.note.time[0] + newLength;
+			 const pat = getCurrentPat(state);
+			 if (pat == undefined)
+				return state;
+			 const newEnd = Math.min(pat.length, ms.note.time[0] + newLength);
 
 			 const s = updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[1], newEnd));
 			 return set(s, 'noteSize', newLength);
 		  }
 		  else {
 			 const newLength = Math.max(1, oldLength - lengthDiff);
-			 const newBegin = ms.note.time[1] - newLength;
+			 const newBegin = Math.max(0, ms.note.time[1] - newLength);
 
 			 const s = updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[0], newBegin));
 			 return set(s, 'noteSize', newLength);
@@ -238,6 +242,14 @@ function setCurrentNotes(state: Im<AppState>, notes: Note[]): Im<AppState> {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return undefined; // maybe console.log in this case?
   return setIn(state, x => x.score.patterns[pat].notes, fromJS(notes))
+}
+
+function getCurrentPat(state: Im<AppState>): Pattern | undefined {
+  const pat = getCurrentPattern(state);
+  if (pat == undefined) return undefined; // maybe console.log in this case?
+  const p = getIn(state, x => x.score.patterns[pat])
+  if (p == undefined) return undefined; // this is definitely a non-exceptional case
+  return toJS(p);
 }
 
 function setCurrentPat(state: Im<AppState>, p: Pattern): Im<AppState> {
