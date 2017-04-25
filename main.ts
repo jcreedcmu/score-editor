@@ -1,7 +1,7 @@
 import { score } from './score';
 import { component_render } from './component';
 import { find_note_at_mpoint, find_note_index_at_mpoint, xd_of_ticksd } from './roll';
-import { MouseState, MouseAction, Action, AppState, Note, mpoint, Mode, Score,
+import { MouseState, MouseAction, Action, AppState, BaseState, Note, mpoint, Mode, Score,
 			initialState } from './types';
 import { keyOf } from './key';
 import { Immutable as Im, get, set, update, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
@@ -37,29 +37,31 @@ function snap(gridSize: number, note: Note): Note {
 			 time: [b, b + gs]};
 }
 
-function rederivePreviewNote(state: Im<AppState>): Im<AppState> {
-  function compute(): Note | null {
-	 const notes = getCurrentNotes(state);
-	 const ms = toJS<MouseState>(get(state, 'mouseState'));
-	 switch (ms.t) {
-	 case "hover":
-		const mh = ms.mp;
-		if (mh == null)
-		  return null;
-		const found = find_note_at_mpoint(notes, mh);
-		if (found) return found;
-		return snap(get(state, 'gridSize'), {pitch: mh.pitch,
-														 time: [mh.time, mh.time]});
-	 case "down":
-	 case "resize":
-		return null;
-	 default: unreachable(ms);
-	 }
-  }
-  const cv = compute();
-  const different = JSON.stringify(cv) != JSON.stringify(get(state, 'previewNote'));
-  return setDirtyIf(set(state, 'previewNote', fromJS(cv)), different);
+// just not memoized right now
+function memoized<T, V, W>(select: (x: T) => V, view: (y: V) => W): (x: T) => W {
+  return x => view(select(x));
 }
+
+const previewNote: (state: Im<BaseState>) => Note | null =
+  memoized(
+	 (s: Im<AppState>) => [getCurrentNotes(s), get(s, 'mouseState'), get(s, 'gridSize')],
+	 ([notes, ims, gridSize]:[Note[] | undefined, Im<MouseState>, number]) => {
+		const ms = toJS<MouseState>(ims);
+		switch (ms.t) {
+		case "hover":
+		  const mh = ms.mp;
+		  if (mh == null)
+			 return null;
+		  const found = find_note_at_mpoint(notes, mh);
+		  if (found) return found;
+		  return snap(gridSize, {pitch: mh.pitch,
+										 time: [mh.time, mh.time]});
+		case "down":
+		case "resize":
+		  return null;
+		default: unreachable(ms);
+		}
+	 });
 
 // collateral state changes because of mouse actions
 function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
@@ -131,12 +133,12 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		  if (note) {
 			 // Delete note
 			 const notIt = x => JSON.stringify(x) != JSON.stringify(note);
-			 return setDirty(updateCurrentNotes(state, n => fromJS(_.filter(toJS(n), notIt))));
+			 return updateCurrentNotes(state, n => fromJS(_.filter(toJS(n), notIt)));
 		  }
 		  else {
 			 // Create note
 			 const sn: Note = snap(get(state, 'gridSize'), note_of_mpoint(mp));
-			 return setDirty(updateCurrentNotes(state, n => fromJS(toJS(n).concat([sn]))));
+			 return updateCurrentNotes(state, n => fromJS(toJS(n).concat([sn])));
 		  }
 		}
 		break;
@@ -148,13 +150,13 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 			 const newLength = Math.max(1, lengthDiff + oldLength);
 			 const newEnd = ms.note.time[0] + newLength;
 			 // XXX preview not always dirty?
-			 return setDirty(updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[1], newEnd)));
+			 return updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[1], newEnd));
 		  }
 		  else {
 			 const newLength = Math.max(1, oldLength - lengthDiff);
 			 const newBegin = ms.note.time[1] - newLength;
 			 // XXX preview not always dirty?
-			 return setDirty(updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[0], newBegin)));
+			 return updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[0], newBegin));
 		  }
 
 		}
@@ -164,8 +166,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
   }
 
   const state2 = newOtherState();
-  const state3 = redraw1 ? setDirty(state2) : state2;
-  return set(state3, 'mouseState', fromJS(nms));
+  return set(state2, 'mouseState', fromJS(nms));
 }
 
 function note_of_mpoint({pitch, time}: mpoint): Note {
@@ -215,52 +216,45 @@ function setCurrentNotes(state: Im<AppState>, notes: Note[]): Im<AppState> {
   return setIn(state, x => x.score.patterns[pat], fromJS(notes))
 }
 
-function setDirty(s: Im<AppState>): Im<AppState> {
-  return set(s, 'dirty', true);
-}
-
-function setDirtyIf(s: Im<AppState>, b: boolean): Im<AppState> {
-  return b ? set(s, 'dirty', true) : s;
-}
-
 export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
   switch (a.t) {
   case "Mousemove":
   case "Mouseleave":
   case "Mousedown":
   case "Mouseup":
-	 return rederivePreviewNote(reduceMouse(state, a));
+	 return reduceMouse(state, a);
 
   case "Play":
 	 play(a.score, v => dispatch({t: "SetCurrentPlaybackTime", v}));
 	 return state;
 
   case "SetCurrentPlaybackTime":
-	 return setDirty(set(state, 'offsetTicks', a.v));
+	 return set(state, 'offsetTicks', a.v);
 
   case "Key": return reduceKey(state, a.key); // reduceKey responsible for setting dirty
 
-  case "Vscroll": return setDirty(rederivePreviewNote(set(state, 'scrollOctave', a.top)));
+  case "Vscroll": return set(state, 'scrollOctave', a.top);
 
   case "ExecMinibuf":
 	 let s = reduceCmd(state, get(state, 'minibuf'));
 	 s = set(s, 'minibufferVisible', false);
 	 s = set(s, 'minibuf', '');
-	 return setDirty(s);
+	 return s;
 
   case "SetMinibuf":
-	 return setDirty(set(state, 'minibuf', a.v));
+	 return set(state, 'minibuf', a.v);
 
   default: unreachable(a);
   }
 }
 
+export function reduceConsistent(state: Im<AppState>, a: Action): Im<AppState> {
+  const ns = reduce(state, a);
+  return set(ns, 'previewNote', fromJS(previewNote(ns)));
+}
 export function dispatch(a: Action): void {
-  state = reduce(state, a);
-  if (get(state, 'dirty')) {
-	 render();
-	 state = set(state, 'dirty', false);
-  }
+  state = reduceConsistent(state, a);
+  render();
 }
 
 function reduceKey(state: Im<AppState>, key: string): Im<AppState> {
@@ -269,10 +263,10 @@ function reduceKey(state: Im<AppState>, key: string): Im<AppState> {
 	 return update(state, 'minibufferVisible', x => !x);
   case ",":
 	 if (state.minibufferVisible) return state;
-	 return rederivePreviewNote(update(state, 'gridSize', x => x / 2));
+	 return update(state, 'gridSize', x => x / 2);
   case ".":
 	 if (state.minibufferVisible) return state;
-	 return rederivePreviewNote(update(state, 'gridSize', x => x * 2));
+	 return update(state, 'gridSize', x => x * 2);
   default: return state;
   }
 }

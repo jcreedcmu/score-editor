@@ -48,7 +48,6 @@ export type BaseState = {
   scrollOctave: number,
   minibufferVisible: boolean,
   minibuf: string,
-  dirty: boolean,
 };
 
 export type DerivedState = {
@@ -68,6 +67,4 @@ export const initialState: Immutable<AppState> = fromJS({
   minibufferVisible: false,
   minibuf: '',
   mode: {t: "editPattern", patName: "default" },
-
-  dirty: true,
 });

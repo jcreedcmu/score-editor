@@ -206,10 +206,6 @@ class RollEditorOverlay extends Surface < RollEditorProps > {
   }
 
   shouldComponentUpdate(p) {
-	 // XXX mmmmaybe should also check if score changes. Technically the overlay seems like it ought
-	 // to change if, for example, a note shows up directly under the cursor. But that would seem
-	 // to require *storing* the mouse position somewhere, which I'm not sure I like.
-
 	 const now = this.props;
 	 return (now.offsetTicks != p.offsetTicks) ||
 	 (now.previewNote != p.previewNote && JSON.stringify(now.previewNote) != JSON.stringify(p.previewNote)) ||
