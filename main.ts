@@ -231,7 +231,7 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
   case "SetCurrentPlaybackTime":
 	 return set(state, 'offsetTicks', a.v);
 
-  case "Key": return reduceKey(state, a.key); // reduceKey responsible for setting dirty
+  case "Key": return reduceKey(state, a.key);
 
   case "Vscroll": return set(state, 'scrollOctave', a.top);
 
