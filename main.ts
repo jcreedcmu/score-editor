@@ -197,8 +197,8 @@ function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
 	 return updateCurrentNotes(state, x => fromJS([]));
   case "edit":
 	 let st = set(state, 'mode', fromJS({t: 'editPattern', patName: words[1]}));
-	 if (getCurrentNotes(st) == undefined) {
-		st = setCurrentNotes(st, []);
+	 if (currentPatUndefined(st)) {
+		st = setCurrentPat(st, {notes: [], length: 32});
 	 }
 	 return st;
   default: return state;
@@ -219,10 +219,11 @@ function getCurrentPattern(state: Im<AppState>): string | undefined {
   }
 }
 
-function getCurrentPat(state: Im<AppState>): Pattern | undefined {
+function currentPatUndefined(state: Im<AppState>): boolean {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return undefined; // maybe console.log in this case?
-  return toJS(getIn(state, x => x.score.patterns[pat]))
+  const p = getIn(state, x => x.score.patterns[pat])
+  return p == undefined
 }
 
 function getCurrentNotes(state: Im<AppState>): Note[] | undefined {
@@ -237,6 +238,11 @@ function setCurrentNotes(state: Im<AppState>, notes: Note[]): Im<AppState> {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return undefined; // maybe console.log in this case?
   return setIn(state, x => x.score.patterns[pat].notes, fromJS(notes))
+}
+
+function setCurrentPat(state: Im<AppState>, p: Pattern): Im<AppState> {
+  const pat = getCurrentPattern(state);
+  return setIn(state, x => x.score.patterns[pat], fromJS(p))
 }
 
 export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
