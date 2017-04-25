@@ -135,7 +135,8 @@ function draw_piano_octave(d, x, y) {
   d.restore();
 }
 
-function draw_staff_octave(d, x, y, w, style: Style) {
+function draw_staff_octave(d, x, y, w, style: Style, gridSize: number) {
+  const effectiveGridSize = 4; // enh... 'visibleGridSize'? ignores gridSize argument.
   d.fillStyle = "black";
   d.save();
   d.translate(x, y);
@@ -143,6 +144,10 @@ function draw_staff_octave(d, x, y, w, style: Style) {
   for (let n = 0; n < 12; n++) {
 	 d.fillStyle = keytype[n] || style == "drums" ? DARKER_DARK_GRAY : LIGHTER_DARK_GRAY;
 	 d.fillRect(SCALE, (PITCH_HEIGHT * n + 1) * SCALE, (w-2) * SCALE, (PITCH_HEIGHT - 1) * SCALE);
+  }
+  d.fillStyle = "black";
+  for (let n = 0; n * PIXELS_PER_TICK * effectiveGridSize < SCALE * w; n++) {
+	 d.fillRect(n * PIXELS_PER_TICK * effectiveGridSize, 0, SCALE, PIANO_H * SCALE);
   }
   d.restore();
 }
@@ -155,7 +160,9 @@ class RollEditorMain extends Surface < RollEditorMainProps > {
 
   shouldComponentUpdate(p) {
 	 return JSON.stringify(p.notes) != JSON.stringify(this.props.notes) ||
-	 p.scrollOctave != this.props.scrollOctave;
+	 p.scrollOctave != this.props.scrollOctave ||
+	 p.noteSize != this.props.noteSize ||
+	 p.gridSize != this.props.gridSize;
   }
 
   paint(props: RollEditorMainProps) {
@@ -171,7 +178,7 @@ class RollEditorMain extends Surface < RollEditorMainProps > {
 		  draw_piano_octave(d, 0, oc * PIANO_OCTAVE_VSPACE);
 		}
 		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10, props.style);
-		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250, props.style);
+		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250, props.style, props.gridSize);
 	 }
 	 draw_notes(d, notes, get_camera(scrollOctave));
   }
@@ -209,7 +216,8 @@ class RollEditorOverlay extends Surface < RollEditorProps > {
 	 const now = this.props;
 	 return (now.offsetTicks != p.offsetTicks) ||
 	 (now.previewNote != p.previewNote && JSON.stringify(now.previewNote) != JSON.stringify(p.previewNote)) ||
-	 (now.gridSize != p.gridSize);
+	 (now.gridSize != p.gridSize) ||
+	 (now.noteSize != p.noteSize);
   }
 
   paint(props: RollEditorProps) {
@@ -301,6 +309,7 @@ export type RollEditorProps = {
   offsetTicks: number | null,
   mouseState: MouseState,
   gridSize: number,
+  noteSize: number,
   scrollOctave: number,
   style: Style,
   notes: Note[],

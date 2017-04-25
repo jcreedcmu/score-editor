@@ -30,11 +30,10 @@ let state: Im<AppState> = set(initialState, 'score', fromJS(score));
 
 
 // snap to grid
-function snap(gridSize: number, note: Note): Note {
+function snap(gridSize: number, noteSize: number, mp: mpoint): Note {
   const gs = gridSize;
-  const b = Math.floor(note.time[0] / gs) * gs;
-  return {pitch: note.pitch,
-			 time: [b, b + gs]};
+  const b = Math.floor(mp.time / gs) * gs;
+  return {pitch: mp.pitch, time: [b, b + noteSize]};
 }
 
 // just not memoized right now
@@ -44,8 +43,8 @@ function memoized<T, V, W>(select: (x: T) => V, view: (y: V) => W): (x: T) => W 
 
 const previewNote: (state: Im<BaseState>) => Note | null =
   memoized(
-	 (s: Im<AppState>) => [getCurrentNotes(s), get(s, 'mouseState'), get(s, 'gridSize')],
-	 ([notes, ims, gridSize]:[Note[] | undefined, Im<MouseState>, number]) => {
+	 (s: Im<AppState>) => [getCurrentNotes(s), get(s, 'mouseState'), get(s, 'gridSize'), get(s, 'noteSize')],
+	 ([notes, ims, gridSize, noteSize]:[Note[] | undefined, Im<MouseState>, number, number]) => {
 		const ms = toJS<MouseState>(ims);
 		switch (ms.t) {
 		case "hover":
@@ -54,8 +53,7 @@ const previewNote: (state: Im<BaseState>) => Note | null =
 			 return null;
 		  const found = find_note_at_mpoint(notes, mh);
 		  if (found) return found;
-		  return snap(gridSize, {pitch: mh.pitch,
-										 time: [mh.time, mh.time]});
+		  return snap(gridSize, noteSize, mh);
 		case "down":
 		case "resize":
 		  return null;
@@ -133,11 +131,12 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		  if (note) {
 			 // Delete note
 			 const notIt = x => JSON.stringify(x) != JSON.stringify(note);
-			 return updateCurrentNotes(state, n => fromJS(_.filter(toJS(n), notIt)));
+			 const s = updateCurrentNotes(state, n => fromJS(_.filter(toJS(n), notIt)));
+			 return set(s, 'noteSize', note.time[1] - note.time[0]);
 		  }
 		  else {
 			 // Create note
-			 const sn: Note = snap(get(state, 'gridSize'), note_of_mpoint(mp));
+			 const sn: Note = snap(get(state, 'gridSize'), get(state, 'noteSize'), mp);
 			 return updateCurrentNotes(state, n => fromJS(toJS(n).concat([sn])));
 		  }
 		}
@@ -149,14 +148,16 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		  if (ms.fromRight) {
 			 const newLength = Math.max(1, lengthDiff + oldLength);
 			 const newEnd = ms.note.time[0] + newLength;
-			 // XXX preview not always dirty?
-			 return updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[1], newEnd));
+
+			 const s = updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[1], newEnd));
+			 return set(s, 'noteSize', newLength);
 		  }
 		  else {
 			 const newLength = Math.max(1, oldLength - lengthDiff);
 			 const newBegin = ms.note.time[1] - newLength;
-			 // XXX preview not always dirty?
-			 return updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[0], newBegin));
+
+			 const s = updateCurrentNotes(state, n => setIn(n, x => x[ms.noteIx].time[0], newBegin));
+			 return set(s, 'noteSize', newLength);
 		  }
 
 		}
@@ -167,10 +168,6 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 
   const state2 = newOtherState();
   return set(state2, 'mouseState', fromJS(nms));
-}
-
-function note_of_mpoint({pitch, time}: mpoint): Note {
-  return {pitch, time: [time, time + 3]};
 }
 
 function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {

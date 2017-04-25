@@ -45,6 +45,7 @@ export type BaseState = {
   score: Score,
   mode: Mode,
   gridSize: number,
+  noteSize: number,
   scrollOctave: number,
   minibufferVisible: boolean,
   minibuf: string,
@@ -62,7 +63,8 @@ export const initialState: Immutable<AppState> = fromJS({
   mouseState: {t: "hover", mp: null},
   previewNote: null,
   score: {duration: 32, seconds_per_tick: 0.1, patterns: {default: {notes: []}}},
-  gridSize: 4,
+  gridSize: 1,
+  noteSize: 1,
   scrollOctave: 3, /* in the range [0 .. 4] for now, higher numbers are lower pitch */
   minibufferVisible: false,
   minibuf: '',
