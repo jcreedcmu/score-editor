@@ -321,7 +321,7 @@ declare global {
 function getScrollbarDims() {
   if (!window.scrollbarDims) {
 	 const div = document.createElement('div');
-	 div.innerHTML = '<div style="width:1px;height:1px;overflow:scroll;"></div>';
+	 div.innerHTML = '<div style="width:100px;height:100px;overflow:scroll;"></div>';
 	 const c = div.firstChild as HTMLElement;
 	 document.body.appendChild(c);
 	 const width = c.offsetWidth - c.clientWidth;
