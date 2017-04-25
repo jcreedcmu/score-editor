@@ -2,7 +2,7 @@ import { score } from './score';
 import { component_render } from './component';
 import { find_note_at_mpoint, find_note_index_at_mpoint, xd_of_ticksd } from './roll';
 import { MouseState, MouseAction, Action, AppState, BaseState, Note, mpoint, Mode, Score,
-			initialState } from './types';
+			initialState, Pattern } from './types';
 import { keyOf } from './key';
 import { Immutable as Im, get, set, update, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
 import { play } from './audio';
@@ -35,6 +35,26 @@ function snap(gridSize: number, noteSize: number, mp: mpoint): Note {
   return {pitch: mp.pitch, time: [b, b + noteSize]};
 }
 
+function restrict(note: Note, patlength: number): Note | null {
+  if (note.time[0] < 0) return null;
+  if (note.time[0] >= patlength) return null;
+  if (note.time[1] > patlength) {
+	 const newStart = note.time[0] - (note.time[1] - patlength);
+	 if (newStart < 0) return null;
+	 return {pitch: note.pitch, time: [newStart, patlength]};
+  }
+  return note;
+}
+
+function restrictAtState(note: Note, state: Im<AppState>): Note | null {
+  const mode = toJS<Mode>(get(state, 'mode'));
+  switch(mode.t) {
+  case "editPattern":
+	 return restrict(note, getIn(state, x => x.score.patterns[mode.patName].length));
+  default: return null;
+  }
+}
+
 // just not memoized right now
 function memoized<T, V, W>(select: (x: T) => V, view: (y: V) => W): (x: T) => W {
   return x => view(select(x));
@@ -52,7 +72,7 @@ const previewNote: (state: Im<BaseState>) => Note | null =
 			 return null;
 		  const found = find_note_at_mpoint(notes, mh);
 		  if (found) return found;
-		  return snap(gridSize, noteSize, mh);
+		  return restrictAtState(snap(gridSize, noteSize, mh), state);
 		case "down":
 		case "resize":
 		  return null;
@@ -133,8 +153,11 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		  }
 		  else {
 			 // Create note
-			 const sn: Note = snap(get(state, 'gridSize'), get(state, 'noteSize'), mp);
-			 return updateCurrentNotes(state, n => fromJS(toJS(n).concat([sn])));
+			 const sn: Note = restrictAtState(snap(get(state, 'gridSize'), get(state, 'noteSize'), mp), state);
+			 if (sn == null)
+				return state
+			 else
+				return updateCurrentNotes(state, n => fromJS(toJS(n).concat([sn])));
 		  }
 		}
 		break;
@@ -194,6 +217,12 @@ function getCurrentPattern(state: Im<AppState>): string | undefined {
   case "editPattern": return mode.patName;
   default: return undefined;
   }
+}
+
+function getCurrentPat(state: Im<AppState>): Pattern | undefined {
+  const pat = getCurrentPattern(state);
+  if (pat == undefined) return undefined; // maybe console.log in this case?
+  return toJS(getIn(state, x => x.score.patterns[pat]))
 }
 
 function getCurrentNotes(state: Im<AppState>): Note[] | undefined {
