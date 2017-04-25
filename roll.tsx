@@ -186,13 +186,14 @@ class RollEditorMain extends Surface < RollEditorMainProps > {
 	 if (this.w != props.w || this.h != props.h)
 		this.setDims(props.w, props.h);
 
-	 d.clearRect(0, 0, this.w, this.h);
+	 d.fillStyle = LIGHTER_DARK_GRAY;
+	 d.fillRect(0, 0, this.w, this.h);
 	 for (let oc = 0; oc < 3; oc++) {
 		if (props.style == "piano") {
 		  draw_piano_octave(d, 0, oc * PIANO_OCTAVE_VSPACE);
 		}
 		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10, props.style);
-		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, 250, props.style, props.gridSize);
+		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, props.pattern.length * FAT_PIXELS_PER_TICK + 1, props.style, props.gridSize);
 	 }
 	 draw_notes(d, notes, get_camera(scrollOctave));
   }
