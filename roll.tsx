@@ -305,7 +305,7 @@ export class RollEditor extends Component < any, any > {
 		<div style={{width: 2*w}}>&nbsp;</div>
 	 </div>;
 
-	 const cursorState = props.mouseState.t == "resize" ? "resize" : null;
+	 const cursorState = props.mouseState.t == "resizeNote" ? "resize" : null;
 
 	 const c =
 	 <div>

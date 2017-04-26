@@ -74,7 +74,7 @@ const previewNote: (state: Im<BaseState>) => Note | null =
 		  if (found) return found;
 		  return restrictAtState(snap(gridSize, noteSize, mh), state);
 		case "down":
-		case "resize":
+		case "resizeNote":
 		  return null;
 		default: unreachable(ms);
 		}
@@ -107,7 +107,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 			 if (noteIx != -1) {
 				const note = notes[noteIx];
 				const fromRight = pa.time > (note.time[0] + note.time[1]) / 2;
-				rv = {t: "resize", fromRight, orig: pa, now: pb, note, noteIx};
+				rv = {t: "resizeNote", fromRight, orig: pa, now: pb, note, noteIx};
 			 }
 		  }
 		  return rv;
@@ -118,7 +118,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		default: throw unreachable(a);
 		}
 
-	 case "resize":
+	 case "resizeNote":
 		switch(a.t) {
 		case "Mousemove": return {...ms, now: a.mpoint};
 		case "Mousedown": throw "impossible";
@@ -161,7 +161,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		  }
 		}
 		break;
-	 case "resize":
+	 case "resizeNote":
 		if (a.t == "Mousemove") {
 		  if (ms.now == null) return state;
 		  const oldLength = (ms.note.time[1] - ms.note.time[0]);
