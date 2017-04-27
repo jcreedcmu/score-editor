@@ -1,4 +1,4 @@
-import { h as hh, render, Component } from 'preact';
+import { h as hh, Component } from 'preact';
 import { dispatch } from './main';
 
 export class SongEditor extends Component< any, any > {

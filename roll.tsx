@@ -1,8 +1,8 @@
-import { h as hh, render, Component } from 'preact';
+import { h as hh, Component } from 'preact';
 import { Surface } from './surface';
 import { dispatch } from './main';
-import { Note, AppState, mpoint, cpoint, Mode,
-			RollMouseState, Score, Pattern, DerivedState } from './types';
+import { Note, mpoint, cpoint,
+			RollMouseState, Pattern, DerivedState } from './types';
 
 const SCALE = 2; // units: pixels per fat pixel
 const PIANO_H = 97;
@@ -12,11 +12,10 @@ const PIANO_WIDTH = (PIANO_W) * SCALE;
 const GUTTER_W = 8;
 const GUTTER_WIDTH = GUTTER_W * SCALE;
 const SCORE_W = 250;
-const SCORE_WIDTH = 250 * SCALE;
+const SCORE_WIDTH = SCORE_W * SCALE;
 const FAT_PIXELS_PER_TICK = 6;
 const PIXELS_PER_TICK = FAT_PIXELS_PER_TICK * SCALE;
 const PITCH_HEIGHT = 8;
-const BASIC_PITCH_AT_Y0 = -1 + 12 * 6;
 const BLACK_NOTE_WIDTH = 34;
 
 export const rollDims = {
@@ -193,7 +192,7 @@ class RollEditorMain extends Surface < RollEditorMainProps > {
 		  draw_piano_octave(d, 0, oc * PIANO_OCTAVE_VSPACE);
 		}
 		draw_gutter(d, PIANO_WIDTH + SCALE, oc * PIANO_OCTAVE_VSPACE, 10, props.style);
-		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, props.pattern.length * FAT_PIXELS_PER_TICK + 1, props.style, props.gridSize);
+		draw_staff_octave(d, PIANO_WIDTH + GUTTER_WIDTH, 0 + oc * PIANO_OCTAVE_VSPACE, length * FAT_PIXELS_PER_TICK + 1, props.style, props.gridSize);
 	 }
 	 draw_notes(d, notes, get_camera(scrollOctave));
   }
@@ -266,7 +265,7 @@ class VScrollBar extends Component < any, any > {
 
   render(props) {
 	 const s = getScrollbarDims();
-	 const {height, content_height, x, y, scrollTop, onScroll} = props;
+	 const {height, content_height, x, y, onScroll} = props;
 	 const c =
 	 <div style={{height, left: x, top: y, width: s.width, "overflow-x": "hidden",
 			"overflow-y": "scroll", position: "absolute"}}

@@ -1,9 +1,8 @@
 import { score } from './score';
 import { component_render } from './component';
-import { RollMouseState, MouseAction, Action, AppState, BaseState, Note, mpoint, Mode, Score,
-			initialState, Pattern } from './types';
+import { Action, AppState, Note, mpoint, Mode, initialState } from './types';
 import { keyOf } from './key';
-import { Immutable as Im, get, set, update, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
+import { Immutable as Im, get, set, update, fromJS, toJS } from './immutable';
 import { play } from './audio';
 import { rollReduce, rollReduceConsistent } from './roll-reduce';
 import { setCurrentPat, currentPatUndefined, updateCurrentNotes } from './accessors';
@@ -35,12 +34,6 @@ export function snap(gridSize: number, noteSize: number, mp: mpoint): Note {
   const b = Math.floor(mp.time / gs) * gs;
   return {pitch: mp.pitch, time: [b, b + noteSize]};
 }
-
-// just not memoized right now
-function memoized<T, V, W>(select: (x: T) => V, view: (y: V) => W): (x: T) => W {
-  return x => view(select(x));
-}
-
 
 function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
   const words = cmd.split(/ /);

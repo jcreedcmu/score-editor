@@ -1,7 +1,7 @@
 import { AppState, MouseAction, RollMouseState, Mode, RollMode, Note, mpoint } from './types';
 import { unreachable, snap } from './main';
 import { find_note_at_mpoint, find_note_index_at_mpoint, xd_of_ticksd } from './roll';
-import { Immutable as Im, get, set, update, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
+import { Immutable as Im, get, set, getIn, setIn, fromJS, toJS } from './immutable';
 import { getCurrentNotes, updateCurrentNotes, getCurrentPat } from './accessors';
 
 // x is a floating point number. We want to return an int, but have

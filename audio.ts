@@ -1,4 +1,4 @@
-import { Score, Note, Pattern } from './types';
+import { Score } from './types';
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?

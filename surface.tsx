@@ -1,4 +1,4 @@
-import { h as hh, render, Component } from 'preact';
+import { h as hh, Component } from 'preact';
 
 type Point = {x: number, y: number};
 export class Surface< P > extends Component< P, void > {

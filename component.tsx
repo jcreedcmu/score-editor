@@ -1,4 +1,4 @@
-import { h as hh, render, Component } from 'preact';
+import { h as hh, render } from 'preact';
 import { RollEditor, RollEditorProps, rollDims } from './roll';
 import { SongEditor } from './song_editor';
 import { Minibuffer } from './minibuf';
