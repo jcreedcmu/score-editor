@@ -2,7 +2,7 @@ import { h as hh, render, Component } from 'preact';
 import { Surface } from './surface';
 import { dispatch } from './main';
 import { Note, AppState, mpoint, cpoint, Mode,
-			MouseState, Score, Pattern, DerivedState } from './types';
+			RollMouseState, Score, Pattern, DerivedState } from './types';
 
 const SCALE = 2; // units: pixels per fat pixel
 const PIANO_H = 97;
@@ -28,7 +28,7 @@ export type Style = "piano" | "drums";
 
 export type RollEditorProps = {
   offsetTicks: number | null,
-  mouseState: MouseState,
+  mouseState: RollMouseState,
   gridSize: number,
   noteSize: number,
   scrollOctave: number,

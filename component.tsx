@@ -19,10 +19,11 @@ function ModeComponent({props}:{props: AppState}): JSX.Element {
   const mode: Mode = props.mode;
   switch (mode.t) {
 	 case "editPattern":
-		const { offsetTicks, mouseState, gridSize, noteSize, scrollOctave, previewNote } = props;
+		const { offsetTicks, gridSize, noteSize, scrollOctave, previewNote } = props;
 		const rollProps: RollEditorProps = {
         ...rollDims,
-		  offsetTicks, mouseState, gridSize, noteSize, scrollOctave, previewNote,
+		  offsetTicks, gridSize, noteSize, scrollOctave, previewNote,
+		  mouseState: mode.mouseState,
 		  style: mode.patName == "drums" ? "drums" : "piano",
 		  pattern: props.score.patterns[mode.patName],
 		};

@@ -43,19 +43,18 @@ export type cpoint = { x: number, y: number } // point measured in pixels from t
 export type mpoint = { pitch: number, time: number } & cpoint // point also in "musical coordinates"
 
 
-export type MouseState =
+export type RollMouseState =
   | { t: "hover", mp: mpoint | null }
   | { t: "down", orig: mpoint, now: mpoint | null }
   | { t: "resizeNote", fromRight: boolean, orig: mpoint, now: mpoint | null,
 		note: Note, noteIx: number }
 
 export type Mode =
-  | {t: "editPattern", patName: string }
+  | {t: "editPattern", patName: string, mouseState: RollMouseState }
   | {t: "editSong" }
 
 export type BaseState = {
   offsetTicks: number | null,
-  mouseState: MouseState,
   score: Score,
   mode: Mode,
   gridSize: number,
@@ -72,15 +71,19 @@ export type DerivedState = {
 
 export type AppState = BaseState & DerivedState;
 
-export const initialState: Immutable<AppState> = fromJS({
+const _initialState: AppState = {
   offsetTicks: null,
-  mouseState: {t: "hover", mp: null},
   previewNote: null,
-  score: {duration: 32, seconds_per_tick: 0.1, patterns: {default: {notes: []}}},
+  score: {duration: 32,
+			 seconds_per_tick: 0.1,
+			 patterns: {default: {length: 32, notes: []}},
+			 song: []},
   gridSize: 1,
   noteSize: 1,
   scrollOctave: 3, /* in the range [0 .. 4] for now, higher numbers are lower pitch */
   minibufferVisible: false,
   minibuf: '',
-  mode: {t: "editPattern", patName: "default" },
-});
+  mode: {t: "editPattern", patName: "default", mouseState: {t: "hover", mp: null }},
+};
+
+export const initialState: Immutable<AppState> = fromJS(_initialState);

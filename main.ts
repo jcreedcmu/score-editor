@@ -1,7 +1,7 @@
 import { score } from './score';
 import { component_render } from './component';
 import { find_note_at_mpoint, find_note_index_at_mpoint, xd_of_ticksd } from './roll';
-import { MouseState, MouseAction, Action, AppState, BaseState, Note, mpoint, Mode, Score,
+import { RollMouseState, MouseAction, Action, AppState, BaseState, Note, mpoint, Mode, Score,
 			initialState, Pattern } from './types';
 import { keyOf } from './key';
 import { Immutable as Im, get, set, update, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
@@ -60,32 +60,31 @@ function memoized<T, V, W>(select: (x: T) => V, view: (y: V) => W): (x: T) => W 
   return x => view(select(x));
 }
 
-const previewNote: (state: Im<BaseState>) => Note | null =
-  memoized(
-	 (s: Im<AppState>) => [getCurrentNotes(s), get(s, 'mouseState'), get(s, 'gridSize'), get(s, 'noteSize')],
-	 ([notes, ims, gridSize, noteSize]:[Note[] | undefined, Im<MouseState>, number, number]) => {
-		const ms = toJS<MouseState>(ims);
-		switch (ms.t) {
-		case "hover":
-		  const mh = ms.mp;
-		  if (mh == null)
-			 return null;
-		  const found = find_note_at_mpoint(notes, mh);
-		  if (found) return found;
-		  return restrictAtState(snap(gridSize, noteSize, mh), state);
-		case "down":
-		case "resizeNote":
-		  return null;
-		default: unreachable(ms);
-		}
-	 });
-
-// collateral state changes because of mouse actions
-function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
+function previewNote(state: Im<AppState>, ms: RollMouseState): Note | null {
   const notes = getCurrentNotes(state);
-  const ms = toJS<MouseState>(get(state, 'mouseState'));
+  const gridSize = get(state, 'gridSize');
+  const noteSize = get(state, 'noteSize');
+  switch (ms.t) {
+  case "hover":
+	 const mh = ms.mp;
+	 if (mh == null)
+		return null;
+	 const found = find_note_at_mpoint(notes, mh);
+	 if (found) return found;
+	 return restrictAtState(snap(gridSize, noteSize, mh), state);
+  case "down":
+  case "resizeNote":
+	 return null;
+  default: unreachable(ms);
+  }
+}
 
-  function newMouseState(): MouseState {
+function rollReduceMouse(
+  state: Im<AppState>, ms: RollMouseState, a: MouseAction
+): [Im<AppState>, RollMouseState] {
+  const notes = getCurrentNotes(state);
+
+  function newMouseState(): RollMouseState {
 	 switch(ms.t) {
 	 case "hover":
 		switch(a.t) {
@@ -101,7 +100,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 		case "Mousemove": {
 		  const pa: mpoint = ms.orig;
 		  const pb: mpoint = a.mpoint;
-		  let rv: MouseState = {t: "down", orig: pa, now: pb};
+		  let rv: RollMouseState = {t: "down", orig: pa, now: pb};
 		  if (xd_of_ticksd(Math.abs(pa.time - pb.time)) > 5) {
 			 const noteIx = find_note_index_at_mpoint(notes, pa);
 			 if (noteIx != -1) {
@@ -139,6 +138,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 	 return snap * sgn;
   }
 
+// collateral state changes because of mouse actions
   function newOtherState(): Im<AppState> {
 	 switch(ms.t) {
 	 case "down":
@@ -190,8 +190,7 @@ function reduceMouse(state: Im<AppState>, a: MouseAction): Im<AppState> {
 	 return state;
   }
 
-  const state2 = newOtherState();
-  return set(state2, 'mouseState', fromJS(newMouseState()));
+									return [newOtherState(), newMouseState()];
 }
 
 function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
@@ -263,8 +262,13 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
   case "Mouseleave":
   case "Mousedown":
   case "Mouseup":
-	 return reduceMouse(state, a);
-
+	 const mode = toJS<Mode>(get(state, 'mode'));
+	 switch(mode.t) {
+	 case "editPattern":
+		const [nst, nmst] = rollReduceMouse(state, mode.mouseState, a);
+		return set(nst, 'mode', fromJS<Mode>({...mode, mouseState: nmst}));
+	 default: return state;
+	 }
   case "Play":
 	 play(a.score, v => dispatch({t: "SetCurrentPlaybackTime", v}));
 	 return state;
@@ -289,7 +293,8 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
 	 return set(state, 'mode', fromJS<Mode>({t: "editSong"}));
 
   case "EditPat":
-	 return set(state, 'mode', fromJS<Mode>({t: "editPattern", patName: a.patName}));
+	 return set(state, 'mode', fromJS<Mode>({t: "editPattern", patName: a.patName,
+														  mouseState: {t: "hover", mp: null }}));
 
   default: unreachable(a);
   }
@@ -297,8 +302,15 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
 
 export function reduceConsistent(state: Im<AppState>, a: Action): Im<AppState> {
   const ns = reduce(state, a);
-  return set(ns, 'previewNote', fromJS(previewNote(ns)));
+  const mode = toJS<Mode>(get(ns, 'mode'));
+  switch(mode.t) {
+  case "editPattern":
+	 return set(ns, 'previewNote', fromJS(previewNote(ns, mode.mouseState)));
+  default:
+	 return ns;
+  }
 }
+
 export function dispatch(a: Action): void {
   state = reduceConsistent(state, a);
   render();
