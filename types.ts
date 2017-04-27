@@ -49,8 +49,10 @@ export type RollMouseState =
   | { t: "resizeNote", fromRight: boolean, orig: mpoint, now: mpoint | null,
 		note: Note, noteIx: number }
 
+export type RollMode = {t: "editPattern", patName: string, mouseState: RollMouseState }
+
 export type Mode =
-  | {t: "editPattern", patName: string, mouseState: RollMouseState }
+  | RollMode
   | {t: "editSong" }
 
 export type BaseState = {
