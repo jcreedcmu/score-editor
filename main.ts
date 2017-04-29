@@ -5,6 +5,7 @@ import { keyOf } from './key';
 import { Immutable as Im, get, set, update, fromJS, toJS } from './immutable';
 import { play } from './audio';
 import { rollReduce, rollReduceConsistent } from './roll-reduce';
+import { songReduce } from './song-reduce';
 import { setCurrentPat, currentPatUndefined, updateCurrentNotes } from './accessors';
 
 declare const debug_glob: any;
@@ -41,7 +42,7 @@ function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
   case "clear":
 	 return updateCurrentNotes(state, x => fromJS([]));
   case "edit":
-	 let st = set(state, 'mode', fromJS({t: 'editPattern', patName: words[1]}));
+	 let st = set(state, 'mode', fromJS({t: 'editPattern', patName: words[1], mouseState: {t: "hover", mp: null }}));
 	 if (currentPatUndefined(st)) {
 		st = setCurrentPat(st, {notes: [], length: 32});
 	 }
@@ -60,6 +61,8 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
 	 switch(mode.t) {
 	 case "editPattern":
 		return rollReduce(state, mode, a);
+	 case "editSong":
+		return songReduce(state, mode, a);
 	 default: return state;
 	 }
   case "Play":
@@ -83,7 +86,7 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
 	 return set(state, 'minibuf', a.v);
 
   case "EditSong":
-	 return set(state, 'mode', fromJS<Mode>({t: "editSong"}));
+	 return set(state, 'mode', fromJS<Mode>({t: "editSong", mouseState: {t: "hover", mp: null }}));
 
   case "EditPat":
 	 return set(state, 'mode', fromJS<Mode>({t: "editPattern", patName: a.patName,

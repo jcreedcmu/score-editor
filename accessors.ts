@@ -1,4 +1,4 @@
-import { AppState, Pattern, Note, Mode } from './types';
+import { AppState, Pattern, Note, Mode, Song } from './types';
 import { Immutable as Im, get, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
 
 export function updateCurrentNotes(state: Im<AppState>, f: (x: Im<Note[]>) => Im<Note[]>): Im<AppState> {
@@ -57,4 +57,16 @@ export function getCurrentPat(state: Im<AppState>): Pattern | undefined {
 export function setCurrentPat(state: Im<AppState>, p: Pattern): Im<AppState> {
   const pat = getCurrentPattern(state);
   return setIn(state, x => x.score.patterns[pat], fromJS(p))
+}
+
+export function getSong(state: Im<AppState>): Song {
+  return toJS(getIn(state, x => x.score.song));
+}
+
+export function setSong(state: Im<AppState>, song: Song): Im<AppState> {
+  return setIn(state, x => x.score.song, fromJS(song));
+}
+
+export function updateSong(state: Im<AppState>, f: (x: Im<Song>) => Im<Song>): Im<AppState> {
+  return updateIn(state, x => x.score.song, f);
 }

@@ -30,10 +30,12 @@ export type PatUse = {
   duration: number,
 }
 
+export type Song = PatUse[]
+
 export type Score = {
   duration: number, // ticks
   seconds_per_tick: number,
-  song: PatUse[],
+  song: Song,
   patterns: {[P in string]: Pattern},
 };
 
@@ -41,6 +43,10 @@ export type cpoint = { x: number, y: number } // point measured in pixels from t
 
 // XXX rename 'time' to 'ticks'
 export type mpoint = { pitch: number, time: number } & cpoint // point also in "musical coordinates"
+
+export type SongMouseState =
+  | { t: "hover", mp: mpoint | null }
+  | { t: "down", orig: mpoint, now: mpoint | null }
 
 
 export type RollMouseState =
@@ -50,13 +56,15 @@ export type RollMouseState =
 		note: Note, noteIx: number }
 
 export type RollMode = {t: "editPattern", patName: string, mouseState: RollMouseState }
+export type SongMode = {t: "editSong", mouseState: SongMouseState }
 
 export type Mode =
   | RollMode
-  | {t: "editSong" }
+  | SongMode
 
 export type BaseState = {
   offsetTicks: number | null,
+  lastMouseDown?: Date,
   score: Score,
   mode: Mode,
   gridSize: number,
