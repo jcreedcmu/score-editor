@@ -38,6 +38,3 @@ export type Score = {
 };
 
 export type cpoint = { x: number, y: number } // point measured in pixels from the topleft of the canvas
-
-// XXX rename 'time' to 'ticks'
-export type mpoint = { pitch: number, time: number } & cpoint // point also in "musical coordinates"

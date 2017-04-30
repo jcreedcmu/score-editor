@@ -1,10 +1,11 @@
-import { MouseAction, Note, mpoint, cpoint } from './types';
-import { AppState, RollMouseState, Mode, RollMode } from './state';
-import { y0pitch_of_scrollOctave } from './roll-util';
+import { MouseAction, Note, cpoint } from './types';
+import { AppState, Mode } from './state';
 import { unreachable, snap } from './main';
 import { Immutable as Im, get, set, getIn, setIn, fromJS, toJS } from './immutable';
 import { getCurrentNotes, updateCurrentNotes, getCurrentPat } from './accessors';
-import { SCALE, PITCH_HEIGHT, PIANO_WIDTH, GUTTER_WIDTH, PIXELS_PER_TICK } from './roll-util';
+import { SCALE, PITCH_HEIGHT, PIANO_WIDTH, GUTTER_WIDTH, PIXELS_PER_TICK,
+			mpoint, RollMouseState, RollMode,
+			y0pitch_of_scrollOctave } from './roll-util';
 
 function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined {
   return notes.find(note => {

@@ -1,5 +1,6 @@
-import { PatUse, Score, Note, mpoint, cpoint } from './types';
+import { PatUse, Score, Note, cpoint } from './types';
 import { fromJS, Immutable } from './immutable';
+import { RollMode } from './roll-util';
 
 export type SongMouseState =
   | { t: "hover", mp: cpoint | null }
@@ -7,13 +8,6 @@ export type SongMouseState =
   | { t: "dragPat", orig: cpoint, now: cpoint | null, patUse: PatUse, patIx: number }
 
 
-export type RollMouseState =
-  | { t: "hover", mp: mpoint | null }
-  | { t: "down", orig: mpoint, now: mpoint | null }
-  | { t: "resizeNote", fromRight: boolean, orig: mpoint, now: mpoint | null,
-		note: Note, noteIx: number }
-
-export type RollMode = {t: "editPattern", patName: string, mouseState: RollMouseState }
 export type SongMode = {t: "editSong", mouseState: SongMouseState }
 
 export type Mode =

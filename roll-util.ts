@@ -1,3 +1,5 @@
+import { cpoint, Note } from './types'
+
 export function y0pitch_of_scrollOctave(scrollOctave) {
   return 12 * (9 - scrollOctave) - 1;
 }
@@ -20,3 +22,14 @@ export const rollDims = {
   w: PIANO_WIDTH + GUTTER_WIDTH + SCORE_WIDTH,
   h: PIANO_OCTAVE_VSPACE * 3 + SCALE
 };
+
+export type RollMouseState =
+  | { t: "hover", mp: mpoint | null }
+  | { t: "down", orig: mpoint, now: mpoint | null }
+  | { t: "resizeNote", fromRight: boolean, orig: mpoint, now: mpoint | null,
+		note: Note, noteIx: number }
+
+export type RollMode = {t: "editPattern", patName: string, mouseState: RollMouseState }
+
+// XXX rename 'time' to 'ticks'
+export type mpoint = { pitch: number, time: number } & cpoint // point also in "musical coordinates"

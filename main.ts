@@ -1,11 +1,12 @@
 import { score } from './score';
 import { component_render } from './component';
-import { Action, Note, mpoint } from './types';
+import { Action, Note } from './types';
 import { AppState, Mode, initialState } from './state';
 import { keyOf } from './key';
 import { Immutable as Im, get, set, update, fromJS, toJS } from './immutable';
 import { play } from './audio';
 import { rollReduce, rollReduceConsistent } from './roll-reduce';
+import { mpoint } from './roll-util';
 import { songReduce } from './song-reduce';
 import { setCurrentPat, currentPatUndefined, updateCurrentNotes } from './accessors';
 
