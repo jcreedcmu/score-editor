@@ -1,5 +1,6 @@
 import { h as hh, render } from 'preact';
-import { RollEditor, RollEditorProps, rollDims } from './roll';
+import { RollEditor, RollEditorProps } from './roll';
+import { rollDims } from './roll-util';
 import { SongEditor } from './song-editor';
 import { Minibuffer } from './minibuf';
 import { dispatch, unreachable } from './main';

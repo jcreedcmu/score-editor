@@ -1,8 +1,36 @@
-import { AppState, MouseAction, RollMouseState, Mode, RollMode, Note, mpoint } from './types';
+import { AppState, MouseAction, RollMouseState, Mode, RollMode, Note, mpoint, cpoint } from './types';
+import { y0pitch_of_scrollOctave } from './roll-util';
 import { unreachable, snap } from './main';
-import { find_note_at_mpoint, find_note_index_at_mpoint, xd_of_ticksd } from './roll';
 import { Immutable as Im, get, set, getIn, setIn, fromJS, toJS } from './immutable';
 import { getCurrentNotes, updateCurrentNotes, getCurrentPat } from './accessors';
+import { SCALE, PITCH_HEIGHT, PIANO_WIDTH, GUTTER_WIDTH, PIXELS_PER_TICK } from './roll-util';
+
+function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined {
+  return notes.find(note => {
+	 return (note.pitch == mp.pitch
+				&& note.time[0] <= mp.time
+				&& note.time[1] >= mp.time);
+  });
+}
+
+function find_note_index_at_mpoint(notes: Note[], mp: mpoint): number {
+  return notes.findIndex(note => {
+	 return (note.pitch == mp.pitch
+				&& note.time[0] <= mp.time
+				&& note.time[1] >= mp.time);
+  });
+}
+
+function mpoint_of_cpoint(cp: cpoint, scrollOctave: number): mpoint {
+  return {...cp,
+	 pitch: y0pitch_of_scrollOctave(scrollOctave) - Math.floor(cp.y / (SCALE * PITCH_HEIGHT)),
+	 time: (cp.x - (PIANO_WIDTH + GUTTER_WIDTH + SCALE)) / PIXELS_PER_TICK,
+  };
+}
+
+function xd_of_ticksd(ticksd: number): number {
+  return ticksd * PIXELS_PER_TICK;
+}
 
 // x is a floating point number. We want to return an int, but have
 // the function feel reasonably responsive even if x isn't that far
@@ -16,11 +44,12 @@ function augment_and_snap(x: number) {
 
 function rollNewMouseState(state: Im<AppState>, ms: RollMouseState, a: MouseAction): RollMouseState {
   const notes = getCurrentNotes(state);
+  function m_of_c(x: cpoint) { return mpoint_of_cpoint(x, get(state, 'scrollOctave')); }
   switch(ms.t) {
   case "hover":
 	 switch(a.t) {
-	 case "Mousemove": return {t: "hover", mp: a.mpoint};
-	 case "Mousedown": return {t: "down", orig: a.mpoint, now: a.mpoint};
+	 case "Mousemove": return {t: "hover", mp: m_of_c(a.p)};
+	 case "Mousedown": const mp = m_of_c(a.p); return {t: "down", orig: mp, now: mp};
 	 case "Mouseup": return ms; // this happens for mouse events that started outside the editor
 	 case "Mouseleave": return {...ms, mp: null};
 	 default: throw unreachable(a);
@@ -30,7 +59,7 @@ function rollNewMouseState(state: Im<AppState>, ms: RollMouseState, a: MouseActi
 	 switch(a.t) {
 	 case "Mousemove": {
 		const pa: mpoint = ms.orig;
-		const pb: mpoint = a.mpoint;
+		const pb: mpoint = m_of_c(a.p);
 		let rv: RollMouseState = {t: "down", orig: pa, now: pb};
 		if (xd_of_ticksd(Math.abs(pa.time - pb.time)) > 5) {
 		  const noteIx = find_note_index_at_mpoint(notes, pa);
@@ -50,7 +79,7 @@ function rollNewMouseState(state: Im<AppState>, ms: RollMouseState, a: MouseActi
 
   case "resizeNote":
 	 switch(a.t) {
-	 case "Mousemove": return {...ms, now: a.mpoint};
+	 case "Mousemove": return {...ms, now: m_of_c(a.p)};
 	 case "Mousedown": throw "impossible";
 	 case "Mouseup": return {t: "hover", mp: ms.now};
 	 case "Mouseleave": return {...ms, now: null};

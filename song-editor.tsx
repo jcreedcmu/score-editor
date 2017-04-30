@@ -8,10 +8,10 @@ export class SongEditor extends Component< any, any > {
 
 	 function pos(e: MouseEvent) {
 		const br = (e.target as HTMLElement).getBoundingClientRect();
-		return {pitch:0, time:0, x: e.clientX - br.left, y: e.clientY - br.top};
+		return {x: e.clientX - br.left, y: e.clientY - br.top};
 	 }
- 	 const omd = (e) => { e.preventDefault(); dispatch({t: "Mousedown", mpoint: pos(e)}); }
- 	 const omm = (e) => { e.preventDefault(); dispatch({t: "Mousemove", mpoint: pos(e)}); }
+ 	 const omd = (e) => { e.preventDefault(); dispatch({t: "Mousedown", p: pos(e)}); }
+ 	 const omm = (e) => { e.preventDefault(); dispatch({t: "Mousemove", p: pos(e)}); }
 
 	 const bits = props.score.song.map(pu => {
 		const style = { left: pu.start * PIXELS_PER_TICK, width: pu.duration * PIXELS_PER_TICK };

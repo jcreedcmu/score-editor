@@ -1,27 +1,19 @@
 import { h as hh, Component } from 'preact';
+import { y0pitch_of_scrollOctave } from './roll-util';
 import { Surface } from './surface';
 import { dispatch } from './main';
 import { Note, mpoint, cpoint,
 			RollMouseState, Pattern, DerivedState } from './types';
-
-const SCALE = 2; // units: pixels per fat pixel
-const PIANO_H = 97;
-const PIANO_W = 58;
-const PIANO_OCTAVE_VSPACE = (PIANO_H - 1) * SCALE;
-const PIANO_WIDTH = (PIANO_W) * SCALE;
-const GUTTER_W = 8;
-const GUTTER_WIDTH = GUTTER_W * SCALE;
-const SCORE_W = 250;
-const SCORE_WIDTH = SCORE_W * SCALE;
-const FAT_PIXELS_PER_TICK = 6;
-const PIXELS_PER_TICK = FAT_PIXELS_PER_TICK * SCALE;
-const PITCH_HEIGHT = 8;
-const BLACK_NOTE_WIDTH = 34;
-
-export const rollDims = {
-  w: PIANO_WIDTH + GUTTER_WIDTH + SCORE_WIDTH,
-  h: PIANO_OCTAVE_VSPACE * 3 + SCALE
-};
+import { SCALE,
+			PIANO_H,
+			PIANO_W,
+			PIANO_OCTAVE_VSPACE,
+			PIANO_WIDTH,
+			GUTTER_WIDTH,
+			FAT_PIXELS_PER_TICK,
+			PIXELS_PER_TICK,
+			PITCH_HEIGHT,
+			BLACK_NOTE_WIDTH } from './roll-util';
 
 export type Style = "piano" | "drums";
 
@@ -69,22 +61,6 @@ const DARKER_DARK_GRAY = "#141414";
 
 const keytype = [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0];
 
-export function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined {
-  return notes.find(note => {
-	 return (note.pitch == mp.pitch
-				&& note.time[0] <= mp.time
-				&& note.time[1] >= mp.time);
-  });
-}
-
-export function find_note_index_at_mpoint(notes: Note[], mp: mpoint): number {
-  return notes.findIndex(note => {
-	 return (note.pitch == mp.pitch
-				&& note.time[0] <= mp.time
-				&& note.time[1] >= mp.time);
-  });
-}
-
 // I find this just helps guide my eye
 function draw_gutter(d, x, y, w, style: Style) {
   d.fillStyle = "black";
@@ -118,10 +94,6 @@ function draw_notes(d, notes: Note[], camera: Camera) {
 	 d.fillStyle = colors[note.pitch % 12];
 	 d.fillRect.apply(d, inset(r));
   });
-}
-
-function y0pitch_of_scrollOctave(scrollOctave) {
-  return 12 * (9 - scrollOctave) - 1;
 }
 
 function get_camera(scrollOctave: number): Camera {
@@ -198,28 +170,17 @@ class RollEditorMain extends Surface < RollEditorMainProps > {
   }
 }
 
-export function xd_of_ticksd(ticksd: number): number {
-  return ticksd * PIXELS_PER_TICK;
-}
-
-function mpoint_of_cpoint(cp: cpoint, scrollOctave: number): mpoint {
-  return {...cp,
-	 pitch: y0pitch_of_scrollOctave(scrollOctave) - Math.floor(cp.y / (SCALE * PITCH_HEIGHT)),
-	 time: (cp.x - (PIANO_WIDTH + GUTTER_WIDTH + SCALE)) / PIXELS_PER_TICK,
-  };
-}
-
 class RollEditorOverlay extends Surface < RollEditorProps > {
   extraAttrs(props) {
 	 return {style: {position: "absolute"}};
   }
 
   onmousemove(p, e) {
-	 dispatch({t: "Mousemove", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
+	 dispatch({t: "Mousemove", p});
   }
 
   onmousedown(p, e) {
-	 dispatch({t: "Mousedown", mpoint: mpoint_of_cpoint(p, this.props.scrollOctave)});
+	 dispatch({t: "Mousedown", p});
   }
 
   onmouseleave(e) {

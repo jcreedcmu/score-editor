@@ -3,8 +3,8 @@ import { fromJS, Immutable } from './immutable';
 export type Note = { pitch: number, time: [number, number] };
 
 export type MouseAction =
-  | { t: "Mousemove"; mpoint: mpoint; }
-  | { t: "Mousedown"; mpoint: mpoint; }
+  | { t: "Mousemove"; p: cpoint; }
+  | { t: "Mousedown"; p: cpoint; }
   | { t: "Mouseup" }
   | { t: "Mouseleave" }
 
@@ -45,9 +45,9 @@ export type cpoint = { x: number, y: number } // point measured in pixels from t
 export type mpoint = { pitch: number, time: number } & cpoint // point also in "musical coordinates"
 
 export type SongMouseState =
-  | { t: "hover", mp: mpoint | null }
-  | { t: "down", orig: mpoint, now: mpoint | null }
-  | { t: "dragPat", orig: mpoint, now: mpoint | null, patUse: PatUse, patIx: number }
+  | { t: "hover", mp: cpoint | null }
+  | { t: "down", orig: cpoint, now: cpoint | null }
+  | { t: "dragPat", orig: cpoint, now: cpoint | null, patUse: PatUse, patIx: number }
 
 
 export type RollMouseState =

@@ -1,5 +1,5 @@
 import { AppState, SongMouseState, Song, SongMode, RollMode,
-			MouseAction, Action, mpoint, cpoint, PatUse } from './types';
+			MouseAction, Action, cpoint, PatUse } from './types';
 import { PIXELS_PER_TICK } from './song-editor';
 import { Immutable as Im, get, getIn, set, update, setIn, fromJS, toJS } from './immutable';
 import { getSong, updateSong } from './accessors';
@@ -25,8 +25,8 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
   switch(ms.t) {
   case "hover":
 	 switch(a.t) {
-	 case "Mousemove": return {t: "hover", mp: a.mpoint};
-	 case "Mousedown": return {t: "down", orig: a.mpoint, now: a.mpoint};
+	 case "Mousemove": return {t: "hover", mp: a.p};
+	 case "Mousedown": return {t: "down", orig: a.p, now: a.p};
 	 case "Mouseup": return ms; // this happens for mouse events that started outside the editor
 	 case "Mouseleave": return {...ms, mp: null};
 	 default: throw unreachable(a);
@@ -35,8 +35,8 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
   case "down":
 	 switch(a.t) {
 	 case "Mousemove": {
-		const pa: mpoint = ms.orig;
-		const pb: mpoint = a.mpoint;
+		const pa: cpoint = ms.orig;
+		const pb: cpoint = a.p;
 		let rv: SongMouseState = {t: "down", orig: pa, now: pb};
 		if (Math.abs(pa.x - pb.x) > 5) {
 		  const patIx = find_pat_use_index(notes, pa);
@@ -56,7 +56,7 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
 
   case "dragPat":
 	 switch(a.t) {
-	 case "Mousemove": return {...ms, now: a.mpoint};
+	 case "Mousemove": return {...ms, now: a.p};
 	 case "Mousedown": throw "impossible";
 	 case "Mouseup": return {t: "hover", mp: ms.now};
 	 case "Mouseleave": return {...ms, now: null};
@@ -66,7 +66,7 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
   }
 }
 
-function editPattern(state: Im<AppState>, mp: mpoint): Im<AppState> {
+function editPattern(state: Im<AppState>, mp: cpoint): Im<AppState> {
   const song: Im<PatUse[]> = getIn(state, x => x.score.song);
   const pu = find_pat_use(toJS(song), mp);
   if (pu != undefined) {
@@ -81,7 +81,7 @@ function songReduceMouse(state: Im<AppState>, ms: SongMouseState, a: MouseAction
   if (a.t == "Mousedown") {
 	 const last = get(state, 'lastMouseDown');
 	 if (last != undefined && Date.now() - (last as any) < DOUBLE_CLICK_SPEED) {
-		return editPattern(state, a.mpoint);
+		return editPattern(state, a.p);
 	 }
 	 s = set(state, 'lastMouseDown', Date.now() as any);
   }
