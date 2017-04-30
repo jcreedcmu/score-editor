@@ -47,6 +47,7 @@ export type mpoint = { pitch: number, time: number } & cpoint // point also in "
 export type SongMouseState =
   | { t: "hover", mp: mpoint | null }
   | { t: "down", orig: mpoint, now: mpoint | null }
+  | { t: "dragPat", orig: mpoint, now: mpoint | null, patUse: PatUse, patIx: number }
 
 
 export type RollMouseState =
