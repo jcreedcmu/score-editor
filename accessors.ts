@@ -1,4 +1,5 @@
-import { AppState, Pattern, Note, Mode, Song } from './types';
+import { Pattern, Note, Song } from './types';
+import { AppState, Mode } from './state';
 import { Immutable as Im, get, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
 
 export function updateCurrentNotes(state: Im<AppState>, f: (x: Im<Note[]>) => Im<Note[]>): Im<AppState> {

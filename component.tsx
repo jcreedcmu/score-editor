@@ -4,7 +4,7 @@ import { rollDims } from './roll-util';
 import { SongEditor } from './song-editor';
 import { Minibuffer } from './minibuf';
 import { dispatch, unreachable } from './main';
-import { AppState, Mode } from './types';
+import { AppState, Mode } from './state';
 import * as CSSTransitionGroup from 'preact-css-transition-group';
 
 function ModeHeader({mode}:{mode: Mode}): JSX.Element {

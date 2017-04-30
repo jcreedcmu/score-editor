@@ -1,6 +1,7 @@
 import { score } from './score';
 import { component_render } from './component';
-import { Action, AppState, Note, mpoint, Mode, initialState } from './types';
+import { Action, Note, mpoint } from './types';
+import { AppState, Mode, initialState } from './state';
 import { keyOf } from './key';
 import { Immutable as Im, get, set, update, fromJS, toJS } from './immutable';
 import { play } from './audio';

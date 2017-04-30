@@ -1,4 +1,5 @@
-import { AppState, MouseAction, RollMouseState, Mode, RollMode, Note, mpoint, cpoint } from './types';
+import { MouseAction, Note, mpoint, cpoint } from './types';
+import { AppState, RollMouseState, Mode, RollMode } from './state';
 import { y0pitch_of_scrollOctave } from './roll-util';
 import { unreachable, snap } from './main';
 import { Immutable as Im, get, set, getIn, setIn, fromJS, toJS } from './immutable';

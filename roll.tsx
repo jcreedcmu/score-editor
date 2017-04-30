@@ -2,8 +2,8 @@ import { h as hh, Component } from 'preact';
 import { y0pitch_of_scrollOctave } from './roll-util';
 import { Surface } from './surface';
 import { dispatch } from './main';
-import { Note, mpoint, cpoint,
-			RollMouseState, Pattern, DerivedState } from './types';
+import { Note, mpoint, cpoint, Pattern } from './types';
+import { RollMouseState, DerivedState } from './state';
 import { SCALE,
 			PIANO_H,
 			PIANO_W,
