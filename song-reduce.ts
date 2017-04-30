@@ -1,5 +1,6 @@
 import { Song, MouseAction, Action, cpoint, PatUse } from './types';
-import { AppState, SongMode, SongMouseState } from './state';
+import { AppState } from './state';
+import { SongMode, SongMouseState } from './song-util';
 import { RollMouseState, RollMode } from './roll-util';
 import { PIXELS_PER_TICK } from './song-editor';
 import { Immutable as Im, get, getIn, set, update, setIn, fromJS, toJS } from './immutable';
