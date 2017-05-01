@@ -83,4 +83,3 @@ ex2good o = MkGoodCache gρ πι where
   gρ : ρ c ∘ g c ≡ eid (oB o × Bool)
   gρ = {!!}
   πι = {!!}
-  -- oh huh maybe I'm screwed because agda doesn't do function extensionality?
