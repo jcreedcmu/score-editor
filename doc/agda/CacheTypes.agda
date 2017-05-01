@@ -38,21 +38,17 @@ record Cache : Set1 where
     ι : B → C
     π : C → B
 
-private
-  module GoodCache where
-    open Cache
-    record GoodCache (c : Cache) : Set where
-      constructor MkGoodCache
-      field
-        gρ : (ρ c ∘ g c) ≡ id
-        πι : (π c ∘ ι c) ≡ id
-open GoodCache public using (MkGoodCache ; GoodCache)
+open Cache
 
-module CacheMorphism where
-  open Cache
-  record CacheMorphism (t1 t2 : Cache) : Set where
-    constructor MkCacheMorphism
-    field
-      f : C t1 → C t2
-      fgρ : g t2 ∘ ρ t2 ∘ f ∘ g t1 ≡ f ∘ g t1
-      fπι : π t2 ∘ f ∘ ι t1 ∘ π t1 ≡ π t2 ∘ f
+record GoodCache (c : Cache) : Set where
+  constructor MkGoodCache
+  field
+    gρ : (ρ c ∘ g c) ≡ id
+    πι : (π c ∘ ι c) ≡ id
+
+record CacheMorphism (t1 t2 : Cache) : Set where
+  constructor MkCacheMorphism
+  field
+    f : C t1 → C t2
+    fgρ : g t2 ∘ ρ t2 ∘ f ∘ g t1 ≡ f ∘ g t1
+    fπι : π t2 ∘ f ∘ ι t1 ∘ π t1 ≡ π t2 ∘ f
