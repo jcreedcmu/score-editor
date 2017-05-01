@@ -68,3 +68,23 @@ pull-recompute f = MkCacheMorphism fbar fgρ fπι where
 
   fπι : π pull ∘ fbar ∘ ι pull ∘ π pull ≡ π pull ∘ fbar
   fπι = funext fπι-lemma
+
+pull-freshen : CacheMorphism pull pull
+pull-freshen = MkCacheMorphism fbar fgρ fπι where
+  open Cache using (C; g; ρ; π; ι)
+  fbar : C pull -> C pull
+  fbar (b , _) = b , just (d b)
+
+  fgρ-lemma : (x : B × Bool) -> g pull (ρ pull (fbar (g pull x))) ≡ fbar (g pull x)
+  fgρ-lemma (y , true) = refl
+  fgρ-lemma (y , false) = refl
+
+  fgρ : g pull ∘ ρ pull ∘ fbar ∘ g pull ≡ fbar ∘ g pull
+  fgρ = funext fgρ-lemma
+
+  fπι-lemma : (x : B × Maybe D) -> π pull (fbar (ι pull (π pull x))) ≡ π pull (fbar x)
+  fπι-lemma (b , just x) = refl
+  fπι-lemma (b , nothing) = refl
+
+  fπι : π pull ∘ fbar ∘ ι pull ∘ π pull ≡ π pull ∘ fbar
+  fπι = funext fπι-lemma
