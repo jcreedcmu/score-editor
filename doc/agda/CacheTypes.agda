@@ -19,7 +19,9 @@ open import Data.Product
 open import Data.Bool
 open import Data.Maybe
 open import Function
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+postulate
+  funext : {A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
 
 record Observable : Set1 where
   constructor MkObservable
@@ -72,14 +74,21 @@ ex2 o = MkCache G C B g ρ ι π
     π : C → B
     π (b , _) = b
 
-eid : (A : Set) → A → A
-eid A x = x
-
-ex2good : (o : Observable) → (GoodCache (ex2 o))
+ex2good : (o : Observable) → GoodCache (ex2 o)
 ex2good o = MkGoodCache gρ πι where
   open Observable renaming (B to oB)
-  open Cache
+  open Cache using (g; ρ; π; ι)
+
   c = ex2 o
-  gρ : ρ c ∘ g c ≡ eid (oB o × Bool)
-  gρ = {!!}
-  πι = {!!}
+  B = oB o
+
+  gρ-lemma : (y : B × Bool) -> (ρ c) ((g c) y) ≡ y
+  gρ-lemma (y , true) = refl
+  gρ-lemma (y , false) = refl
+
+  πι-lemma : (y : B) -> (π c) ((ι c) y) ≡ y
+  πι-lemma y = refl
+
+  gρ : ρ c ∘ g c ≡ id
+  gρ = funext gρ-lemma
+  πι = funext πι-lemma
