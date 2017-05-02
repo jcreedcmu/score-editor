@@ -90,8 +90,10 @@ function songReduceMouse(state: Im<AppState>, ms: SongMouseState, a: MouseAction
 
   switch(ms.t) {
   case "dragPat":
-	 const newStart = ms.patUse.start + (ms.now.x - ms.orig.x) / PIXELS_PER_TICK;
-	 return updateSong(s, sng => setIn(sng, x => x[ms.patIx].start, newStart));
+	 if (a.t == "Mousemove") {
+		const newStart = ms.patUse.start + (a.p.x - ms.orig.x) / PIXELS_PER_TICK;
+		return updateSong(s, sng => setIn(sng, x => x[ms.patIx].start, newStart));
+	 }
   default: return s;
   }
 }
