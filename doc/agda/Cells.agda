@@ -20,31 +20,6 @@ t+ ** x = x
 x ** t+ = x
 t- ** t- = t+
 
-PreCell : ℕ → Set
-PreCell zero = A
-PreCell (suc n) = PreCell n → Tern
-
-
-record Good1 (f : A → Tern) : Set where
-  field
-    a+ a- : A
-    f+ : f a+ ≡ t+
-    f- : f a- ≡ t-
-    fz : (x : A) -> x ≡ a+ ⊎ x ≡ a- ⊎ f x ≡ t0
-
-record NicePair (f : (A → Tern) -> Tern) (a : A) : Set where
-  field
-    m+ m- : A → Tern
-    p+ : f m+ ** m+ a ≡ t+
-    p- : f m- ** m- a ≡ t-
-    fz : (m : A → Tern) -> m ≡ m+ ⊎ m ≡ m- ⊎ f m ** m a ≡ t0
-
-record Good2 (f : (A → Tern) -> Tern) : Set where
-  field
-    p : (a : A) → NicePair f a ⊎ ((m : A → Tern) -> f m ** m a ≡ t0)
-
-{----}
-
 PreCells : Set₁
 PreCells = ℕ → Set
 
