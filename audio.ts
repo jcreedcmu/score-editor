@@ -102,7 +102,7 @@ const state : AudioState = {
 };
 
 const COAST_MARGIN = 0.1; // seconds
-const WARMUP_TIME = 0.1; // seconds
+const WARMUP_TIME = 0.05; // seconds
 const UPDATE_INTERVAL = 0.025; // seconds
 const RENDER_CHUNK_SIZE = 4096; // frames
 
@@ -133,6 +133,18 @@ export function play(score: Score, progress: (x: number, y: number) => void) {
 		  (state.renderedUntil - now) < COAST_MARGIN) {
 		const render_chunk_size_seconds = RENDER_CHUNK_SIZE / RATE;
 		const render_chunk_size_ticks = render_chunk_size_seconds / score.seconds_per_tick;
+		const buf = ad.createBuffer(1 /* channel */, RENDER_CHUNK_SIZE, RATE);
+		const dat: Float32Array = buf.getChannelData(0);
+		for (let i = 0; i < RENDER_CHUNK_SIZE; i++) {
+		  dat[i] = i % 256 == 0 ? 0.01 : -0.01;
+		}
+
+		const src = ad.createBufferSource();
+		src.buffer = buf;
+		src.connect(ad.destination);
+		console.log(state.renderedUntil * RATE);
+		src.start(state.renderedUntil);
+
 		state.renderedUntil += render_chunk_size_seconds;
 		state.renderedUntilSong += render_chunk_size_ticks;
 	 }
