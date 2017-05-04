@@ -106,6 +106,14 @@ const WARMUP_TIME = 0.05; // seconds
 const UPDATE_INTERVAL = 0.025; // seconds
 const RENDER_CHUNK_SIZE = 4096; // frames
 
+function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, liveNotes: NoteState[]): NoteState[] {
+  for (let i = 0; i < RENDER_CHUNK_SIZE; i++) {
+	 liveNotes[0].phase += liveNotes[0].freq / RATE;
+	 dat[i] = 0.15 * Math.sin(3.1415926535 * 2 * liveNotes[0].phase);
+  }
+  return liveNotes;
+}
+
 export function play(score: Score, progress: (x: number, y: number) => void) {
 
   function coast(now: number, renderedUntil?: number) {
@@ -135,9 +143,7 @@ export function play(score: Score, progress: (x: number, y: number) => void) {
 		const render_chunk_size_ticks = render_chunk_size_seconds / score.seconds_per_tick;
 		const buf = ad.createBuffer(1 /* channel */, RENDER_CHUNK_SIZE, RATE);
 		const dat: Float32Array = buf.getChannelData(0);
-		for (let i = 0; i < RENDER_CHUNK_SIZE; i++) {
-		  dat[i] = i % 256 == 0 ? 0.01 : -0.01;
-		}
+		state.liveNotes = renderChunkInto(dat, state.renderedUntilSong, score, state.liveNotes);
 
 		const src = ad.createBufferSource();
 		src.buffer = buf;
@@ -157,6 +163,7 @@ export function play(score: Score, progress: (x: number, y: number) => void) {
 	 state.nextUpdateTimeout = setTimeout(audioUpdate, UPDATE_INTERVAL * 1000);
   }
 
+  state.liveNotes = [{phase: 0, freq: 440}];
   state.renderedUntilSong = 0;
   state.renderedUntil = ad.currentTime + WARMUP_TIME;
   state.nextUpdateTimeout = setTimeout(audioUpdate, 0);
