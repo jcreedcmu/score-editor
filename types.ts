@@ -6,11 +6,13 @@ export type MouseAction =
   | { t: "Mouseup" }
   | { t: "Mouseleave" }
 
+export type Progress = {v: number, dv: number}
+export type ContinuePlaybackFunc = (score: Score) => Progress;
 export type Action =
   MouseAction
-  | { t: "Play"; score: Score; }
+  | { t: "Play" }
+  | { t: "ContinuePlayback"; cb: ContinuePlaybackFunc }
   | { t: "Vscroll"; top: number; }
-  | { t: "SetCurrentPlaybackTime"; v: number, dv: number }
   | { t: "Key", key: string }
   | { t: "ExecMinibuf", cmd: string }
   | { t: "SetMinibuf", v: string }

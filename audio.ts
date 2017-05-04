@@ -1,4 +1,5 @@
-import { Score, IdNote } from './types';
+import { Score, IdNote, Progress } from './types';
+import { dispatch } from './main';
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
@@ -120,67 +121,70 @@ function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, li
   return newLiveNotes;
 }
 
-export function play(score: Score, progress: (x: number, y: number) => void) {
+function continuePlayback(score: Score): Progress {
+  const now = ad.currentTime;
+
+  // points in time:
+  // N = present
+  // B = program begin
+  // R = renderpoint
+  // S = song begin
+  // 'now' is (N - B) seconds
+  // renderedUntilSong is (R - S) ticks
+  // renderedUntil is (R - B) seconds
+  // cursor is: (N - S) ticks
+  const nowTicks = now / score.seconds_per_tick;
+  const ruTicks = state.renderedUntil / score.seconds_per_tick;
+  const cursor = nowTicks + state.renderedUntilSong - ruTicks;
+
+  // do we need to render?
+  if (state.renderedUntilSong < score.duration &&
+		(state.renderedUntil - now) < COAST_MARGIN) {
+	 const render_chunk_size_seconds = RENDER_CHUNK_SIZE / RATE;
+	 const render_chunk_size_ticks = render_chunk_size_seconds / score.seconds_per_tick;
+	 const buf = ad.createBuffer(1 /* channel */, RENDER_CHUNK_SIZE, RATE);
+	 const dat: Float32Array = buf.getChannelData(0);
+	 state.liveNotes = renderChunkInto(dat, state.renderedUntilSong, score, state.liveNotes);
+
+	 const src = ad.createBufferSource();
+	 src.buffer = buf;
+	 src.connect(ad.destination);
+
+	 // I expect this to stay an integer (because audio context's
+	 // "currentTime" seems to stay essentially an integer multiple
+	 // of 1/RATE) although since I'm incrementing by floating point
+	 // quantities of seconds, I observing it drifting by something
+	 // on the order of 1e-8 seconds per second. Maybe could keep
+	 // track of renderedUntilFrames as an integer instead. (no
+	 // chance it'll get anywhere close to Number.MAX_SAFE_INTEGER in
+	 // practice, I think)
+	 //		console.log(state.renderedUntil * RATE);
+
+	 src.start(state.renderedUntil);
+
+	 state.renderedUntil += render_chunk_size_seconds;
+	 state.renderedUntilSong += render_chunk_size_ticks;
+  }
+
+  if (cursor > score.duration) {
+	 return {v:undefined, dv:undefined};
+  }
+  state.nextUpdateTimeout = setTimeout(audioUpdate, UPDATE_INTERVAL * 1000);
+  return {v: cursor, dv: state.renderedUntilSong};
+}
+
+export function play() {
 
   function coast(now: number, renderedUntil?: number) {
 	 return renderedUntil != undefined && renderedUntil - now > COAST_MARGIN;
-  }
-
-  function audioUpdate() {
-	 const now = ad.currentTime;
-
-	 // points in time:
-	 // N = present
-    // B = program begin
-	 // R = renderpoint
-	 // S = song begin
-	 // 'now' is (N - B) seconds
-	 // renderedUntilSong is (R - S) ticks
-	 // renderedUntil is (R - B) seconds
-	 // cursor is: (N - S) ticks
-	 const nowTicks = now / score.seconds_per_tick;
-	 const ruTicks = state.renderedUntil / score.seconds_per_tick;
-	 const cursor = nowTicks + state.renderedUntilSong - ruTicks;
-
-	 // do we need to render?
-	 if (state.renderedUntilSong < score.duration &&
-		  (state.renderedUntil - now) < COAST_MARGIN) {
-		const render_chunk_size_seconds = RENDER_CHUNK_SIZE / RATE;
-		const render_chunk_size_ticks = render_chunk_size_seconds / score.seconds_per_tick;
-		const buf = ad.createBuffer(1 /* channel */, RENDER_CHUNK_SIZE, RATE);
-		const dat: Float32Array = buf.getChannelData(0);
-		state.liveNotes = renderChunkInto(dat, state.renderedUntilSong, score, state.liveNotes);
-
-		const src = ad.createBufferSource();
-		src.buffer = buf;
-		src.connect(ad.destination);
-
-		// I expect this to stay an integer (because audio context's
-		// "currentTime" seems to stay essentially an integer multiple
-		// of 1/RATE) although since I'm incrementing by floating point
-		// quantities of seconds, I observing it drifting by something
-		// on the order of 1e-8 seconds per second. Maybe could keep
-		// track of renderedUntilFrames as an integer instead. (no
-		// chance it'll get anywhere close to Number.MAX_SAFE_INTEGER in
-		// practice, I think)
-		//		console.log(state.renderedUntil * RATE);
-
-		src.start(state.renderedUntil);
-
-		state.renderedUntil += render_chunk_size_seconds;
-		state.renderedUntilSong += render_chunk_size_ticks;
-	 }
-
-	 if (cursor > score.duration) {
-		progress(undefined, undefined);
-		return;
-	 }
-	 progress(cursor, state.renderedUntilSong);
-	 state.nextUpdateTimeout = setTimeout(audioUpdate, UPDATE_INTERVAL * 1000);
   }
 
   state.liveNotes = [];
   state.renderedUntilSong = 0;
   state.renderedUntil = ad.currentTime + WARMUP_TIME;
   state.nextUpdateTimeout = setTimeout(audioUpdate, 0);
+}
+
+function audioUpdate() {
+  dispatch({t: "ContinuePlayback", cb: continuePlayback});
 }

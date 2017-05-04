@@ -68,12 +68,15 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
 	 default: return state;
 	 }
   case "Play":
-	 play(a.score, (v, dv) => dispatch({t: "SetCurrentPlaybackTime", v, dv}));
+	 play();
 	 return state;
 
-  case "SetCurrentPlaybackTime":
-	 const ss = set(state, 'offsetTicks', a.v);
-	 return set(ss, 'debugOffsetTicks', a.dv);
+  case "ContinuePlayback":
+	 const score = toJS(get(state, 'score'));
+	 const progress = a.cb(score);
+	 const ss = set(state, 'offsetTicks', progress.v);
+	 const s2 = set(ss, 'debugOffsetTicks', progress.dv);
+	 return s2;
 
   case "Key": return reduceKey(state, a.key);
 

@@ -38,7 +38,7 @@ function ModeComponent({props}:{props: AppState}): JSX.Element {
 
 export function component_render(props: AppState) {
   const cont = document.getElementById('canvas_container');
-  const playClick = () => dispatch({t: "Play", score: props.score});
+  const playClick = () => dispatch({t: "Play"});
 
   const cc =
   <div>
