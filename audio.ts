@@ -148,7 +148,17 @@ export function play(score: Score, progress: (x: number, y: number) => void) {
 		const src = ad.createBufferSource();
 		src.buffer = buf;
 		src.connect(ad.destination);
+
+		// I expect this to stay an integer (because audio context's
+		// "currentTime" seems to stay essentially an integer multiple
+		// of 1/RATE) although since I'm incrementing by floating point
+		// quantities of seconds, I observing it drifting by something
+		// on the order of 1e-8 seconds per second. Maybe could keep
+		// track of renderedUntilFrames as an integer instead. (no
+		// chance it'll get anywhere close to Number.MAX_SAFE_INTEGER in
+		// practice, I think)
 		console.log(state.renderedUntil * RATE);
+
 		src.start(state.renderedUntil);
 
 		state.renderedUntil += render_chunk_size_seconds;
