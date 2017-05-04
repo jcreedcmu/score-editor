@@ -2,6 +2,7 @@ import { Score } from './types';
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
+// units: audio frames per second
 
 function freq_of_pitch(pitch) {
   return 440 * Math.pow(2, (pitch - 69) / 12);
@@ -84,6 +85,74 @@ function audio_render_notes(ad, score: Score, progress: (t: number) => void) {
   src.start(beginTime);
 }
 
-export function play(score, progress) {
-  audio_render_notes(ad, score, progress);
+type NoteState = {
+  phase: number,
+  freq: number,
+}
+
+type AudioState = {
+  nextUpdateTimeout? : number,
+  renderedUntil?: number, // seconds
+  renderedUntilSong? : number, // ticks
+  liveNotes: NoteState[],
+}
+
+const state : AudioState = {
+  liveNotes: [],
+};
+
+const COAST_MARGIN = 0.1; // seconds
+const WARMUP_TIME = 0.1; // seconds
+const UPDATE_INTERVAL = 0.025; // seconds
+const RENDER_CHUNK_SIZE = 4096; // frames
+
+export function play(score: Score, progress: (x: number) => void) {
+
+  function coast(now: number, renderedUntil?: number) {
+	 return renderedUntil != undefined && renderedUntil - now > COAST_MARGIN;
+  }
+
+  function audioUpdate() {
+	 const now = ad.currentTime;
+	 const ru = state.renderedUntil;
+	 const rus = state.renderedUntilSong;
+
+	 // points in time:
+	 // N = present
+    // B = program begin
+	 // R = renderpoint
+	 // S = song begin
+	 // 'now' is (N - B) seconds
+	 // renderedUntilSong is (R - S) ticks
+	 // renderedUntil is (R - B) seconds
+	 // cursor is: (N - S) ticks
+	 const nowTicks = now / score.seconds_per_tick;
+	 const ruTicks = ru / score.seconds_per_tick;
+	 const cursor = nowTicks + rus - ruTicks;
+
+	 // do we need to render?
+	 if (ru == undefined ||
+		  (rus < score.duration && ru - now > COAST_MARGIN)) {
+		const render_chunk_size_seconds = RENDER_CHUNK_SIZE / RATE;
+		const render_chunk_size_ticks = render_chunk_size_seconds / score.seconds_per_tick;
+		state.renderedUntil += render_chunk_size_seconds;
+		state.renderedUntilSong += render_chunk_size_ticks;
+		if (state.renderedUntilSong <= score.duration) {
+
+
+		}
+		console.log(JSON.stringify(state));
+	 }
+
+	 if (cursor > score.duration) {
+		progress(undefined);
+		return;
+	 }
+	 progress(cursor);
+	 state.nextUpdateTimeout = setTimeout(audioUpdate, UPDATE_INTERVAL * 1000);
+  }
+
+  state.renderedUntilSong = 0;
+  state.renderedUntil = ad.currentTime + WARMUP_TIME;
+  state.nextUpdateTimeout = setTimeout(audioUpdate, 0);
 }
