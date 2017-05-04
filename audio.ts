@@ -78,9 +78,11 @@ function collectNotes(score: Score, start: number, duration: number): ClipNote[]
 	 const pat = score.patterns[pu.patName];
 	 // XXX ignoring pattern *use* duration?
 	 pat.notes.forEach(note => {
-		const nt = [pu_offset + note.time[0], pu_offset + note.time[1]];
+		const nt: [number, number] = [pu_offset + note.time[0], pu_offset + note.time[1]];
 		if (nt[0] <= ct[1] && ct[0] <= nt[1]) {
-		  rv.push({...note, clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
+		  rv.push({...note,
+					  time: nt,
+					  clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
 		}
 	 });
   }
