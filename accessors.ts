@@ -1,8 +1,8 @@
-import { Pattern, Note, Song } from './types';
+import { Pattern, Note, IdNote, Song } from './types';
 import { AppState, Mode } from './state';
 import { Immutable as Im, get, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
 
-export function updateCurrentNotes(state: Im<AppState>, f: (x: Im<Note[]>) => Im<Note[]>): Im<AppState> {
+export function updateCurrentNotes(state: Im<AppState>, f: (x: Im<IdNote[]>) => Im<IdNote[]>): Im<AppState> {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return state; // maybe console.log in this case?
   return updateIn(state, x => x.score.patterns[pat].notes, f);
@@ -23,7 +23,7 @@ export function currentPatUndefined(state: Im<AppState>): boolean {
   return p == undefined
 }
 
-export function _getCurrentNotes(state: Im<AppState>): Note[] | undefined {
+export function _getCurrentNotes(state: Im<AppState>): IdNote[] | undefined {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return undefined; // maybe console.log in this case?
   const notes = getIn(state, x => x.score.patterns[pat].notes)
@@ -34,14 +34,14 @@ export function _getCurrentNotes(state: Im<AppState>): Note[] | undefined {
 // ad hoc cache, not sure if I should be doing something smarter
 let lastState = null;
 let lastAnswer = null;
-export function getCurrentNotes(state: Im<AppState>): Note[] | undefined {
+export function getCurrentNotes(state: Im<AppState>): IdNote[] | undefined {
   if (state != lastState) {
     lastState = state; lastAnswer = _getCurrentNotes(lastState);
   }
   return lastAnswer;
 }
 
-export function setCurrentNotes(state: Im<AppState>, notes: Note[]): Im<AppState> {
+export function setCurrentNotes(state: Im<AppState>, notes: IdNote[]): Im<AppState> {
   const pat = getCurrentPattern(state);
   if (pat == undefined) return undefined; // maybe console.log in this case?
   return setIn(state, x => x.score.patterns[pat].notes, fromJS(notes))

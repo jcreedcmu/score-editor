@@ -33,6 +33,7 @@ const _initialState: AppState = {
   previewNote: null,
   score: {duration: 32,
 			 seconds_per_tick: 0.1,
+			 next_id: 0,
 			 patterns: {default: {length: 32, notes: []}},
 			 song: []},
   gridSize: 1,

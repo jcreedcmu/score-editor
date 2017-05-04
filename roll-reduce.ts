@@ -110,8 +110,11 @@ function rollReduceMouse(state: Im<AppState>, ms: RollMouseState, a: MouseAction
 		  const sn: Note = restrictAtState(snap(get(state, 'gridSize'), get(state, 'noteSize'), mp), state);
 		  if (sn == null)
 			 return state
-		  else
-			 return updateCurrentNotes(state, n => fromJS(toJS(n).concat([sn])));
+		  else {
+			 const id = getIn(state, x => x.score.next_id);
+			 const s = setIn(state, x => x.score.next_id, id + 1);
+			 return updateCurrentNotes(s, n => fromJS(toJS(n).concat([{...sn, id}])));
+		  }
 		}
 	 }
 	 break;

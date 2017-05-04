@@ -5,130 +5,148 @@
 
 import { Score } from './types';
 export const score: Score = {
+  next_id: 17,
   "duration": 33, // extra 1 to make it not click when I do a release
   "seconds_per_tick": 0.09,
   song: [{"patName": "default", "start": 0, "duration": 32}],
   "patterns": {
 	 "default":  {length: 32, notes: [
-      {
-		  "pitch": 50,
-		  "time": [
+		{
+		  id: 0,
+		  pitch: 50,
+		  time: [
 			 0,
 			 4
 		  ]
-      },
-      {
-		  "pitch": 54,
-		  "time": [
+		},
+		{
+		  id: 1,
+		  pitch: 54,
+		  time: [
 			 4,
 			 8
 		  ]
-      },
-      {
-		  "pitch": 54,
-		  "time": [
+		},
+		{
+		  id: 2,
+		  pitch: 54,
+		  time: [
 			 8,
 			 12
 		  ]
-      },
-      {
-		  "pitch": 52,
-		  "time": [
+		},
+		{
+		  id: 3,
+		  pitch: 52,
+		  time: [
 			 12,
 			 16
 		  ]
-      },
-      {
-		  "pitch": 50,
-		  "time": [
+		},
+		{
+		  id: 4,
+		  pitch: 50,
+		  time: [
 			 16,
 			 24
 		  ]
-      },
-      {
-		  "pitch": 50,
-		  "time": [
+		},
+		{
+		  id: 5,
+		  pitch: 50,
+		  time: [
 			 28,
 			 32
 		  ]
-      },
-      {
-		  "pitch": 42,
-		  "time": [
+		},
+		{
+		  id: 6,
+		  pitch: 42,
+		  time: [
 			 0,
 			 4
 		  ]
-      },
-      {
-		  "pitch": 45,
-		  "time": [
+		},
+		{
+		  id: 7,
+		  pitch: 45,
+		  time: [
 			 4,
 			 8
 		  ]
-      },
-      {
-		  "pitch": 45,
-		  "time": [
+		},
+		{
+		  id: 8,
+		  pitch: 45,
+		  time: [
 			 8,
 			 12
 		  ]
-      },
-      {
-		  "pitch": 43,
-		  "time": [
+		},
+		{
+		  id: 9,
+		  pitch: 43,
+		  time: [
 			 12,
 			 16
 		  ]
-      },
-      {
-		  "pitch": 42,
-		  "time": [
+		},
+		{
+		  id: 10,
+		  pitch: 42,
+		  time: [
 			 16,
 			 20
 		  ]
-      },
-      {
-		  "pitch": 43,
-		  "time": [
+		},
+		{
+		  id: 11,
+		  pitch: 43,
+		  time: [
 			 20,
 			 24
 		  ]
-      },
-      {
-		  "pitch": 45,
-		  "time": [
+		},
+		{
+		  id: 12,
+		  pitch: 45,
+		  time: [
 			 24,
 			 26
 		  ]
-      },
-      {
-		  "pitch": 43,
-		  "time": [
+		},
+		{
+		  id: 13,
+		  pitch: 43,
+		  time: [
 			 26,
 			 28
 		  ]
-      },
-      {
-		  "pitch": 42,
-		  "time": [
+		},
+		{
+		  id: 14,
+		  pitch: 42,
+		  time: [
 			 28,
 			 32
 		  ]
-      },
-      {
-		  "pitch": 26,
-		  "time": [
+		},
+		{
+		  id: 15,
+		  pitch: 26,
+		  time: [
 			 0,
 			 4
 		  ]
-      },
-      {
-		  "pitch": 23,
-		  "time": [
+		},
+		{
+		  id: 16,
+		  pitch: 23,
+		  time: [
 			 16,
 			 20
 		  ]
-      }
+		}
 	 ]}
   }
 
