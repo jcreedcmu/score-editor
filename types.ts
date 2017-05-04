@@ -1,5 +1,5 @@
 export type Note = { pitch: number, time: [number, number] };
-
+export type IdNote = Note & { id: number };
 export type MouseAction =
   | { t: "Mousemove"; p: cpoint; }
   | { t: "Mousedown"; p: cpoint; }
@@ -10,7 +10,7 @@ export type Action =
   MouseAction
   | { t: "Play"; score: Score; }
   | { t: "Vscroll"; top: number; }
-  | { t: "SetCurrentPlaybackTime"; v: number }
+  | { t: "SetCurrentPlaybackTime"; v: number, dv: number }
   | { t: "Key", key: string }
   | { t: "ExecMinibuf", cmd: string }
   | { t: "SetMinibuf", v: string }
@@ -19,7 +19,7 @@ export type Action =
 
 export type Pattern = {
   length: number,
-  notes: Note[],
+  notes: IdNote[],
 };
 
 export type PatUse = {
@@ -31,6 +31,7 @@ export type PatUse = {
 export type Song = PatUse[]
 
 export type Score = {
+  next_id: number,
   duration: number, // ticks
   seconds_per_tick: number,
   song: Song,

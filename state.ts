@@ -9,6 +9,7 @@ export type Mode =
 
 export type BaseState = {
   offsetTicks: number | null,
+  debugOffsetTicks: number | null,
   lastMouseDown?: Date,
   score: Score,
   mode: Mode,
@@ -28,9 +29,11 @@ export type AppState = BaseState & DerivedState;
 
 const _initialState: AppState = {
   offsetTicks: null,
+  debugOffsetTicks: null,
   previewNote: null,
   score: {duration: 32,
 			 seconds_per_tick: 0.1,
+			 next_id: 0,
 			 patterns: {default: {length: 32, notes: []}},
 			 song: []},
   gridSize: 1,

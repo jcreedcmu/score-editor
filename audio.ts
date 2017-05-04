@@ -1,7 +1,8 @@
-import { Score } from './types';
+import { Score, IdNote } from './types';
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
+// units: audio frames per second
 
 function freq_of_pitch(pitch) {
   return 440 * Math.pow(2, (pitch - 69) / 12);
@@ -9,17 +10,28 @@ function freq_of_pitch(pitch) {
 
 const global_adsr_params = {a: 0.01, d: 0.1, s: 0.5, r: 0.01};
 
-function adsr(params, length) {
+// a, d, r and length are all intended to be in seconds
+// as long as they're all the same.
+// s is a unitless scalin factor.
+type adsrParams = {a: number, d: number, s: number, r: number};
+function adsr(params: adsrParams, length: number) {
   const {a, d, s, r} = params;
-  return {
-	 env_f: (t => {
-		if (t < a) { return t / a }
-		if (t - a < d) { const T = (t - a) / d; return s * T + (1 - T); }
-		if (t < length) return s;
-		return s * (1 - (t - length) / r);
-	 }),
-	 real_length: length + r
-  }
+  return  (t => {
+	 let env;
+	 if (t < a) env = t / a;
+	 else if (t - a < d) {
+		const T = (t - a) / d;
+		env = s * T + (1 - T);
+	 }
+	 else {
+		env = s;
+	 }
+	 const release_factor = (length - t) / r;
+	 if (release_factor < 1) {
+		env *= release_factor;
+	 }
+	 return env;
+  });
 }
 
 const noise = [];
@@ -27,63 +39,148 @@ for (var i = 0; i < 10000; i++) {
   noise[i] = Math.random() - 0.5;
 }
 
-function audio_render_notes(ad, score: Score, progress: (t: number) => void) {
-  const segmentTime = score.duration * score.seconds_per_tick;
-  const len = segmentTime * RATE; // in frames
-  var buf = ad.createBuffer(1, len, RATE);
-  var dat = buf.getChannelData(0);
-  for (const pu of score.song) {
-	 const pu_frame_offset = pu.start * score.seconds_per_tick * RATE;
-	 const pat = score.patterns[pu.patName];
-	 const inst = pu.patName == "drums" ? "drums" : "square";
-	 // XXX ignoring pattern *use* duration?
-	 pat.notes.forEach(note => {
-		const {env_f, real_length} = adsr(global_adsr_params,
-													 (note.time[1] - note.time[0]) * score.seconds_per_tick);
-		const note_start_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE);
-		const note_term_frame = Math.round(note.time[0] * score.seconds_per_tick * RATE + real_length * RATE);
-		const state = {phase: 0, amp: 1, f: freq_of_pitch(note.pitch)};
-
-		if (inst == "drums") {
-		  for (var t = note_start_frame; t < note_term_frame; t++) {
-			 state.phase += 100 * state.f / RATE;
-			 let e = env_f((t - note_start_frame) / RATE);
-			 const wav = 0.3 * noise[Math.floor(state.phase) % 10000];
-			 dat[t] += e * state.amp * wav * (1 - (t - note_start_frame) / (note_term_frame - note_start_frame)) ;
-		  }
-		}
-		else if (inst == "square") {
-		  for (var t = note_start_frame; t < note_term_frame; t++) {
-			 state.phase += state.f / RATE;
-			 let e = env_f((t - note_start_frame) / RATE);
-			 //const wav = 0.15 * Math.sin(3.1415926535 * 2 * state.phase);
-			 const wav = 0.05 * ((state.phase - Math.floor(state.phase) < 0.5) ? 1 : -1);
-			 dat[pu_frame_offset + t] += e * state.amp * wav ;
-		  }
-		}
-	 });
-
-  }
-
-  var src = ad.createBufferSource();
-
-  const beginTime = ad.currentTime + 0.1;
-
-  const ival = setInterval(() => {
-	 if (ad.currentTime < beginTime)
-		return;
-	 progress((ad.currentTime - beginTime) / score.seconds_per_tick);
-  }, 40);
-
-  src.onended = () => {
-	 progress(null);
-	 clearInterval(ival);
-  }
-  src.buffer = buf;
-  src.connect(ad.destination);
-  src.start(beginTime);
+type NoteState = {
+  id: number,
+  phase: number,
+  freq: number,
 }
 
-export function play(score, progress) {
-  audio_render_notes(ad, score, progress);
+type AudioState = {
+  nextUpdateTimeout? : number,
+  renderedUntil?: number, // seconds
+  renderedUntilSong? : number, // ticks
+  liveNotes: NoteState[],
+}
+
+const state : AudioState = {
+  liveNotes: [],
+};
+
+const COAST_MARGIN = 0.1; // seconds
+const WARMUP_TIME = 0.05; // seconds
+const UPDATE_INTERVAL = 0.025; // seconds
+const RENDER_CHUNK_SIZE = 4096; // frames
+
+// We want to keep two pieces of information that are both derived
+// from the note's real time bounds
+// (a) When the note starts and stops, considering it clipped to the
+// render chunk
+// (b) When the note actually begins and ends, which might be outside
+// the render chunk, for purposes of computing adsr envelope.
+type ClipNote = IdNote & {clipTime: [number, number]};
+
+function collectNotes(score: Score, start: number, duration: number): ClipNote[] {
+  const rv: ClipNote[] = [];
+
+  const ct = [start, start + duration]; // am I fenceposting wrong?
+  for (const pu of score.song) {
+	 const pu_offset = pu.start;
+	 const pat = score.patterns[pu.patName];
+	 // XXX ignoring pattern *use* duration?
+	 pat.notes.forEach(note => {
+		const nt: [number, number] = [pu_offset + note.time[0], pu_offset + note.time[1]];
+		if (nt[0] <= ct[1] && ct[0] <= nt[1]) {
+		  rv.push({...note,
+					  time: nt,
+					  clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
+		}
+	 });
+  }
+  return rv;
+}
+
+function clip_to_length(params: adsrParams, seconds: number): adsrParams {
+  return {...params,
+			 a: Math.min(params.a, seconds/2),
+			 r: Math.min(params.r, seconds/2)};
+}
+
+function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, liveNotes: NoteState[]): NoteState[] {
+
+  const newLiveNotes = [];
+  for (const note of collectNotes(score, startTicks, dat.length / (score.seconds_per_tick * RATE))) {
+	 const noteState: NoteState = liveNotes.find(n => n.id == note.id) || {id: note.id, phase: 0, freq: freq_of_pitch(note.pitch)};
+	 newLiveNotes.push(noteState);
+
+	 const note_start_frame = Math.round((note.clipTime[0] - startTicks) * score.seconds_per_tick * RATE);
+	 const note_term_frame = Math.round((note.clipTime[1] - startTicks) * score.seconds_per_tick * RATE);
+	 const env_f = adsr(clip_to_length(global_adsr_params, (note.time[1] - note.time[0]) * score.seconds_per_tick),
+							  (note.time[1] - note.time[0]) * score.seconds_per_tick);
+	 for (let i = note_start_frame; i < note_term_frame; i++) {
+		// what time is it in this iteration of the loop? it's (in ticks from beginning of song)
+		// note.clipTime[0] + (i - note_start_frame) / (score.seconds_per_tick * RATE)
+
+		// therefore, the time in *seconds* since this note started is as follows:
+		const env = env_f((i - note_start_frame) / RATE + (note.clipTime[0] - note.time[0]) * score.seconds_per_tick);
+
+		dat[i] += env * 0.15 * Math.sin(3.1415926535 * 2 * noteState.phase);
+		noteState.phase += noteState.freq / RATE;
+	 }
+  }
+  return newLiveNotes;
+}
+
+export function play(score: Score, progress: (x: number, y: number) => void) {
+
+  function coast(now: number, renderedUntil?: number) {
+	 return renderedUntil != undefined && renderedUntil - now > COAST_MARGIN;
+  }
+
+  function audioUpdate() {
+	 const now = ad.currentTime;
+
+	 // points in time:
+	 // N = present
+    // B = program begin
+	 // R = renderpoint
+	 // S = song begin
+	 // 'now' is (N - B) seconds
+	 // renderedUntilSong is (R - S) ticks
+	 // renderedUntil is (R - B) seconds
+	 // cursor is: (N - S) ticks
+	 const nowTicks = now / score.seconds_per_tick;
+	 const ruTicks = state.renderedUntil / score.seconds_per_tick;
+	 const cursor = nowTicks + state.renderedUntilSong - ruTicks;
+
+	 // do we need to render?
+	 if (state.renderedUntilSong < score.duration &&
+		  (state.renderedUntil - now) < COAST_MARGIN) {
+		const render_chunk_size_seconds = RENDER_CHUNK_SIZE / RATE;
+		const render_chunk_size_ticks = render_chunk_size_seconds / score.seconds_per_tick;
+		const buf = ad.createBuffer(1 /* channel */, RENDER_CHUNK_SIZE, RATE);
+		const dat: Float32Array = buf.getChannelData(0);
+		state.liveNotes = renderChunkInto(dat, state.renderedUntilSong, score, state.liveNotes);
+
+		const src = ad.createBufferSource();
+		src.buffer = buf;
+		src.connect(ad.destination);
+
+		// I expect this to stay an integer (because audio context's
+		// "currentTime" seems to stay essentially an integer multiple
+		// of 1/RATE) although since I'm incrementing by floating point
+		// quantities of seconds, I observing it drifting by something
+		// on the order of 1e-8 seconds per second. Maybe could keep
+		// track of renderedUntilFrames as an integer instead. (no
+		// chance it'll get anywhere close to Number.MAX_SAFE_INTEGER in
+		// practice, I think)
+		//		console.log(state.renderedUntil * RATE);
+
+		src.start(state.renderedUntil);
+
+		state.renderedUntil += render_chunk_size_seconds;
+		state.renderedUntilSong += render_chunk_size_ticks;
+	 }
+
+	 if (cursor > score.duration) {
+		progress(undefined, undefined);
+		return;
+	 }
+	 progress(cursor, state.renderedUntilSong);
+	 state.nextUpdateTimeout = setTimeout(audioUpdate, UPDATE_INTERVAL * 1000);
+  }
+
+  state.liveNotes = [];
+  state.renderedUntilSong = 0;
+  state.renderedUntil = ad.currentTime + WARMUP_TIME;
+  state.nextUpdateTimeout = setTimeout(audioUpdate, 0);
 }
