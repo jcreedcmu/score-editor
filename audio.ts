@@ -106,7 +106,7 @@ const WARMUP_TIME = 0.1; // seconds
 const UPDATE_INTERVAL = 0.025; // seconds
 const RENDER_CHUNK_SIZE = 4096; // frames
 
-export function play(score: Score, progress: (x: number) => void) {
+export function play(score: Score, progress: (x: number, y: number) => void) {
 
   function coast(now: number, renderedUntil?: number) {
 	 return renderedUntil != undefined && renderedUntil - now > COAST_MARGIN;
@@ -114,8 +114,6 @@ export function play(score: Score, progress: (x: number) => void) {
 
   function audioUpdate() {
 	 const now = ad.currentTime;
-	 const ru = state.renderedUntil;
-	 const rus = state.renderedUntilSong;
 
 	 // points in time:
 	 // N = present
@@ -127,28 +125,23 @@ export function play(score: Score, progress: (x: number) => void) {
 	 // renderedUntil is (R - B) seconds
 	 // cursor is: (N - S) ticks
 	 const nowTicks = now / score.seconds_per_tick;
-	 const ruTicks = ru / score.seconds_per_tick;
-	 const cursor = nowTicks + rus - ruTicks;
+	 const ruTicks = state.renderedUntil / score.seconds_per_tick;
+	 const cursor = nowTicks + state.renderedUntilSong - ruTicks;
 
 	 // do we need to render?
-	 if (ru == undefined ||
-		  (rus < score.duration && ru - now > COAST_MARGIN)) {
+	 if (state.renderedUntilSong < score.duration &&
+		  (state.renderedUntil - now) < COAST_MARGIN) {
 		const render_chunk_size_seconds = RENDER_CHUNK_SIZE / RATE;
 		const render_chunk_size_ticks = render_chunk_size_seconds / score.seconds_per_tick;
 		state.renderedUntil += render_chunk_size_seconds;
 		state.renderedUntilSong += render_chunk_size_ticks;
-		if (state.renderedUntilSong <= score.duration) {
-
-
-		}
-		console.log(JSON.stringify(state));
 	 }
 
 	 if (cursor > score.duration) {
-		progress(undefined);
+		progress(undefined, undefined);
 		return;
 	 }
-	 progress(cursor);
+	 progress(cursor, state.renderedUntilSong);
 	 state.nextUpdateTimeout = setTimeout(audioUpdate, UPDATE_INTERVAL * 1000);
   }
 

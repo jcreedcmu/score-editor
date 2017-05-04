@@ -10,7 +10,7 @@ export type Action =
   MouseAction
   | { t: "Play"; score: Score; }
   | { t: "Vscroll"; top: number; }
-  | { t: "SetCurrentPlaybackTime"; v: number }
+  | { t: "SetCurrentPlaybackTime"; v: number, dv: number }
   | { t: "Key", key: string }
   | { t: "ExecMinibuf", cmd: string }
   | { t: "SetMinibuf", v: string }
