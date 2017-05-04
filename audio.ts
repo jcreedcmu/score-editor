@@ -1,4 +1,4 @@
-import { Score } from './types';
+import { Score, IdNote } from './types';
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
@@ -86,6 +86,7 @@ function audio_render_notes(ad, score: Score, progress: (t: number) => void) {
 }
 
 type NoteState = {
+  id: number,
   phase: number,
   freq: number,
 }
@@ -106,12 +107,39 @@ const WARMUP_TIME = 0.05; // seconds
 const UPDATE_INTERVAL = 0.025; // seconds
 const RENDER_CHUNK_SIZE = 4096; // frames
 
-function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, liveNotes: NoteState[]): NoteState[] {
-  for (let i = 0; i < RENDER_CHUNK_SIZE; i++) {
-	 liveNotes[0].phase += liveNotes[0].freq / RATE;
-	 dat[i] = 0.15 * Math.sin(3.1415926535 * 2 * liveNotes[0].phase);
+function collectNotes(score: Score, start: number, duration: number): IdNote[] {
+  const rv: IdNote[] = [];
+
+  const ct = [start, start + duration]; // am I fenceposting wrong?
+  for (const pu of score.song) {
+	 const pu_offset = pu.start;
+	 const pat = score.patterns[pu.patName];
+	 // XXX ignoring pattern *use* duration?
+	 pat.notes.forEach(note => {
+		const nt = [pu_offset + note.time[0], pu_offset + note.time[1]];
+		if (nt[0] <= ct[1] && ct[0] <= nt[1]) {
+		  rv.push({...note, time: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
+		}
+	 });
   }
-  return liveNotes;
+  return rv;
+}
+
+function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, liveNotes: NoteState[]): NoteState[] {
+
+  const newLiveNotes = [];
+  for (const note of collectNotes(score, startTicks, dat.length / (score.seconds_per_tick * RATE))) {
+	 const noteState: NoteState = liveNotes.find(n => n.id == note.id) || {id: note.id, phase: 0, freq: freq_of_pitch(note.pitch)};
+	 newLiveNotes.push(noteState);
+
+	 const note_start_frame = Math.round((note.time[0] - startTicks) * score.seconds_per_tick * RATE);
+	 const note_term_frame = Math.round((note.time[1] - startTicks) * score.seconds_per_tick * RATE);
+	 for (let i = note_start_frame; i < note_term_frame; i++) {
+		dat[i] += 0.15 * Math.sin(3.1415926535 * 2 * noteState.phase);
+		noteState.phase += noteState.freq / RATE;
+	 }
+  }
+  return newLiveNotes;
 }
 
 export function play(score: Score, progress: (x: number, y: number) => void) {
@@ -157,7 +185,7 @@ export function play(score: Score, progress: (x: number, y: number) => void) {
 		// track of renderedUntilFrames as an integer instead. (no
 		// chance it'll get anywhere close to Number.MAX_SAFE_INTEGER in
 		// practice, I think)
-		console.log(state.renderedUntil * RATE);
+		//		console.log(state.renderedUntil * RATE);
 
 		src.start(state.renderedUntil);
 
@@ -173,7 +201,7 @@ export function play(score: Score, progress: (x: number, y: number) => void) {
 	 state.nextUpdateTimeout = setTimeout(audioUpdate, UPDATE_INTERVAL * 1000);
   }
 
-  state.liveNotes = [{phase: 0, freq: 440}];
+  state.liveNotes = [];
   state.renderedUntilSong = 0;
   state.renderedUntil = ad.currentTime + WARMUP_TIME;
   state.nextUpdateTimeout = setTimeout(audioUpdate, 0);
