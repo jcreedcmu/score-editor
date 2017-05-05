@@ -219,11 +219,14 @@ class RollEditorOverlay extends Surface < RollEditorProps > {
 		d.fillRect(PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * props.offsetTicks, 0,
 					  2, PIANO_OCTAVE_VSPACE * 3);
 	 }
-	 if (props.debugOffsetTicks != null) {
-		d.fillStyle = "red";
-		d.fillRect(PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * props.debugOffsetTicks, 0,
-					  2, PIANO_OCTAVE_VSPACE * 3);
-	 }
+
+	 // debugging, shows where audio rendering has finished up to
+
+	 /* if (props.debugOffsetTicks != null) {
+		 d.fillStyle = "red";
+		 d.fillRect(PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * props.debugOffsetTicks, 0,
+		 2, PIANO_OCTAVE_VSPACE * 3);
+		 }*/
   }
 }
 
