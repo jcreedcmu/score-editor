@@ -90,8 +90,7 @@ LocalSubMod : (n : ℕ) (c : PreCell (suc n)) → ModHom (ResMod (PreCell n) (Ce
 GlobalModule zero = ℤMod
 GlobalModule (suc n) = ProductMod (PreCell n) (CellModule n)
 LocalSubMod n c = ResSubMod (PreCell n) (CellModule n) c
-
-GlobalBoundary n = SumOver (PreCell n) (CellModule n) (GlobalModule n) (λ b → CellBoundary n b)
+GlobalBoundary n = SumOver (PreCell n) (CellModule n) (GlobalModule n) (CellBoundary n)
 CellModule zero a = ℤMod
 CellModule (suc n) c =
   ker (ModHomComp (LocalSubMod n c) (GlobalBoundary n))
