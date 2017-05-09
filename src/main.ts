@@ -8,7 +8,8 @@ import { play } from './audio';
 import { rollReduce, rollReduceConsistent } from './roll-reduce';
 import { mpoint } from './roll-util';
 import { songReduce } from './song-reduce';
-import { setCurrentPat, currentPatUndefined, updateCurrentNotes, ensurePatternExists } from './accessors';
+import { setCurrentPat, currentPatUndefined, updateCurrentNotes, ensurePatternExists,
+			updateCurrentPat } from './accessors';
 
 declare const debug_glob: any;
 
@@ -47,6 +48,8 @@ function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
 	 return ensurePatternExists(updateIn(state, x => x.score.song, x => fromJS( toJS(x).concat(newPatUse))), patName);
   case "clear":
 	 return updateCurrentNotes(state, x => fromJS([]));
+  case "length":
+	 return updateCurrentPat(state, pat => set(pat, 'length', parseInt(words[1])));
   case "edit":
 	 let st = set(state, 'mode', fromJS({t: 'editPattern', patName: words[1], mouseState: {t: "hover", mp: null }}));
 	 if (currentPatUndefined(st)) {

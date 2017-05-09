@@ -61,6 +61,11 @@ export function setCurrentPat(state: Im<AppState>, p: Pattern): Im<AppState> {
   return setIn(state, x => x.score.patterns[pat], fromJS(p))
 }
 
+export function updateCurrentPat(state: Im<AppState>, f: (x: Im<Pattern>) => Im<Pattern>): Im<AppState> {
+  const pat = getCurrentPattern(state);
+  return updateIn(state, x => x.score.patterns[pat], f)
+}
+
 export function getSong(state: Im<AppState>): Song {
   return toJS(getIn(state, x => x.score.song));
 }
