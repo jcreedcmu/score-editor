@@ -49,7 +49,7 @@ export class SongEditor extends Component< {state: Im<AppState> }, any > {
 		bg.height = LANE_HEIGHT;
 		bg.width = PIXELS_PER_TICK * get(pat, 'length');
 		const d = bg.getContext('2d');
-		d.fillStyle = "white";
+		d.fillStyle = "#0c3535";
 		d.fillRect(0, 0, bg.width, bg.height);
 		d.fillStyle = "#075152";
 		d.fillRect(0, 0, bg.width - 1, bg.height - 1);
