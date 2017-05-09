@@ -12,8 +12,9 @@ function freq_of_pitch(pitch) {
 const global_adsr_params = {a: 0.01, d: 0.1, s: 0.5, r: 0.01};
 
 // a, d, r and length are all intended to be in seconds
-// as long as they're all the same.
-// s is a unitless scalin factor.
+// --- but the function would still work more or less the same for
+// them being in any time unit, as long as they're all the same.
+// s is a unitless scaling factor.
 type adsrParams = {a: number, d: number, s: number, r: number};
 function adsr(params: adsrParams, length: number) {
   const {a, d, s, r} = params;
