@@ -14,7 +14,6 @@ import { setCurrentPat, currentPatUndefined, updateCurrentNotes, ensurePatternEx
 declare const debug_glob: any;
 
 const notes = score.patterns['default'].notes;
-notes.forEach(note => note.pitch += 12);
 
 window.onload = () => {
   document.onkeydown = (e) => dispatch({t: "Key", key: keyOf(e)});
