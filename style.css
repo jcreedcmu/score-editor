@@ -85,7 +85,7 @@ canvas { cursor: url(pencil.png) 5 16, auto; }
 .songEditor {
   width: 800px;
   height: 500px;
-  background-color: #262626;
+ /*  background-color: #262626; */
   border: 1px solid black;
   position: relative;
 }
@@ -94,7 +94,7 @@ canvas { cursor: url(pencil.png) 5 16, auto; }
   position: absolute;
   background-color: #075152;
   border: 1px solid black;
-  height: 50px;
+
   cursor: pointer;
   pointer-events: none; /* essential for event.target not throwing off position calculations! */
 }

@@ -25,6 +25,7 @@ export type Pattern = {
 };
 
 export type PatUse = {
+  lane: number,
   patName: string,
   start: number,
   duration: number,

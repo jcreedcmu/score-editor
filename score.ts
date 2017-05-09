@@ -8,7 +8,7 @@ export const score: Score = {
   next_id: 17,
   "duration": 33, // extra 1 to make it not click when I do a release
   "seconds_per_tick": 0.09,
-  song: [{"patName": "default", "start": 0, "duration": 32}],
+  song: [{"lane": 1, "patName": "default", "start": 0, "duration": 32}],
   "patterns": {
 	 "default":  {length: 32, notes: [
 		{

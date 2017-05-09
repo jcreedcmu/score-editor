@@ -2,24 +2,23 @@ import { Song, MouseAction, Action, cpoint, PatUse } from './types';
 import { AppState } from './state';
 import { SongMode, SongMouseState } from './song-util';
 import { RollMouseState, RollMode } from './roll-util';
-import { PIXELS_PER_TICK } from './song-editor';
+import { PIXELS_PER_TICK, LANE_HEIGHT } from './song-editor';
 import { Immutable as Im, get, getIn, set, update, setIn, fromJS, toJS } from './immutable';
 import { getSong, updateSong } from './accessors';
 import { unreachable } from './main';
 
 const DOUBLE_CLICK_SPEED = 300;
-const LANE_HEIGHT = 50; // XXX belongs in song-editor.tsx probably
 
 function find_pat_use(song: Song, cp: cpoint): PatUse | undefined {
   const {x, y} = cp;
   return song.find(pu => x >= pu.start * PIXELS_PER_TICK && x <= (pu.start + pu.duration) * PIXELS_PER_TICK &&
-		y >= 0 && y <= LANE_HEIGHT);
+						 y >= pu.lane * LANE_HEIGHT && y <= (pu.lane + 1) * LANE_HEIGHT);
 }
 
 function find_pat_use_index(song: Song, cp: cpoint): number {
   const {x, y} = cp;
   return song.findIndex(pu => x >= pu.start * PIXELS_PER_TICK && x <= (pu.start + pu.duration) * PIXELS_PER_TICK &&
-		y >= 0 && y <= LANE_HEIGHT);
+								y >= pu.lane * LANE_HEIGHT && y <= (pu.lane + 1) * LANE_HEIGHT);
 }
 
 export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: MouseAction): SongMouseState {
