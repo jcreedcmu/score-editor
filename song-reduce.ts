@@ -2,11 +2,13 @@ import { Song, MouseAction, Action, cpoint, PatUse } from './types';
 import { AppState } from './state';
 import { SongMode, SongMouseState } from './song-util';
 import { RollMouseState, RollMode } from './roll-util';
-import { PIXELS_PER_TICK, LANE_HEIGHT } from './song-editor';
+import { PIXELS_PER_TICK, LANE_HEIGHT, TICKS_PER_GRID } from './song-editor';
 import { Immutable as Im, get, getIn, set, update, setIn, fromJS, toJS } from './immutable';
 import { getSong, updateSong } from './accessors';
+import { augment_and_snap } from './util';
 import { unreachable } from './main';
 
+const GRID_SNAP = TICKS_PER_GRID
 const DOUBLE_CLICK_SPEED = 300;
 
 function find_pat_use(song: Song, cp: cpoint): PatUse | undefined {
@@ -39,7 +41,7 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
 		const pa: cpoint = ms.orig;
 		const pb: cpoint = a.p;
 		let rv: SongMouseState = {t: "down", orig: pa, now: pb};
-		if (Math.abs(pa.x - pb.x) > 5) {
+		if (Math.abs(pa.x - pb.x) > 3 || Math.abs(pa.y - pb.y) > 3) {
 		  const patIx = find_pat_use_index(notes, pa);
 		  if (patIx != -1) {
 			 const song = getSong(state);
@@ -90,8 +92,10 @@ function songReduceMouse(state: Im<AppState>, ms: SongMouseState, a: MouseAction
   switch(ms.t) {
   case "dragPat":
 	 if (a.t == "Mousemove") {
-		const newStart = ms.patUse.start + (a.p.x - ms.orig.x) / PIXELS_PER_TICK;
-		return updateSong(s, sng => setIn(sng, x => x[ms.patIx].start, newStart));
+		const newStart = ms.patUse.start + GRID_SNAP * augment_and_snap((a.p.x - ms.orig.x) / PIXELS_PER_TICK / GRID_SNAP);
+		const newLane = ms.patUse.lane + augment_and_snap((a.p.y - ms.orig.y) / LANE_HEIGHT);
+		const s2 = updateSong(s, sng => setIn(sng, x => x[ms.patIx].start, newStart));
+		return updateSong(s2, sng => setIn(sng, x => x[ms.patIx].lane, newLane));
 	 }
   default: return s;
   }

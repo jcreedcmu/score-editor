@@ -1,19 +1,9 @@
-// could use immutablejs instead
-export function updateIn<T>(obj: any, path: any[], f: (x: T) => T): any {
-  const _go = function (obj: any, pi: number) {
-	 if (pi == path.length) {
-		return f(obj)
-	 }
-	 else {
-		if (obj instanceof Array) {
-		  const copy = [...obj];
-		  copy.splice(path[pi], 1, _go(obj[path[pi]], pi+1));
-		  return copy;
-		}
-		else {
-		  return {...obj, [path[pi]]: _go(obj[path[pi]], pi+1)};
-		}
-	 }
-  }
-  return _go(obj, 0);
+// x is a floating point number. We want to return an int, but have
+// the function feel reasonably responsive even if x isn't that far
+// from zero.
+export function augment_and_snap(x: number) {
+  const sgn = x > 0 ? 1 : -1;
+  const abs = Math.abs(x);
+  const snap = Math.floor(abs+0.5);
+  return snap * sgn;
 }

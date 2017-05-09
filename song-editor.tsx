@@ -1,8 +1,10 @@
 import { h as hh, Component } from 'preact';
 import { dispatch } from './main';
 
-export const PIXELS_PER_TICK = 3;
+export const TICKS_PER_GRID = 16;
+export const PIXELS_PER_GRID = 48;
 export const LANE_HEIGHT = 50;
+export const PIXELS_PER_TICK = PIXELS_PER_GRID / TICKS_PER_GRID;
 
 export class SongEditor extends Component< any, any > {
   _elt: HTMLElement;
@@ -12,12 +14,12 @@ export class SongEditor extends Component< any, any > {
 	 super();
 	 const bg = document.createElement('canvas');
 	 bg.height = LANE_HEIGHT;
-	 bg.width = 1;
+	 bg.width = PIXELS_PER_GRID;
 	 const d = bg.getContext('2d');
-	 d.fillStyle = "#262626";
-	 d.fillRect(0, 0, 1, LANE_HEIGHT - 1);
 	 d.fillStyle = "black";
-	 d.fillRect(0, LANE_HEIGHT - 1, 1, 1);
+	 d.fillRect(0, 0, PIXELS_PER_GRID, LANE_HEIGHT);
+	 d.fillStyle = "#262626";
+	 d.fillRect(0, 0, PIXELS_PER_GRID - 1, LANE_HEIGHT - 1);
 	 this._bg = "url(" + bg.toDataURL() + ")"
   }
 
@@ -34,7 +36,7 @@ export class SongEditor extends Component< any, any > {
 		const style = {
 		  top: pu.lane * LANE_HEIGHT - 1,
 		  left: pu.start * PIXELS_PER_TICK - 1,
-		  width: pu.duration * PIXELS_PER_TICK - 2 /* 2? 1? */,
+		  width: pu.duration * PIXELS_PER_TICK - 1,
 		  height: LANE_HEIGHT - 1,
 		};
 		return <div className="use" style={style}><div>{pu.patName}</div></div>;

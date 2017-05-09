@@ -6,6 +6,7 @@ import { getCurrentNotes, updateCurrentNotes, getCurrentPat } from './accessors'
 import { SCALE, PITCH_HEIGHT, PIANO_WIDTH, GUTTER_WIDTH, PIXELS_PER_TICK,
 			mpoint, RollMouseState, RollMode,
 			y0pitch_of_scrollOctave } from './roll-util';
+import { augment_and_snap } from './util';
 
 function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined {
   return notes.find(note => {
@@ -32,16 +33,6 @@ function mpoint_of_cpoint(cp: cpoint, scrollOctave: number): mpoint {
 
 function xd_of_ticksd(ticksd: number): number {
   return ticksd * PIXELS_PER_TICK;
-}
-
-// x is a floating point number. We want to return an int, but have
-// the function feel reasonably responsive even if x isn't that far
-// from zero.
-function augment_and_snap(x: number) {
-  const sgn = x > 0 ? 1 : -1;
-  const abs = Math.abs(x);
-  const snap = Math.floor(abs+0.5);
-  return snap * sgn;
 }
 
 function rollNewMouseState(state: Im<AppState>, ms: RollMouseState, a: MouseAction): RollMouseState {
