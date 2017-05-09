@@ -1,9 +1,9 @@
 import { score } from './score';
 import { component_render } from './component';
-import { Action, Note } from './types';
+import { Action, Note, PatUse } from './types';
 import { AppState, Mode, initialState } from './state';
 import { keyOf } from './key';
-import { Immutable as Im, get, set, update, fromJS, toJS } from './immutable';
+import { Immutable as Im, get, set, update, updateIn, fromJS, toJS } from './immutable';
 import { play } from './audio';
 import { rollReduce, rollReduceConsistent } from './roll-reduce';
 import { mpoint } from './roll-util';
@@ -41,6 +41,9 @@ export function snap(gridSize: number, noteSize: number, mp: mpoint): Note {
 function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
   const words = cmd.split(/ /);
   switch (words[0]) {
+  case "create":
+	 const newPatUse: PatUse = { lane: 0, patName: words[1], start: 0, duration: 32 };
+	 return updateIn(state, x => x.score.song, x => fromJS( toJS(x).concat(newPatUse)));
   case "clear":
 	 return updateCurrentNotes(state, x => fromJS([]));
   case "edit":
@@ -93,10 +96,6 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
 
   case "EditSong":
 	 return set(state, 'mode', fromJS<Mode>({t: "editSong", mouseState: {t: "hover", mp: null }}));
-
-  case "EditPat":
-	 return set(state, 'mode', fromJS<Mode>({t: "editPattern", patName: a.patName,
-														  mouseState: {t: "hover", mp: null }}));
 
   default: unreachable(a);
   }

@@ -4,7 +4,7 @@ import { SongMode, SongMouseState } from './song-util';
 import { RollMouseState, RollMode } from './roll-util';
 import { PIXELS_PER_TICK, LANE_HEIGHT, TICKS_PER_GRID } from './song-editor';
 import { Immutable as Im, get, getIn, set, update, setIn, fromJS, toJS } from './immutable';
-import { getSong, updateSong } from './accessors';
+import { getSong, updateSong, setCurrentPat, currentPatUndefined } from './accessors';
 import { augment_and_snap } from './util';
 import { unreachable } from './main';
 
@@ -73,8 +73,12 @@ function editPattern(state: Im<AppState>, mp: cpoint): Im<AppState> {
   const song: Im<PatUse[]> = getIn(state, x => x.score.song);
   const pu = find_pat_use(toJS(song), mp);
   if (pu != undefined) {
-	 return set(state, 'mode', fromJS<RollMode>({t: "editPattern", patName: pu.patName,
+	 let st = set(state, 'mode', fromJS<RollMode>({t: "editPattern", patName: pu.patName,
 																mouseState: {t: 'hover', mp: null}}));
+	 if (currentPatUndefined(st)) {
+		st = setCurrentPat(st, {notes: [], length: 32});
+	 }
+	 return st;
   }
   return state;
 }

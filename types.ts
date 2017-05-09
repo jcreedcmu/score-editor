@@ -17,7 +17,6 @@ export type Action =
   | { t: "ExecMinibuf", cmd: string }
   | { t: "SetMinibuf", v: string }
   | { t: "EditSong" }
-  | { t: "EditPat", patName: string }
 
 export type Pattern = {
   length: number,
