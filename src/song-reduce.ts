@@ -5,7 +5,7 @@ import { RollMouseState, RollMode } from './roll-util';
 import { PIXELS_PER_TICK, LANE_HEIGHT, TICKS_PER_GRID } from './song-editor';
 import { Immutable as Im, get, getIn, set, update, setIn, fromJS, toJS } from './immutable';
 import { getSong, updateSong, setCurrentPat, currentPatUndefined, modeEditPattern } from './accessors';
-import { augment_and_snap } from './util';
+import { augment_and_snap, findLast, findLastIndex } from './util';
 import { unreachable } from './main';
 
 const GRID_SNAP = TICKS_PER_GRID
@@ -13,14 +13,16 @@ const DOUBLE_CLICK_SPEED = 300;
 
 function find_pat_use(song: Song, cp: cpoint): PatUse | undefined {
   const {x, y} = cp;
-  return song.find(pu => x >= pu.start * PIXELS_PER_TICK && x <= (pu.start + pu.duration) * PIXELS_PER_TICK &&
-						 y >= pu.lane * LANE_HEIGHT && y <= (pu.lane + 1) * LANE_HEIGHT);
+  return findLast(song, pu => x >= pu.start * PIXELS_PER_TICK &&
+						x <= (pu.start + pu.duration) * PIXELS_PER_TICK &&
+						y >= pu.lane * LANE_HEIGHT && y <= (pu.lane + 1) * LANE_HEIGHT);
 }
 
 function find_pat_use_index(song: Song, cp: cpoint): number {
   const {x, y} = cp;
-  return song.findIndex(pu => x >= pu.start * PIXELS_PER_TICK && x <= (pu.start + pu.duration) * PIXELS_PER_TICK &&
-								y >= pu.lane * LANE_HEIGHT && y <= (pu.lane + 1) * LANE_HEIGHT);
+  return findLastIndex(song, pu => x >= pu.start * PIXELS_PER_TICK &&
+							  x <= (pu.start + pu.duration) * PIXELS_PER_TICK &&
+							  y >= pu.lane * LANE_HEIGHT && y <= (pu.lane + 1) * LANE_HEIGHT);
 }
 
 export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: MouseAction): SongMouseState {

@@ -7,3 +7,17 @@ export function augment_and_snap(x: number) {
   const snap = Math.floor(abs+0.5);
   return snap * sgn;
 }
+
+export function findLast<T>(xs: T[], f: (x: T) => boolean): T | undefined {
+  for (let i = xs.length - 1; i >= 0; i--) {
+	 if (f(xs[i])) return xs[i];
+  }
+  return undefined;
+}
+
+export function findLastIndex<T>(xs: T[], f: (x: T) => boolean): number {
+  for (let i = xs.length - 1; i >= 0; i--) {
+	 if (f(xs[i])) return i;
+  }
+  return -1;
+}

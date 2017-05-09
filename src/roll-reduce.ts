@@ -6,10 +6,10 @@ import { getCurrentNotes, updateCurrentNotes, getCurrentPat } from './accessors'
 import { SCALE, PITCH_HEIGHT, PIANO_WIDTH, GUTTER_WIDTH, PIXELS_PER_TICK,
 			mpoint, RollMouseState, RollMode,
 			y0pitch_of_scrollOctave } from './roll-util';
-import { augment_and_snap } from './util';
+import { augment_and_snap, findLast, findLastIndex } from './util';
 
 function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined {
-  return notes.find(note => {
+  return findLast(notes, note => {
 	 return (note.pitch == mp.pitch
 				&& note.time[0] <= mp.time
 				&& note.time[1] >= mp.time);
@@ -17,7 +17,7 @@ function find_note_at_mpoint(notes: Note[], mp: mpoint): Note | undefined {
 }
 
 function find_note_index_at_mpoint(notes: Note[], mp: mpoint): number {
-  return notes.findIndex(note => {
+  return findLastIndex(notes, note => {
 	 return (note.pitch == mp.pitch
 				&& note.time[0] <= mp.time
 				&& note.time[1] >= mp.time);
