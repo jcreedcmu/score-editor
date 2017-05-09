@@ -71,6 +71,21 @@ const RENDER_CHUNK_SIZE = 4096; // frames
 // the render chunk, for purposes of computing adsr envelope.
 type ClipNote = IdNote & {clipTime: [number, number]};
 
+
+function repeats(patUseLength: number, patLength: number): {offset: number, duration: number}[] {
+  let remaining: number = patUseLength;
+  let pos = 0;
+  let rv: {offset: number, duration: number}[] = [];
+  while (remaining > patLength) {
+	 rv.push({offset: pos, duration: patLength});
+	 remaining -= patLength;
+	 pos += patLength;
+  }
+  rv.push({offset: pos, duration: remaining});
+  console.log(JSON.stringify(rv));
+  return rv;
+}
+
 function collectNotes(score: Score, start: number, duration: number): ClipNote[] {
   const rv: ClipNote[] = [];
 
@@ -78,14 +93,20 @@ function collectNotes(score: Score, start: number, duration: number): ClipNote[]
   for (const pu of score.song) {
 	 const pu_offset = pu.start;
 	 const pat = score.patterns[pu.patName];
-	 // XXX ignoring pattern *use* duration?
-	 pat.notes.forEach(note => {
-		const nt: [number, number] = [pu_offset + note.time[0], pu_offset + note.time[1]];
-		if (nt[0] <= ct[1] && ct[0] <= nt[1]) {
-		  rv.push({...note,
-					  time: nt,
-					  clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
-		}
+
+	 repeats(pu.duration, pat.length).forEach(({offset, duration}) => {
+		pat.notes.forEach(note => {
+		  const off = offset + pu_offset;
+		  const start = note.time[0];
+		  if (start >= duration) return;
+		  const end = Math.min(note.time[1], duration);
+		  const nt: [number, number] = [off + start, off + end];
+		  if (nt[0] <= ct[1] && ct[0] <= nt[1]) {
+			 rv.push({...note,
+						 time: nt,
+						 clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
+		  }
+		});
 	 });
   }
   return rv;
