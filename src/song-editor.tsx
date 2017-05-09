@@ -1,12 +1,14 @@
 import { h as hh, Component } from 'preact';
 import { dispatch } from './main';
+import { Immutable as Im, get, set, update, updateIn, fromJS, toJS } from './immutable';
+import { AppState } from './state'
 
 export const TICKS_PER_GRID = 16;
 export const PIXELS_PER_GRID = 48;
 export const LANE_HEIGHT = 50;
 export const PIXELS_PER_TICK = PIXELS_PER_GRID / TICKS_PER_GRID;
 
-export class SongEditor extends Component< any, any > {
+export class SongEditor extends Component< {state: Im<AppState> }, any > {
   _elt: HTMLElement;
   _bg: string;
 
@@ -28,7 +30,9 @@ export class SongEditor extends Component< any, any > {
 	 return {x: e.clientX - br.left, y: e.clientY - br.top};
   }
 
-  render(props) {
+  render({state} : {state: Im<AppState> }) {
+	 const props: AppState = toJS(state);
+
  	 const omd = (e) => { e.preventDefault(); dispatch({t: "Mousedown", p: this.pos(e)}); }
  	 const omm = (e) => { e.preventDefault(); dispatch({t: "Mousemove", p: this.pos(e)}); }
 

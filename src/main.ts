@@ -133,7 +133,7 @@ function reduceKey(state: Im<AppState>, key: string): Im<AppState> {
 }
 
 function render() {
-  component_render(toJS(state));
+  component_render(state);
 }
 
 // debugging
