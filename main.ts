@@ -8,7 +8,7 @@ import { play } from './audio';
 import { rollReduce, rollReduceConsistent } from './roll-reduce';
 import { mpoint } from './roll-util';
 import { songReduce } from './song-reduce';
-import { setCurrentPat, currentPatUndefined, updateCurrentNotes } from './accessors';
+import { setCurrentPat, currentPatUndefined, updateCurrentNotes, ensurePatternExists } from './accessors';
 
 declare const debug_glob: any;
 
@@ -42,8 +42,9 @@ function reduceCmd(state: Im<AppState>, cmd: string): Im<AppState> {
   const words = cmd.split(/ /);
   switch (words[0]) {
   case "create":
-	 const newPatUse: PatUse = { lane: 0, patName: words[1], start: 0, duration: 32 };
-	 return updateIn(state, x => x.score.song, x => fromJS( toJS(x).concat(newPatUse)));
+	 const patName = words[1];
+	 const newPatUse: PatUse = { lane: 0, patName, start: 0, duration: 32 };
+	 return ensurePatternExists(updateIn(state, x => x.score.song, x => fromJS( toJS(x).concat(newPatUse))), patName);
   case "clear":
 	 return updateCurrentNotes(state, x => fromJS([]));
   case "edit":

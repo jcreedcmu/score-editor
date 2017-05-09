@@ -1,6 +1,7 @@
 import { Pattern, Note, IdNote, Song } from './types';
 import { AppState, Mode } from './state';
-import { Immutable as Im, get, getIn, setIn, updateIn, fromJS, toJS } from './immutable';
+import { RollMode } from './roll-util';
+import { Immutable as Im, get, getIn, set, setIn, updateIn, fromJS, toJS } from './immutable';
 
 export function updateCurrentNotes(state: Im<AppState>, f: (x: Im<IdNote[]>) => Im<IdNote[]>): Im<AppState> {
   const pat = getCurrentPattern(state);
@@ -70,4 +71,17 @@ export function setSong(state: Im<AppState>, song: Song): Im<AppState> {
 
 export function updateSong(state: Im<AppState>, f: (x: Im<Song>) => Im<Song>): Im<AppState> {
   return updateIn(state, x => x.score.song, f);
+}
+
+export function ensurePatternExists(state: Im<AppState>, patName: string): Im<AppState> {
+  if (getIn(state, x => x.score.patterns[patName]) == undefined) {
+	 return setIn(state, x => x.score.patterns[patName], fromJS({notes: [], length: 32}));
+  }
+  return state;
+}
+
+export function modeEditPattern(state: Im<AppState>, patName: string): Im<AppState> {
+  const s = ensurePatternExists(state, patName);
+  return set(s, 'mode', fromJS<RollMode>({t: "editPattern", patName,
+																mouseState: {t: 'hover', mp: null}}));
 }
