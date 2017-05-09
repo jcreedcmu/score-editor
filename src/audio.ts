@@ -36,8 +36,9 @@ function adsr(params: adsrParams, length: number) {
   });
 }
 
+const NOISE_LENGTH = 44100;
 const noise = [];
-for (var i = 0; i < 10000; i++) {
+for (var i = 0; i < NOISE_LENGTH; i++) {
   noise[i] = Math.random() - 0.5;
 }
 
@@ -45,6 +46,7 @@ type NoteState = {
   id: string,
   phase: number,
   freq: number,
+  buf: number,
 }
 
 type AudioState = {
@@ -63,14 +65,15 @@ const WARMUP_TIME = 0.05; // seconds
 const UPDATE_INTERVAL = 0.025; // seconds
 const RENDER_CHUNK_SIZE = 4096; // frames
 
+type Instrument = "sine" | "drums"
+
 // We want to keep two pieces of information that are both derived
 // from the note's real time bounds
 // (a) When the note starts and stops, considering it clipped to the
 // render chunk
 // (b) When the note actually begins and ends, which might be outside
 // the render chunk, for purposes of computing adsr envelope.
-type ClipNote = IdNote & {clipTime: [number, number]};
-
+type ClipNote = IdNote & {clipTime: [number, number], instrument: Instrument};
 
 function repeats(patUseLength: number, patLength: number): {offset: number, duration: number}[] {
   let remaining: number = patUseLength;
@@ -104,6 +107,7 @@ function collectNotes(score: Score, start: number, duration: number): ClipNote[]
 			 rv.push({...note,
 						 id: note.id + "__" + pu.lane,
 						 time: nt,
+						 instrument: pu.patName == "drums" ? "drums" : "sine",
 						 clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
 		  }
 		});
@@ -122,22 +126,43 @@ function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, li
 
   const newLiveNotes = [];
   for (const note of collectNotes(score, startTicks, dat.length / (score.seconds_per_tick * RATE))) {
-	 const noteState: NoteState = liveNotes.find(n => n.id == note.id) || {id: note.id, phase: 0, freq: freq_of_pitch(note.pitch)};
+	 const noteState: NoteState = liveNotes.find(n => n.id == note.id) ||
+		{id: note.id, phase: 0, freq: freq_of_pitch(note.pitch), buf: 0};
 	 newLiveNotes.push(noteState);
 
 	 const note_start_frame = Math.round((note.clipTime[0] - startTicks) * score.seconds_per_tick * RATE);
 	 const note_term_frame = Math.round((note.clipTime[1] - startTicks) * score.seconds_per_tick * RATE);
-	 const env_f = adsr(clip_to_length(global_adsr_params, (note.time[1] - note.time[0]) * score.seconds_per_tick),
+	 const adsr_params = {...global_adsr_params};
+	 if (note.instrument == "drums") {
+		adsr_params.r = 10000;
+		adsr_params.a = 0.001;
+	 }
+	 const env_f = adsr(clip_to_length(adsr_params, (note.time[1] - note.time[0]) * score.seconds_per_tick),
 							  (note.time[1] - note.time[0]) * score.seconds_per_tick);
-	 for (let i = note_start_frame; i < note_term_frame; i++) {
-		// what time is it in this iteration of the loop? it's (in ticks from beginning of song)
-		// note.clipTime[0] + (i - note_start_frame) / (score.seconds_per_tick * RATE)
 
-		// therefore, the time in *seconds* since this note started is as follows:
-		const env = env_f((i - note_start_frame) / RATE + (note.clipTime[0] - note.time[0]) * score.seconds_per_tick);
+	 switch (note.instrument) {
+	 case "sine":
+		for (let i = note_start_frame; i < note_term_frame; i++) {
+		  // what time is it in this iteration of the loop? it's (in ticks from beginning of song)
+		  // note.clipTime[0] + (i - note_start_frame) / (score.seconds_per_tick * RATE)
 
-		dat[i] += env * 0.15 * Math.sin(3.1415926535 * 2 * noteState.phase);
-		noteState.phase += noteState.freq / RATE;
+		  // therefore, the time in *seconds* since this note started is as follows:
+		  const env = env_f((i - note_start_frame) / RATE + (note.clipTime[0] - note.time[0]) * score.seconds_per_tick);
+		  noteState.phase += noteState.freq / RATE;
+		  dat[i] += env * 0.15 * Math.sin(3.1415926535 * 2 * noteState.phase);
+		}
+		break;
+	 case "drums":
+		const p = Math.min(1.0, noteState.freq * 8.0 / RATE);
+		console.log(p);
+		for (let i = note_start_frame; i < note_term_frame; i++) {
+		  const env = env_f((i - note_start_frame) / RATE + (note.clipTime[0] - note.time[0]) * score.seconds_per_tick);
+		  noteState.phase++;
+		  if (noteState.phase >= NOISE_LENGTH) { noteState.phase = 0; }
+		  noteState.buf = (1-p) * noteState.buf + p * noise[noteState.phase];
+		  dat[i] += env * 0.5 * noteState.buf;
+		}
+		break;
 	 }
   }
   return newLiveNotes;
