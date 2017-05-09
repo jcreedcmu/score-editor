@@ -97,7 +97,6 @@ canvas { cursor: url(../img/pencil.png) 5 16, auto; }
 
 .songEditor .use {
   position: absolute;
-  background-color: #075152;
   border: 1px solid black;
 
   cursor: pointer;
