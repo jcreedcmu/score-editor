@@ -21,3 +21,12 @@ export function findLastIndex<T>(xs: T[], f: (x: T) => boolean): number {
   }
   return -1;
 }
+
+export type FindInfo<T> = { item: T, index: number }
+export function findLastOpt<T, U>(xs: T[], f: (x: T) => (U | undefined)): FindInfo<U> | undefined {
+  for (let i = xs.length - 1; i >= 0; i--) {
+	 let item = f(xs[i]);
+	 if (item != undefined) return {item, index: i };
+  }
+  return undefined;
+}

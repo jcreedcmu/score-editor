@@ -5,25 +5,25 @@ import { RollMouseState, RollMode } from './roll-util';
 import { PIXELS_PER_TICK, LANE_HEIGHT, TICKS_PER_GRID } from './song-editor';
 import { Immutable as Im, get, getIn, set, update, setIn, fromJS, toJS } from './immutable';
 import { getSong, updateSong, setCurrentPat, currentPatUndefined, modeEditPattern } from './accessors';
-import { augment_and_snap, findLast, findLastIndex } from './util';
+import { augment_and_snap, findLastOpt, FindInfo } from './util';
 import { unreachable } from './main';
 
 const GRID_SNAP = TICKS_PER_GRID
 const DOUBLE_CLICK_SPEED = 300;
+const PATUSE_RESIZE_MARGIN = 20;
 
-function find_pat_use(song: Song, cp: cpoint): PatUse | undefined {
-  const {x, y} = cp;
-  return findLast(song, pu => x >= pu.start * PIXELS_PER_TICK &&
-						x <= (pu.start + pu.duration) * PIXELS_PER_TICK &&
-						y >= pu.lane * LANE_HEIGHT && y <= (pu.lane + 1) * LANE_HEIGHT);
+type PatUseInfo = { pu: PatUse, rel: cpoint }
+
+function find_pat_use(song: Song, cp: cpoint): FindInfo<PatUseInfo> | undefined {
+  return findLastOpt(song, pu => {
+	 const rel: cpoint = { x: cp.x - pu.start * PIXELS_PER_TICK, y: cp.y - pu.lane * LANE_HEIGHT };
+	 if (rel.x >= 0 && rel.x <= pu.duration * PIXELS_PER_TICK &&
+		  rel.y >= 0 && rel.y <= LANE_HEIGHT) {
+		return { pu, rel };
+	 }
+  });
 }
 
-function find_pat_use_index(song: Song, cp: cpoint): number {
-  const {x, y} = cp;
-  return findLastIndex(song, pu => x >= pu.start * PIXELS_PER_TICK &&
-							  x <= (pu.start + pu.duration) * PIXELS_PER_TICK &&
-							  y >= pu.lane * LANE_HEIGHT && y <= (pu.lane + 1) * LANE_HEIGHT);
-}
 
 export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: MouseAction): SongMouseState {
   const notes = getSong(state);
@@ -44,11 +44,17 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
 		const pb: cpoint = a.p;
 		let rv: SongMouseState = {t: "down", orig: pa, now: pb};
 		if (Math.abs(pa.x - pb.x) > 3 || Math.abs(pa.y - pb.y) > 3) {
-		  const patIx = find_pat_use_index(notes, pa);
-		  if (patIx != -1) {
+		  const pui = find_pat_use(notes, pa);
+		  if (pui != undefined) {
+			 const patIx = pui.index;
 			 const song = getSong(state);
-			 const patUse = song[patIx];
-			 rv = {t: "dragPat", orig: pa, now: pb, patUse, patIx};
+			 const patUse = pui.item.pu;
+			 if (patUse.duration * PIXELS_PER_TICK - pui.item.rel.x < PATUSE_RESIZE_MARGIN) {
+				rv = {t: "resizePat", orig: pa, now: pb, patUse, patIx};
+			 }
+			 else {
+				rv = {t: "dragPat", orig: pa, now: pb, patUse, patIx};
+			 }
 		  }
 		}
 		return rv;
@@ -67,13 +73,22 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
 	 case "Mouseleave": return {...ms, now: null};
 	 default: throw unreachable(a);
 	 }
+
+  case "resizePat":
+	 switch(a.t) {
+	 case "Mousemove": return {...ms, now: a.p};
+	 case "Mousedown": throw "impossible";
+	 case "Mouseup": return {t: "hover", mp: ms.now};
+	 case "Mouseleave": return {...ms, now: null};
+	 default: throw unreachable(a);
+	 }
   default: throw unreachable(ms);
   }
 }
 
 function editPattern(state: Im<AppState>, mp: cpoint): Im<AppState> {
   const song: Im<PatUse[]> = getIn(state, x => x.score.song);
-  const pu = find_pat_use(toJS(song), mp);
+  const pu = find_pat_use(toJS(song), mp).item.pu;
   if (pu != undefined) {
 	 return modeEditPattern(state, pu.patName);
   }
@@ -97,6 +112,14 @@ function songReduceMouse(state: Im<AppState>, ms: SongMouseState, a: MouseAction
 		const newLane = ms.patUse.lane + augment_and_snap((a.p.y - ms.orig.y) / LANE_HEIGHT);
 		const s2 = updateSong(s, sng => setIn(sng, x => x[ms.patIx].start, newStart));
 		return updateSong(s2, sng => setIn(sng, x => x[ms.patIx].lane, newLane));
+	 }
+  case "resizePat":
+	 if (a.t == "Mousemove") {
+		const newDur = Math.max(GRID_SNAP, ms.patUse.duration + GRID_SNAP * augment_and_snap((a.p.x - ms.orig.x) / PIXELS_PER_TICK / GRID_SNAP));
+
+
+		return updateSong(state, sng => setIn(sng, x => x[ms.patIx].duration, newDur));
+
 	 }
   default: return s;
   }
