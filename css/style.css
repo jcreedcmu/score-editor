@@ -1,7 +1,11 @@
 body { margin: 0px; }
-/* canvas { position: absolute; top: 0; left: 0; z-index: -100; } */
-canvas { cursor: url(pencil.png) 5 16, auto; }
-.resize canvas { cursor: url(resize.png) 9 4, auto; }
+
+img.button {
+  cursor: pointer;
+}
+
+canvas { cursor: url(../img/pencil.png) 5 16, auto; }
+.resize canvas { cursor: url(../img/resize.png) 9 4, auto; }
 
 .scroll_container {
   position: absolute;
@@ -96,7 +100,6 @@ canvas { cursor: url(pencil.png) 5 16, auto; }
   border: 1px solid black;
 
   cursor: pointer;
-  pointer-events: none; /* essential for event.target not throwing off position calculations! */
 }
 
 .songEditor .use div {
