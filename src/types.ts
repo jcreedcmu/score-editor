@@ -1,5 +1,5 @@
 export type Note = { pitch: number, time: [number, number] };
-export type IdNote = Note & { id: number };
+export type IdNote = Note & { id: string };
 export type MouseAction =
   | { t: "Mousemove"; p: cpoint; }
   | { t: "Mousedown"; p: cpoint; }

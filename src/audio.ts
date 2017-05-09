@@ -42,7 +42,7 @@ for (var i = 0; i < 10000; i++) {
 }
 
 type NoteState = {
-  id: number,
+  id: string,
   phase: number,
   freq: number,
 }
@@ -82,7 +82,6 @@ function repeats(patUseLength: number, patLength: number): {offset: number, dura
 	 pos += patLength;
   }
   rv.push({offset: pos, duration: remaining});
-  console.log(JSON.stringify(rv));
   return rv;
 }
 
@@ -103,6 +102,7 @@ function collectNotes(score: Score, start: number, duration: number): ClipNote[]
 		  const nt: [number, number] = [off + start, off + end];
 		  if (nt[0] <= ct[1] && ct[0] <= nt[1]) {
 			 rv.push({...note,
+						 id: note.id + "__" + pu.lane,
 						 time: nt,
 						 clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
 		  }

@@ -104,7 +104,7 @@ function rollReduceMouse(state: Im<AppState>, ms: RollMouseState, a: MouseAction
 		  else {
 			 const id = getIn(state, x => x.score.next_id);
 			 const s = setIn(state, x => x.score.next_id, id + 1);
-			 return updateCurrentNotes(s, n => fromJS(toJS(n).concat([{...sn, id}])));
+			 return updateCurrentNotes(s, n => fromJS(toJS(n).concat([{...sn, id: "n" + id}])));
 		  }
 		}
 	 }
