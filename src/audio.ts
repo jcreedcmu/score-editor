@@ -133,7 +133,7 @@ function renderContiguousChunkInto(dat: Float32Array, datStart: number, datDurat
 											  startTicks: number, score: Score, liveNotes: NoteState[]): NoteState[] {
 
   const newLiveNotes = [];
-  for (const note of collectNotes(score, startTicks, dat.length / (score.seconds_per_tick * RATE))) {
+  for (const note of collectNotes(score, startTicks, datDuration / (score.seconds_per_tick * RATE))) {
 	 const noteState: NoteState = liveNotes.find(n => n.id == note.id) ||
 		{id: note.id, phase: 0, pitch: note.pitch, freq: freq_of_pitch(note.pitch), buf: 0};
 	 newLiveNotes.push(noteState);
@@ -159,7 +159,7 @@ function renderContiguousChunkInto(dat: Float32Array, datStart: number, datDurat
 		  // therefore, the time in *seconds* since this note started is as follows:
 		  const env = env_f((i - note_start_frame) / RATE + (note.clipTime[0] - note.time[0]) * score.seconds_per_tick);
 		  noteState.phase += noteState.freq / RATE;
-		  dat[i] += env * 0.15 * ((noteState.phase - Math.floor(noteState.phase)) < 0.5 ? 0.2 : -0.2);
+		  dat[datStart + i] += env * 0.15 * ((noteState.phase - Math.floor(noteState.phase)) < 0.5 ? 0.2 : -0.2);
 		}
 		break;
 	 case "drums":
@@ -171,7 +171,7 @@ function renderContiguousChunkInto(dat: Float32Array, datStart: number, datDurat
 		  noteState.phase += step;
 		  if (noteState.phase >= NOISE_LENGTH) { noteState.phase -= NOISE_LENGTH; }
 		  noteState.buf = (1-p) * noteState.buf + p * noise[Math.floor(noteState.phase)];
-		  dat[i] += env * volumeAdjust * noteState.buf;
+		  dat[datStart + i] += env * volumeAdjust * noteState.buf;
 		}
 		break;
 	 }
@@ -190,14 +190,28 @@ type RenderChunkResult = {
 // {liveNotes: the set of notes that are still active,
 //  nowTicks: a function telling us what point in the song it is during playback}
 function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, liveNotesIn: NoteState[]): RenderChunkResult {
+  if (score.loop_end <= score.loop_start) { throw "invariant violation, loop markers can't be badly ordered" }
+
   const ticks_to_render = dat.length / (score.seconds_per_tick * RATE);
-  const liveNotes = renderContiguousChunkInto(dat, 0, dat.length, startTicks, score, liveNotesIn);
-  const nowTicks = (secs: number) => {
-	 console.log(secs);
-	 return startTicks + secs / score.seconds_per_tick;
+  if (startTicks < score.loop_start) startTicks = score.loop_start;
+  if (startTicks + ticks_to_render <= score.loop_end) {
+	 const liveNotes = renderContiguousChunkInto(dat, 0, dat.length, startTicks, score, liveNotesIn);
+	 const nowTicks = (secs: number) =>
+		startTicks + secs / score.seconds_per_tick;
+	 const renderedUntilSong = startTicks + ticks_to_render;
+	 return {liveNotes, nowTicks, renderedUntilSong};
   }
-  const renderedUntilSong = startTicks + ticks_to_render;
-  return {liveNotes, nowTicks, renderedUntilSong};
+  else {
+	 const fragLength = Math.round((score.loop_end - startTicks) * (score.seconds_per_tick * RATE)); // frames
+	 const liveNotes0 = renderContiguousChunkInto(dat, 0, fragLength, startTicks, score, liveNotesIn);
+	 const liveNotes = renderContiguousChunkInto(dat, fragLength, dat.length - fragLength, score.loop_start, score, liveNotes0);
+	 const renderedUntilSong = score.loop_start + ticks_to_render - fragLength / (score.seconds_per_tick * RATE);
+	 const nowTicks = (secs: number) =>
+		secs * RATE < fragLength ?
+		startTicks + secs / score.seconds_per_tick :
+		score.loop_start + (secs - fragLength / RATE) / score.seconds_per_tick;
+	 return {liveNotes, nowTicks, renderedUntilSong};
+  }
 }
 
 function continuePlayback(score: Score): Progress {
