@@ -55,10 +55,12 @@ type AudioState = {
   renderedUntil?: number, // seconds
   renderedUntilSong? : number, // ticks
   liveNotes: NoteState[],
+  nowTicks: (secs: number) => number,
 }
 
 const state : AudioState = {
   liveNotes: [],
+  nowTicks: (secs: number) => undefined,
 };
 
 const COAST_MARGIN = 0.1; // seconds
@@ -123,7 +125,12 @@ function clip_to_length(params: adsrParams, seconds: number): adsrParams {
 			 r: Math.min(params.r, seconds/2)};
 }
 
-function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, liveNotes: NoteState[]): NoteState[] {
+// Same as renderChunkInto below, except
+// (a) only fill the part of dat starting at datStart and proceeding for datDuration frames
+// (b) we're guaranteed the interval [startTicks, startTicks + datDuration * frames_per_tick]
+//     is logically contiguous; i.e. doesn't wrap across a loop point.
+function renderContiguousChunkInto(dat: Float32Array, datStart: number, datDuration: number,
+											  startTicks: number, score: Score, liveNotes: NoteState[]): NoteState[] {
 
   const newLiveNotes = [];
   for (const note of collectNotes(score, startTicks, dat.length / (score.seconds_per_tick * RATE))) {
@@ -172,6 +179,22 @@ function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, li
   return newLiveNotes;
 }
 
+type RenderChunkResult = {
+  liveNotes: NoteState[],
+  nowTicks: (secs: number) => number, // units: seconds -> ticks
+}
+
+// Starting at song-time `startTicks`, given score `score`, assuming `liveNotes` notes exist from
+// the previous chunk render, fill the audio buffer `dat` with samples, returning
+// {liveNotes: the set of notes that are still active,
+//  nowTicks: a function telling us what point in the song it is during playback}
+function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, liveNotesIn: NoteState[]): RenderChunkResult {
+  const ticks_to_render = dat.length / (score.seconds_per_tick * RATE);
+  const liveNotes = renderContiguousChunkInto(dat, 0, dat.length, startTicks, score, liveNotesIn);
+  const nowTicks = (secs: number) => startTicks + secs / score.seconds_per_tick;
+  return {liveNotes, nowTicks};
+}
+
 function continuePlayback(score: Score): Progress {
   const now = ad.currentTime;
 
@@ -195,7 +218,9 @@ function continuePlayback(score: Score): Progress {
 	 const render_chunk_size_ticks = render_chunk_size_seconds / score.seconds_per_tick;
 	 const buf = ad.createBuffer(1 /* channel */, RENDER_CHUNK_SIZE, RATE);
 	 const dat: Float32Array = buf.getChannelData(0);
-	 state.liveNotes = renderChunkInto(dat, state.renderedUntilSong, score, state.liveNotes);
+	 const {liveNotes, nowTicks} = renderChunkInto(dat, state.renderedUntilSong, score, state.liveNotes);
+	 state.liveNotes = liveNotes;
+	 state.nowTicks = state.nowTicks;
 
 	 const src = ad.createBufferSource();
 	 src.buffer = buf;
