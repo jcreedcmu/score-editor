@@ -44,6 +44,7 @@ for (var i = 0; i < NOISE_LENGTH; i++) {
 
 type NoteState = {
   id: string,
+  pitch: number,
   phase: number,
   freq: number,
   buf: number,
@@ -127,15 +128,17 @@ function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, li
   const newLiveNotes = [];
   for (const note of collectNotes(score, startTicks, dat.length / (score.seconds_per_tick * RATE))) {
 	 const noteState: NoteState = liveNotes.find(n => n.id == note.id) ||
-		{id: note.id, phase: 0, freq: freq_of_pitch(note.pitch), buf: 0};
+		{id: note.id, phase: 0, pitch: note.pitch, freq: freq_of_pitch(note.pitch), buf: 0};
 	 newLiveNotes.push(noteState);
 
 	 const note_start_frame = Math.round((note.clipTime[0] - startTicks) * score.seconds_per_tick * RATE);
 	 const note_term_frame = Math.round((note.clipTime[1] - startTicks) * score.seconds_per_tick * RATE);
 	 const adsr_params = {...global_adsr_params};
 	 if (note.instrument == "drums") {
-		adsr_params.r = 10000;
+		adsr_params.r = 0.0;
 		adsr_params.a = 0.001;
+		adsr_params.d = (note.time[1] - note.time[0]) * score.seconds_per_tick - adsr_params.a;
+		adsr_params.s = 0.000;
 	 }
 	 const env_f = adsr(clip_to_length(adsr_params, (note.time[1] - note.time[0]) * score.seconds_per_tick),
 							  (note.time[1] - note.time[0]) * score.seconds_per_tick);
@@ -149,18 +152,19 @@ function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, li
 		  // therefore, the time in *seconds* since this note started is as follows:
 		  const env = env_f((i - note_start_frame) / RATE + (note.clipTime[0] - note.time[0]) * score.seconds_per_tick);
 		  noteState.phase += noteState.freq / RATE;
-		  dat[i] += env * 0.15 * Math.sin(3.1415926535 * 2 * noteState.phase);
+		  dat[i] += env * 0.15 * ((noteState.phase - Math.floor(noteState.phase)) < 0.5 ? 0.2 : -0.2);
 		}
 		break;
 	 case "drums":
+		const step = Math.pow(2, (note.pitch - 60) / 1.5);
 		const p = Math.min(1.0, noteState.freq * 8.0 / RATE);
-		console.log(p);
+		const volumeAdjust = Math.pow(2.0, (50-note.pitch) / 12);
 		for (let i = note_start_frame; i < note_term_frame; i++) {
 		  const env = env_f((i - note_start_frame) / RATE + (note.clipTime[0] - note.time[0]) * score.seconds_per_tick);
-		  noteState.phase++;
-		  if (noteState.phase >= NOISE_LENGTH) { noteState.phase = 0; }
-		  noteState.buf = (1-p) * noteState.buf + p * noise[noteState.phase];
-		  dat[i] += env * 0.5 * noteState.buf;
+		  noteState.phase += step;
+		  if (noteState.phase >= NOISE_LENGTH) { noteState.phase -= NOISE_LENGTH; }
+		  noteState.buf = (1-p) * noteState.buf + p * noise[Math.floor(noteState.phase)];
+		  dat[i] += env * volumeAdjust * noteState.buf;
 		}
 		break;
 	 }
