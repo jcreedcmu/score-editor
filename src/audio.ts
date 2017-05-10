@@ -181,6 +181,7 @@ function renderContiguousChunkInto(dat: Float32Array, datStart: number, datDurat
 
 type RenderChunkResult = {
   liveNotes: NoteState[],
+  renderedUntilSong: number,
   nowTicks: (secs: number) => number, // units: seconds -> ticks
 }
 
@@ -191,67 +192,53 @@ type RenderChunkResult = {
 function renderChunkInto(dat: Float32Array, startTicks: number, score: Score, liveNotesIn: NoteState[]): RenderChunkResult {
   const ticks_to_render = dat.length / (score.seconds_per_tick * RATE);
   const liveNotes = renderContiguousChunkInto(dat, 0, dat.length, startTicks, score, liveNotesIn);
-  const nowTicks = (secs: number) => startTicks + secs / score.seconds_per_tick;
-  return {liveNotes, nowTicks};
+  const nowTicks = (secs: number) => {
+	 console.log(secs);
+	 return startTicks + secs / score.seconds_per_tick;
+  }
+  const renderedUntilSong = startTicks + ticks_to_render;
+  return {liveNotes, nowTicks, renderedUntilSong};
 }
 
 function continuePlayback(score: Score): Progress {
   const now = ad.currentTime;
 
-  // points in time:
-  // N = present
-  // B = program begin
-  // R = renderpoint
-  // S = song begin
-  // 'now' is (N - B) seconds
-  // renderedUntilSong is (R - S) ticks
-  // renderedUntil is (R - B) seconds
-  // cursor is: (N - S) ticks
-  const nowTicks = now / score.seconds_per_tick;
-  const ruTicks = state.renderedUntil / score.seconds_per_tick;
-  const cursor = nowTicks + state.renderedUntilSong - ruTicks;
-
   // do we need to render?
-  if (state.renderedUntilSong < score.duration &&
-		(state.renderedUntil - now) < COAST_MARGIN) {
+  if ((state.renderedUntil - now) < COAST_MARGIN) {
 	 const render_chunk_size_seconds = RENDER_CHUNK_SIZE / RATE;
-	 const render_chunk_size_ticks = render_chunk_size_seconds / score.seconds_per_tick;
 	 const buf = ad.createBuffer(1 /* channel */, RENDER_CHUNK_SIZE, RATE);
 	 const dat: Float32Array = buf.getChannelData(0);
-	 const {liveNotes, nowTicks} = renderChunkInto(dat, state.renderedUntilSong, score, state.liveNotes);
+	 const {liveNotes, nowTicks, renderedUntilSong} = renderChunkInto(dat, state.renderedUntilSong, score, state.liveNotes);
 	 state.liveNotes = liveNotes;
-	 state.nowTicks = state.nowTicks;
+	 state.nowTicks = nowTicks;
+	 state.renderedUntilSong = renderedUntilSong;
 
 	 const src = ad.createBufferSource();
 	 src.buffer = buf;
 	 src.connect(ad.destination);
 
-	 // I expect this to stay an integer (because audio context's
+	 // I expect
+	 //
+	 //     state.renderedUntil * RATE
+	 //
+	 // to stay very close to an integer (because audio context's
 	 // "currentTime" seems to stay essentially an integer multiple of
 	 // 1/RATE) although since I'm incrementing by floating point
 	 // quantities of seconds, I observe it drifting by something on
 	 // the order of 1e-8 seconds per second. Maybe could keep track of
 	 // renderedUntilFrames as an integer instead. (no chance it'll get
 	 // anywhere close to Number.MAX_SAFE_INTEGER in practice, I think)
-	 // console.log(state.renderedUntil * RATE);
-
 	 src.start(state.renderedUntil);
-
 	 state.renderedUntil += render_chunk_size_seconds;
-	 state.renderedUntilSong += render_chunk_size_ticks;
   }
 
-  if (cursor > score.duration) {
-	 return {v:undefined, dv:undefined};
-  }
   state.nextUpdateTimeout = setTimeout(audioUpdate, UPDATE_INTERVAL * 1000);
-  return {v: cursor, dv: state.renderedUntilSong};
+  return {v: (state.nowTicks)(now - state.renderedUntil), dv: undefined};
 }
 
 export function play() {
-
-  function coast(now: number, renderedUntil?: number) {
-	 return renderedUntil != undefined && renderedUntil - now > COAST_MARGIN;
+  if (state.nextUpdateTimeout) {
+	 clearTimeout(state.nextUpdateTimeout);
   }
 
   state.liveNotes = [];
