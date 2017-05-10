@@ -2,9 +2,11 @@ export type Note = { pitch: number, time: [number, number] };
 export type IdNote = Note & { id: string };
 export type MouseAction =
   | { t: "Mousemove"; p: cpoint; }
-  | { t: "Mousedown"; p: cpoint; }
+  | { t: "Mousedown"; p: cpoint; extra?: string }
   | { t: "Mouseup" }
   | { t: "Mouseleave" }
+
+export type LoopEndpoint = "loop_start" | "loop_end"
 
 export type Progress = {v: number, dv: number}
 export type ContinuePlaybackFunc = (score: Score) => Progress;
@@ -37,6 +39,8 @@ export type Score = {
   next_id: number,
   duration: number, // ticks
   seconds_per_tick: number,
+  loop_start: number,
+  loop_end: number,
   song: Song,
   patterns: {[P in string]: Pattern},
 };

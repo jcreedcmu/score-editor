@@ -32,6 +32,8 @@ const _initialState: AppState = {
   debugOffsetTicks: null,
   previewNote: null,
   score: {duration: 32,
+			 loop_start: 0,
+			 loop_end: 64,
 			 seconds_per_tick: 0.1,
 			 next_id: 0,
 			 patterns: {default: {length: 32, notes: []}},

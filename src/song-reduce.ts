@@ -1,4 +1,4 @@
-import { Song, MouseAction, Action, cpoint, PatUse } from './types';
+import { Song, MouseAction, Action, cpoint, PatUse, LoopEndpoint } from './types';
 import { AppState } from './state';
 import { SongMode, SongMouseState } from './song-util';
 import { RollMouseState, RollMode } from './roll-util';
@@ -31,7 +31,12 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
   case "hover":
 	 switch(a.t) {
 	 case "Mousemove": return {t: "hover", mp: a.p};
-	 case "Mousedown": return {t: "down", orig: a.p, now: a.p};
+	 case "Mousedown":
+		if (a.extra != undefined) {
+		  const which: LoopEndpoint = a.extra as LoopEndpoint;
+		  return {t: "moveLoopEndpoint", orig: a.p, now: a.p, orig_val: getIn(state, s => s.score[which]), which};
+		}
+		return {t: "down", orig: a.p, now: a.p};
 	 case "Mouseup": return ms; // this happens for mouse events that started outside the editor
 	 case "Mouseleave": return {...ms, mp: null};
 	 default: throw unreachable(a);
@@ -82,6 +87,16 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
 	 case "Mouseleave": return {...ms, now: null};
 	 default: throw unreachable(a);
 	 }
+
+  case "moveLoopEndpoint":
+	 switch(a.t) {
+	 case "Mousemove": return {...ms, now: a.p};
+	 case "Mousedown": throw "impossible";
+	 case "Mouseup": return {t: "hover", mp: ms.now};
+	 case "Mouseleave": return {...ms, now: null};
+	 default: throw unreachable(a);
+	 }
+
   default: throw unreachable(ms);
   }
 }
@@ -113,12 +128,22 @@ function songReduceMouse(state: Im<AppState>, ms: SongMouseState, a: MouseAction
 		const s2 = updateSong(s, sng => setIn(sng, x => x[ms.patIx].start, newStart));
 		return updateSong(s2, sng => setIn(sng, x => x[ms.patIx].lane, newLane));
 	 }
+	 else
+		return state;
   case "resizePat":
 	 if (a.t == "Mousemove") {
 		const newDur = Math.max(GRID_SNAP, ms.patUse.duration + GRID_SNAP * augment_and_snap((a.p.x - ms.orig.x) / PIXELS_PER_TICK / GRID_SNAP));
 
 
 		return updateSong(state, sng => setIn(sng, x => x[ms.patIx].duration, newDur));
+
+	 }
+	 else
+		return state;
+  case "moveLoopEndpoint":
+	 if (a.t == "Mousemove") {
+		const newVal = ms.orig_val + GRID_SNAP * augment_and_snap((a.p.x - ms.orig.x) / PIXELS_PER_TICK / GRID_SNAP);
+		return setIn(state, s => s.score[ms.which], newVal);
 
 	 }
   default: return s;
