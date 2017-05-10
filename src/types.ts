@@ -11,6 +11,7 @@ export type ContinuePlaybackFunc = (score: Score) => Progress;
 export type Action =
   MouseAction
   | { t: "Play" }
+  | { t: "Stop" }
   | { t: "ContinuePlayback"; cb: ContinuePlaybackFunc }
   | { t: "Vscroll"; top: number; }
   | { t: "Key", key: string }

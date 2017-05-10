@@ -235,6 +235,13 @@ export function play() {
   state.nextUpdateTimeout = setTimeout(audioUpdate, 0);
 }
 
+export function stop() {
+  console.log(state.nextUpdateTimeout);
+  if (state.nextUpdateTimeout != undefined) {
+	 clearTimeout(state.nextUpdateTimeout);
+	 state.nextUpdateTimeout = undefined;
+  }
+}
 function audioUpdate() {
   dispatch({t: "ContinuePlayback", cb: continuePlayback});
 }

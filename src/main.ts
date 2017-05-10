@@ -4,7 +4,7 @@ import { Action, Note, PatUse } from './types';
 import { AppState, Mode, initialState } from './state';
 import { keyOf } from './key';
 import { Immutable as Im, get, set, update, updateIn, fromJS, toJS } from './immutable';
-import { play } from './audio';
+import { play, stop } from './audio';
 import { rollReduce, rollReduceConsistent } from './roll-reduce';
 import { mpoint } from './roll-util';
 import { songReduce } from './song-reduce';
@@ -76,13 +76,19 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
   case "Play":
 	 play();
 	 return state;
-
-  case "ContinuePlayback":
+  case "Stop": {
+	 stop();
+ 	 const ss = set(state, 'offsetTicks', undefined);
+	 const s2 = set(ss, 'debugOffsetTicks', undefined);
+	 return s2;
+  }
+  case "ContinuePlayback": {
 	 const score = toJS(get(state, 'score'));
 	 const progress = a.cb(score);
-	 const ss = set(state, 'offsetTicks', progress.v);
+ 	 const ss = set(state, 'offsetTicks', progress.v);
 	 const s2 = set(ss, 'debugOffsetTicks', progress.dv);
 	 return s2;
+  }
 
   case "Key": return reduceKey(state, a.key);
 

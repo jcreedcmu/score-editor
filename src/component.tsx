@@ -40,6 +40,7 @@ function ModeComponent(mode: Mode, state: Im<AppState>): JSX.Element {
 export function component_render(props: Im<AppState>) {
   const cont = document.getElementById('canvas_container');
   const playClick = () => dispatch({t: "Play"});
+  const stopClick = () => dispatch({t: "Stop"});
   const minibufferVisible = get(props, 'minibufferVisible');
   const minibuf = get(props, 'minibuf');
   const mode = toJS<Mode>(get(props, 'mode'));
@@ -47,8 +48,11 @@ export function component_render(props: Im<AppState>) {
 	 <div>
 		<ModeHeader mode={mode} />
 		<div className="workspace">
-		  <button onClick={playClick}>Play</button><br/>
 		  {ModeComponent(mode, props)}
+		  <div class="controls">
+			 <button onClick={playClick}>Play</button><br/><br/>
+			 <button onClick={stopClick}>Stop</button><br/><br/>
+		  </div>
 		  <div>
 			 <div className="minibuffer">
 				<CSSTransitionGroup transitionName="minibuf">

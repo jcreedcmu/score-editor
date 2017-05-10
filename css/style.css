@@ -4,6 +4,12 @@ img.button {
   cursor: pointer;
 }
 
+.controls {
+  position: absolute;
+  left: 850px;
+  top: 100px;
+}
+
 canvas { cursor: url(../img/pencil.png) 5 16, auto; }
 .resize canvas { cursor: url(../img/resize.png) 9 4, auto; }
 
@@ -11,6 +17,7 @@ canvas { cursor: url(../img/pencil.png) 5 16, auto; }
   position: absolute;
   overflow-y: scroll;
 }
+
 .scroll_content {
 }
 
@@ -41,6 +48,7 @@ canvas { cursor: url(../img/pencil.png) 5 16, auto; }
   top: 0px;
   border: none;
 }
+
 .mbcont {
   background-color: #ddd;
   position: absolute;
@@ -53,6 +61,7 @@ canvas { cursor: url(../img/pencil.png) 5 16, auto; }
   right: 0px;
   pointer-events: auto;
 }
+
 .minibuffer input:focus { outline: none; }
 
 .minibuf-enter{
@@ -106,6 +115,7 @@ canvas { cursor: url(../img/pencil.png) 5 16, auto; }
   margin: 10px;
   color: white;
 }
+
 .songEditor .cursor {
   position: absolute;
   height: 100%;
