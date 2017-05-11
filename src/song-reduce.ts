@@ -143,7 +143,11 @@ function songReduceMouse(state: Im<AppState>, ms: SongMouseState, a: MouseAction
   case "moveLoopEndpoint":
 	 if (a.t == "Mousemove") {
 		const newVal = ms.orig_val + GRID_SNAP * augment_and_snap((a.p.x - ms.orig.x) / PIXELS_PER_TICK / GRID_SNAP);
-		return setIn(state, s => s.score[ms.which], newVal);
+		const attempt = setIn(state, s => s.score[ms.which], newVal);
+		if (getIn(attempt, s => s.score.loop_end) - getIn(attempt, s => s.score.loop_start) >= 1)
+		  return attempt;
+		else
+		  return state;
 
 	 }
   default: return s;
