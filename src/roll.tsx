@@ -218,9 +218,12 @@ class RollEditorOverlay extends Surface < RollEditorProps > {
 
 	 // draw playback cursor
 	 if (props.offsetTicks != null) {
-		d.fillStyle = "white";
-		d.fillRect(PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * (props.offsetTicks - props.useOffsetTicks), 0,
-					  2, PIANO_OCTAVE_VSPACE * 3);
+		const relToUse = props.offsetTicks - props.useOffsetTicks;
+		if (relToUse >= 0 && relToUse < props.pattern.length) {
+		  d.fillStyle = "white";
+		  d.fillRect(PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * (props.offsetTicks - props.useOffsetTicks), 0,
+						 2, PIANO_OCTAVE_VSPACE * 3);
+		}
 	 }
 
 	 // debugging, shows where audio rendering has finished up to
