@@ -8,7 +8,7 @@ export type MouseAction =
 
 export type LoopEndpoint = "loop_start" | "loop_end"
 
-export type Progress = {v: number, dv: number}
+export type Progress = {v: number}
 export type ContinuePlaybackFunc = (score: Score) => Progress;
 export type Action =
   MouseAction

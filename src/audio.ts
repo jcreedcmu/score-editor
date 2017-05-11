@@ -292,7 +292,7 @@ function continuePlayback(score: Score): Progress {
   }
 
   state.nextUpdateTimeout = setTimeout(audioUpdate, UPDATE_INTERVAL * 1000);
-  return {v: nowTicks(state.nowTicks, now), dv: undefined};
+  return {v: nowTicks(state.nowTicks, now)};
 }
 
 export function play() {

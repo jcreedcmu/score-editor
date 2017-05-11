@@ -108,7 +108,6 @@ function editPattern(state: Im<AppState>, mp: cpoint): Im<AppState> {
 	 const pui: PatUseInfo = info.item;
 	 const patLength = getIn(state, x => x.score.patterns[pui.pu.patName].length);
 	 const useOffsetTicks = pui.pu.start + patLength * Math.floor((pui.rel.x / PIXELS_PER_TICK) / patLength);
-	 console.log(useOffsetTicks);
 	 return modeEditPattern(state, pui.pu.patName, useOffsetTicks);
   }
   return state;

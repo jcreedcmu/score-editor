@@ -86,8 +86,7 @@ export function reduce(state: Im<AppState>, a: Action): Im<AppState> {
 	 const score = toJS(get(state, 'score'));
 	 const progress = a.cb(score);
  	 const ss = set(state, 'offsetTicks', progress.v);
-	 const s2 = set(ss, 'debugOffsetTicks', progress.dv);
-	 return s2;
+	 return ss;
   }
 
   case "Key": return reduceKey(state, a.key);
