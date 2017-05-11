@@ -20,6 +20,7 @@ export type Style = "piano" | "drums";
 export type RollEditorProps = {
   offsetTicks: number | null,
   debugOffsetTicks: number | null,
+  useOffsetTicks: number,
   mouseState: RollMouseState,
   gridSize: number,
   noteSize: number,
@@ -214,9 +215,11 @@ class RollEditorOverlay extends Surface < RollEditorProps > {
 		d.fillRect.apply(d, rect);
 		d.clearRect.apply(d, inset(rect));
 	 }
+
+	 // draw playback cursor
 	 if (props.offsetTicks != null) {
 		d.fillStyle = "white";
-		d.fillRect(PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * props.offsetTicks, 0,
+		d.fillRect(PIANO_WIDTH + GUTTER_WIDTH + SCALE * FAT_PIXELS_PER_TICK * (props.offsetTicks - props.useOffsetTicks), 0,
 					  2, PIANO_OCTAVE_VSPACE * 3);
 	 }
 

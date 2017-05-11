@@ -26,6 +26,7 @@ function ModeComponent(mode: Mode, state: Im<AppState>): JSX.Element {
         ...rollDims,
 		  offsetTicks, debugOffsetTicks, gridSize, noteSize, scrollOctave, previewNote,
 		  mouseState: mode.mouseState,
+		  useOffsetTicks: mode.useOffsetTicks,
 		  style: mode.patName == "drums" ? "drums" : "piano",
 		  pattern: props.score.patterns[mode.patName],
 		};

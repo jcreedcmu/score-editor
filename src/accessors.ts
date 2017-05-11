@@ -85,8 +85,11 @@ export function ensurePatternExists(state: Im<AppState>, patName: string): Im<Ap
   return state;
 }
 
-export function modeEditPattern(state: Im<AppState>, patName: string): Im<AppState> {
+export function modeEditPattern(state: Im<AppState>, patName: string, useOffsetTicks: number): Im<AppState> {
   const s = ensurePatternExists(state, patName);
-  return set(s, 'mode', fromJS<RollMode>({t: "editPattern", patName,
-																mouseState: {t: 'hover', mp: null}}));
+  return set(s, 'mode', fromJS<RollMode>({
+	 t: "editPattern",
+	 useOffsetTicks,
+	 patName,
+	 mouseState: {t: 'hover', mp: null}}));
 }

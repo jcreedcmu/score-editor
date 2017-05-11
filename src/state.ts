@@ -43,7 +43,12 @@ const _initialState: AppState = {
   scrollOctave: 3, /* in the range [0 .. 4] for now, higher numbers are lower pitch */
   minibufferVisible: false,
   minibuf: '',
-  mode: {t: "editPattern", patName: "default", mouseState: {t: "hover", mp: null }},
+  mode: {
+	 t: "editPattern",
+	 patName: "default",
+	 mouseState: {t: "hover", mp: null },
+	 useOffsetTicks: 0,
+  },
 };
 
 export const initialState: Immutable<AppState> = fromJS(_initialState);

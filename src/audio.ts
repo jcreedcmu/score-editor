@@ -262,7 +262,6 @@ export function play() {
 }
 
 export function stop() {
-  console.log(state.nextUpdateTimeout);
   if (state.nextUpdateTimeout != undefined) {
 	 clearTimeout(state.nextUpdateTimeout);
 	 state.nextUpdateTimeout = undefined;

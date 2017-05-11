@@ -103,9 +103,13 @@ export function songNewMouseState(state: Im<AppState>, ms: SongMouseState, a: Mo
 
 function editPattern(state: Im<AppState>, mp: cpoint): Im<AppState> {
   const song: Im<PatUse[]> = getIn(state, x => x.score.song);
-  const pu = find_pat_use(toJS(song), mp).item.pu;
-  if (pu != undefined) {
-	 return modeEditPattern(state, pu.patName);
+  const info = find_pat_use(toJS(song), mp);
+  if (info != undefined) {
+	 const pui: PatUseInfo = info.item;
+	 const patLength = getIn(state, x => x.score.patterns[pui.pu.patName].length);
+	 const useOffsetTicks = pui.pu.start + patLength * Math.floor((pui.rel.x / PIXELS_PER_TICK) / patLength);
+	 console.log(useOffsetTicks);
+	 return modeEditPattern(state, pui.pu.patName, useOffsetTicks);
   }
   return state;
 }

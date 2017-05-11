@@ -29,7 +29,16 @@ export type RollMouseState =
   | { t: "resizeNote", fromRight: boolean, orig: mpoint, now: mpoint | null,
 		note: Note, noteIx: number }
 
-export type RollMode = {t: "editPattern", patName: string, mouseState: RollMouseState }
+export type RollMode = {
+  t: "editPattern",
+  patName: string,
+  mouseState: RollMouseState,
+
+  // when editing a pattern, there is still a weaker sense in which we
+  // are editing a particular use of that pattern, for the purpose of
+  // showing the playback cursor.
+  useOffsetTicks: number,
+}
 
 // XXX rename 'time' to 'ticks'
 export type mpoint = { pitch: number, time: number } & cpoint // point also in "musical coordinates"
