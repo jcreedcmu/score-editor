@@ -3,6 +3,11 @@ import { dispatch } from './main';
 import { Instrument } from './types'
 import { getPatInst } from './pattern-util';
 
+const COAST_MARGIN = 0.1; // seconds
+const WARMUP_TIME = 0.05; // seconds
+const UPDATE_INTERVAL = 0.025; // seconds
+const RENDER_CHUNK_SIZE = 4096; // frames
+
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
 // units: audio frames per second
@@ -64,9 +69,18 @@ type NowTicksChunk = {
 }
 
 type AudioState = {
+  // the timeout id of the setTimeout for our next update, in case we
+  // want to cancel it
   nextUpdateTimeout? : number,
-  renderedUntil?: number, // seconds
-  renderedUntilSong? : number, // ticks
+
+  // The point in time that we've 'rendered until'. That is, the first
+  // moment for which we haven't already computed audio frames and
+  // sent off to the audioctx to be played at a certain time. This will always
+  // be a little bit into the future. Whenever it gets too close to the present
+  // (i.e. less than COAST_MARGIN) we'll render some more.
+  renderedUntil?: number, // seconds since audiocontext initialization
+  renderedUntilSong? : number, // ticks since beginning of song
+
   liveNotes: NoteState[],
   nowTicks: NowTicksChunk[],
 }
@@ -75,12 +89,6 @@ const state : AudioState = {
   liveNotes: [],
   nowTicks: [],
 };
-
-const COAST_MARGIN = 0.1; // seconds
-const WARMUP_TIME = 0.05; // seconds
-const UPDATE_INTERVAL = 0.025; // seconds
-const RENDER_CHUNK_SIZE = 4096; // frames
-
 
 // We want to keep two pieces of information that are both derived
 // from the note's real time bounds
