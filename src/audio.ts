@@ -42,7 +42,10 @@ for (var i = 0; i < NOISE_LENGTH; i++) {
   noise[i] = Math.random() - 0.5;
 }
 
+type Instrument = "sine" | "drums"
+
 type NoteState = {
+  instrument: Instrument,
   id: string,
   pitch: number,
   phase: number,
@@ -78,7 +81,6 @@ const WARMUP_TIME = 0.05; // seconds
 const UPDATE_INTERVAL = 0.025; // seconds
 const RENDER_CHUNK_SIZE = 4096; // frames
 
-type Instrument = "sine" | "drums"
 
 // We want to keep two pieces of information that are both derived
 // from the note's real time bounds
@@ -120,7 +122,7 @@ function collectNotes(score: Score, start: number, duration: number): ClipNote[]
 			 rv.push({...note,
 						 id: note.id + "__" + pu.lane,
 						 time: nt,
-						 instrument: pu.patName == "drums" ? "drums" : "sine",
+						 instrument: pu.patName == "drums" ? "drums" : "sine", // XXX: multiple drum pats?
 						 clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
 		  }
 		});
@@ -145,13 +147,20 @@ function renderContiguousChunkInto(dat: Float32Array, datStart: number, datDurat
   const newLiveNotes = [];
   for (const note of collectNotes(score, startTicks, datDuration / (score.seconds_per_tick * RATE))) {
 	 const noteState: NoteState = liveNotes.find(n => n.id == note.id) ||
-		{id: note.id, phase: 0, pitch: note.pitch, freq: freq_of_pitch(note.pitch), buf: 0};
+		{
+		  instrument: note.instrument,
+		  id: note.id,
+		  phase: 0,
+		  pitch: note.pitch,
+		  freq: freq_of_pitch(note.pitch), // TODO: having both pitch and freq here is kinda redundant, eliminate one
+		  buf: 0,
+		};
 	 newLiveNotes.push(noteState);
 
 	 const note_start_frame = Math.round((note.clipTime[0] - startTicks) * score.seconds_per_tick * RATE);
 	 const note_term_frame = Math.round((note.clipTime[1] - startTicks) * score.seconds_per_tick * RATE);
 	 const adsr_params = {...global_adsr_params};
-	 if (note.instrument == "drums") {
+	 if (noteState.instrument == "drums") {
 		adsr_params.r = 0.0;
 		adsr_params.a = 0.001;
 		adsr_params.d = (note.time[1] - note.time[0]) * score.seconds_per_tick - adsr_params.a;
