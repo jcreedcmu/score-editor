@@ -46,3 +46,5 @@ export type Score = {
 };
 
 export type cpoint = { x: number, y: number } // point measured in pixels from the topleft of the canvas
+
+export type Instrument = "sine" | "drums"

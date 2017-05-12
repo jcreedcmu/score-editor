@@ -1,5 +1,7 @@
 import { Score, IdNote, Progress } from './types';
 import { dispatch } from './main';
+import { Instrument } from './types'
+import { getPatInst } from './pattern-util';
 
 export const ad = new AudioContext();
 const RATE = ad.sampleRate; // most likely 44100, maybe 48000?
@@ -41,8 +43,6 @@ const noise = [];
 for (var i = 0; i < NOISE_LENGTH; i++) {
   noise[i] = Math.random() - 0.5;
 }
-
-type Instrument = "sine" | "drums"
 
 type NoteState = {
   instrument: Instrument,
@@ -122,7 +122,7 @@ function collectNotes(score: Score, start: number, duration: number): ClipNote[]
 			 rv.push({...note,
 						 id: note.id + "__" + pu.lane,
 						 time: nt,
-						 instrument: pu.patName == "drums" ? "drums" : "sine", // XXX: multiple drum pats?
+						 instrument: getPatInst(pu.patName, pat),
 						 clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
 		  }
 		});

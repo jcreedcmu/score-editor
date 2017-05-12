@@ -7,6 +7,7 @@ import { dispatch, unreachable } from './main';
 import { AppState, Mode } from './state';
 import * as CSSTransitionGroup from 'preact-css-transition-group';
 import { Immutable as Im, get, set, update, updateIn, fromJS, toJS } from './immutable';
+import { getPatInst } from './pattern-util';
 
 function ModeHeader({mode}:{mode: Mode}): JSX.Element {
   switch (mode.t) {
@@ -22,13 +23,14 @@ function ModeComponent(mode: Mode, state: Im<AppState>): JSX.Element {
 	 case "editPattern":
 		const props: AppState = toJS(state);
 		const { offsetTicks, debugOffsetTicks, gridSize, noteSize, scrollOctave, previewNote } = props;
+		const pattern = props.score.patterns[mode.patName];
 		const rollProps: RollEditorProps = {
         ...rollDims,
 		  offsetTicks, debugOffsetTicks, gridSize, noteSize, scrollOctave, previewNote,
 		  mouseState: mode.mouseState,
 		  useOffsetTicks: mode.useOffsetTicks,
-		  style: mode.patName == "drums" ? "drums" : "piano",
-		  pattern: props.score.patterns[mode.patName],
+		  style: getPatInst(mode.patName, pattern) == 'drums' ? 'drums' : 'piano',
+		  pattern,
 		};
 		return <RollEditor {...rollProps}/>;
 	 case "editSong":
