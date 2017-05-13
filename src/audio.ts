@@ -16,7 +16,7 @@ function freq_of_pitch(pitch) {
   return 440 * Math.pow(2, (pitch - 69) / 12);
 }
 
-const global_adsr_params = {a: 0.01, d: 0.1, s: 0.5, r: 0.5};
+const global_adsr_params = {a: 0.01, d: 0.1, s: 0.5, r: 0.05};
 
 // a, d, r are all intended to be in seconds
 // --- but the function would still work more or less the same for
@@ -55,6 +55,8 @@ type NoteState = {
   phase: number,
   freq: number,
   buf: number,
+  lastEnv: number, // scalar to multiply audio with. what we need it
+						 // for is smooth release from non-sustain cutoff.
 //  maturityTicks: number,
 }
 
@@ -179,6 +181,7 @@ function mergeNotes(oldNotes: NoteState[], newNotes: ClipNote[]): ClipState[] {
 	 	  id: note.id,
 	 	  phase: 0,
 		  envAge: 0,
+		  lastEnv: 0,
 	 	  pitch: note.pitch,
 //		  maturityTicks: note.maturityTicks,
 	 	  freq: freq_of_pitch(note.pitch), // TODO: having both pitch and freq here is kinda redundant, eliminate one
@@ -254,7 +257,7 @@ function renderContiguousChunkInto(
 	 const adsr_params = {...global_adsr_params};
 
 	 if (noteState.instrument == "drums") {
-		adsr_params.r = 0.0; // argh... already-playing notes will pop.
+		adsr_params.r = 0.01; // here to prevent dead-note pops, not relevant if we play to full note length
 		adsr_params.a = 0.0005;
 		// ugh... we shouldn't execute this code if the note isn't live, because cs.note won't exist.
 		// but if it isn't live, this param won't matter.
@@ -266,11 +269,13 @@ function renderContiguousChunkInto(
 
 	 const env_f = ads(adsr_params);
 	 for (let i = startFrame; i < datDuration; i++) {
-		const env = noteState.liveness == "live" ?
-		  env_f(noteState.envAge / RATE)
-		  : adsr_params.s * (1 - noteState.envAge / (adsr_params.r * RATE));
+		if (noteState.liveness == "live") {
+		  noteState.lastEnv = env_f(noteState.envAge / RATE);
+		}
+		const release_env = noteState.liveness == "moribund" ?
+		  (1 - noteState.envAge / (adsr_params.r * RATE)) : 1;
 		const ugen = ugenFrame(noteState);
-		dat[datStart + i] += env * ugen;
+		dat[datStart + i] += noteState.lastEnv * release_env * ugen;
 
 		if (noteState.liveness == "live") {
 		  if (i >= endFrame) {
