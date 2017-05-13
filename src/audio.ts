@@ -16,7 +16,7 @@ function freq_of_pitch(pitch) {
   return 440 * Math.pow(2, (pitch - 69) / 12);
 }
 
-const global_adsr_params = {a: 0.01, d: 0.1, s: 0.5, r: 0.01};
+const global_adsr_params = {a: 0.01, d: 0.1, s: 0.5, r: 0.5};
 
 // a, d, r are all intended to be in seconds
 // --- but the function would still work more or less the same for
@@ -64,7 +64,11 @@ type ChunkTiming = {
 //  maturityTicks: number, // how old the note already in the score at time of render chunk start
 }
 
-type ClipState = { state: NoteState } & ChunkTiming
+type ClipState = {
+  note?: IdNote, // vexingly complicated invariant holds here: if
+					  // state.liveness is live, this is not undefined
+  state: NoteState
+} & ChunkTiming
 
 
 type ClipNote = IdNote & ChunkTiming & { instrument: Instrument }
@@ -149,6 +153,13 @@ function collectNotes(score: Score, start: number, duration: number): ClipNote[]
   return rv;
 }
 
+// invariant: our input isn't of liveness state "dead"
+function expire(note: NoteState): NoteState {
+  if (note.liveness == "moribund")
+	 return note;
+  else
+	 return {...note, liveness: "moribund" as Liveness, envAge: 0};
+}
 
 // XXX: mutates oldNotes. Harmless for now, since I think every caller
 // essentially treates it linearly, but still I think it would be
@@ -175,13 +186,15 @@ function mergeNotes(oldNotes: NoteState[], newNotes: ClipNote[]): ClipState[] {
 	 	};
 	 }
 	 newMerged.push({state,
+						  note,
 						  startFrame: note.startFrame,
 						  endFrame: note.endFrame,
 //						  maturityTicks: note.maturityTicks
 						 });
   });
   const moribund: ClipState[] = oldNotes.map(note => ({
-	 state: {...note, liveness: "moribund" as Liveness},
+	 state: expire(note),
+	 note: undefined,
 	 startFrame: 0,
 //	 maturityTicks: note.maturityTicks,
   }));
@@ -189,14 +202,40 @@ function mergeNotes(oldNotes: NoteState[], newNotes: ClipNote[]): ClipState[] {
 }
 
 function newLiveNotes(mergedNotes: ClipState[]): NoteState[] {
-  return mergedNotes.map(x => x.state);
+  return mergedNotes.map(x => x.state).filter(x => x.liveness != "dead");
+}
+
+let howmanytimes = 0;
+function afewtimes(f) {
+  if (howmanytimes < 20){ howmanytimes++; f(); }
+}
+function occasionally(f) {
+  howmanytimes++;
+  if (howmanytimes % 10000 == 0){  f(); }
+}
+
+function ugenFrame(ns: NoteState): number {
+  switch(ns.instrument) {
+  case "sine":
+	 ns.phase += ns.freq / RATE;
+	 ns.envAge++;
+	 return 0.15 * ((ns.phase - Math.floor(ns.phase)) < 0.5 ? 0.2 : -0.2);
+  case "drums":
+	 const step = Math.pow(2, (ns.pitch - 60) / 1.5);
+	 const p = Math.min(1.0, ns.freq * 8.0 / RATE);
+	 const volumeAdjust = Math.pow(2.0, (50 - ns.pitch) / 12);
+	 ns.phase += step;
+	 if (ns.phase >= NOISE_LENGTH) { ns.phase -= NOISE_LENGTH; }
+	 ns.buf = (1-p) * ns.buf + p * noise[Math.floor(ns.phase)];
+	 ns.envAge++;
+	 return volumeAdjust * ns.buf;
+  }
 }
 
 // Same as renderChunkInto below, except
 // (a) only fill the part of dat starting at datStart and proceeding for datDuration frames
 // (b) we're guaranteed the interval [startTicks, startTicks + datDuration * frames_per_tick]
 //     is logically contiguous; i.e. doesn't wrap across a loop point.
-
 function renderContiguousChunkInto(
   dat: Float32Array,
   datStart: number, // frames
@@ -213,47 +252,37 @@ function renderContiguousChunkInto(
 	 const endFrame = cs.endFrame;
 
 	 const adsr_params = {...global_adsr_params};
-	 if (noteState.instrument == "drums") {
-		adsr_params.r = 0.2;
-		adsr_params.a = 0.001;
-		adsr_params.d = 0.0;
-		adsr_params.s = 1.000;
-	 }
-	 const env_f = ads(adsr_params);
 
-	 switch (noteState.instrument) {
-	 case "sine":
-		for (let i = startFrame; i < datDuration; i++) {
-		  const env = noteState.liveness == "live" ?
-			 env_f(noteState.envAge / RATE)
-			 : 1 - noteState.envAge / adsr_params.r;
-		  dat[datStart + i] += env * 0.15 * ((noteState.phase - Math.floor(noteState.phase)) < 0.5 ? 0.2 : -0.2);
-		  noteState.phase += noteState.freq / RATE;
-		  noteState.envAge++;
-		  if (noteState.liveness == "live") {
-			 if (i >= endFrame) {
-				noteState.liveness = "moribund";
-				noteState.envAge = 0;
-			 }
-		  }
-		  else if (noteState.liveness == "moribund" && noteState.envAge >= adsr_params.r) {
-			 noteState.liveness = "dead";
-			 break;
+	 if (noteState.instrument == "drums") {
+		adsr_params.r = 0.0; // argh... already-playing notes will pop.
+		adsr_params.a = 0.0005;
+		// ugh... we shouldn't execute this code if the note isn't live, because cs.note won't exist.
+		// but if it isn't live, this param won't matter.
+		if (noteState.liveness == "live") {
+		  adsr_params.d = (cs.note.time[1] - cs.note.time[0]) * score.seconds_per_tick - adsr_params.a;
+		}
+		adsr_params.s = 0.000;
+	 }
+
+	 const env_f = ads(adsr_params);
+	 for (let i = startFrame; i < datDuration; i++) {
+		const env = noteState.liveness == "live" ?
+		  env_f(noteState.envAge / RATE)
+		  : adsr_params.s * (1 - noteState.envAge / (adsr_params.r * RATE));
+		const ugen = ugenFrame(noteState);
+		dat[datStart + i] += env * ugen;
+
+		if (noteState.liveness == "live") {
+		  if (i >= endFrame) {
+			 noteState.liveness = "moribund";
+			 noteState.envAge = 0;
 		  }
 		}
-		break;
-	 case "drums":
-		// const step = Math.pow(2, (noteState.pitch - 60) / 1.5);
-		// const p = Math.min(1.0, noteState.freq * 8.0 / RATE);
-		// const volumeAdjust = Math.pow(2.0, (50-noteState.pitch) / 12);
-		// for (let i = note_start_frame; i < datStart + datDuration; i++) {
-		//   const env = env_f((i - note_start_frame) / RATE + noteState.envAge);
-		//   noteState.phase += step;
-		//   if (noteState.phase >= NOISE_LENGTH) { noteState.phase -= NOISE_LENGTH; }
-		//   noteState.buf = (1-p) * noteState.buf + p * noise[Math.floor(noteState.phase)];
-		//   dat[datStart + i] += env * volumeAdjust * noteState.buf;
-		// }
-		break;
+		// note that both the above and below if can fire in one frame if adsr_params.r == 0!
+		if (noteState.liveness == "moribund" && noteState.envAge >= adsr_params.r * RATE) {
+		  noteState.liveness = "dead";
+		  break;
+		}
 	 }
   }
   return newLiveNotes(mergedNotes);
