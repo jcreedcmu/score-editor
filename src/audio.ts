@@ -18,28 +18,23 @@ function freq_of_pitch(pitch) {
 
 const global_adsr_params = {a: 0.01, d: 0.1, s: 0.5, r: 0.01};
 
-// a, d, r and length are all intended to be in seconds
+// a, d, r are all intended to be in seconds
 // --- but the function would still work more or less the same for
 // them being in any time unit, as long as they're all the same.
 // s is a unitless scaling factor.
 type adsrParams = {a: number, d: number, s: number, r: number};
-function adsr(params: adsrParams, length: number) {
-  const {a, d, s, r} = params;
+function ads(params: adsrParams) {
+  const {a, d, s} = params;
   return  (t => {
-	 let env;
-	 if (t < a) env = t / a;
+	 if (t < a)
+		return t / a;
 	 else if (t - a < d) {
 		const T = (t - a) / d;
-		env = s * T + (1 - T);
+		return s * T + (1 - T);
 	 }
 	 else {
-		env = s;
+		return s;
 	 }
-	 const release_factor = (length - t) / r;
-	 if (release_factor < 1) {
-		env *= release_factor;
-	 }
-	 return env;
   });
 }
 
@@ -49,14 +44,31 @@ for (var i = 0; i < NOISE_LENGTH; i++) {
   noise[i] = Math.random() - 0.5;
 }
 
+type Liveness = "live" | "moribund" | "dead";
+
 type NoteState = {
+  liveness: Liveness,
   instrument: Instrument,
+  envAge: number, // frames
   id: string,
   pitch: number,
   phase: number,
   freq: number,
   buf: number,
+//  maturityTicks: number,
 }
+
+type ChunkTiming = {
+  startFrame: number, // frames relative to render chunk start
+  endFrame?: number, // frames relative to render chunk start
+//  maturityTicks: number, // how old the note already in the score at time of render chunk start
+}
+
+type ClipState = { state: NoteState } & ChunkTiming
+
+
+type ClipNote = IdNote & ChunkTiming & { instrument: Instrument }
+
 
 // Leave behind some breadcrumbs about contiguous chunks we've
 // rendered, so we can properly communicate upstream where in the song
@@ -90,14 +102,6 @@ const state : AudioState = {
   nowTicks: [],
 };
 
-// We want to keep two pieces of information that are both derived
-// from the note's real time bounds
-// (a) When the note starts and stops, considering it clipped to the
-// render chunk
-// (b) When the note actually begins and ends, which might be outside
-// the render chunk, for purposes of computing adsr envelope.
-type ClipNote = IdNote & {clipTime: [number, number], instrument: Instrument};
-
 function repeats(patUseLength: number, patLength: number): {offset: number, duration: number}[] {
   let remaining: number = patUseLength;
   let pos = 0;
@@ -111,6 +115,7 @@ function repeats(patUseLength: number, patLength: number): {offset: number, dura
   return rv;
 }
 
+// start and duration are in ticks
 function collectNotes(score: Score, start: number, duration: number): ClipNote[] {
   const rv: ClipNote[] = [];
 
@@ -122,16 +127,21 @@ function collectNotes(score: Score, start: number, duration: number): ClipNote[]
 	 repeats(pu.duration, pat.length).forEach(({offset, duration}) => {
 		pat.notes.forEach(note => {
 		  const off = offset + pu_offset;
-		  const start = note.time[0];
-		  if (start >= duration) return;
+		  const noteStart = note.time[0];
+		  if (noteStart >= duration) return;
 		  const end = Math.min(note.time[1], duration);
-		  const nt: [number, number] = [off + start, off + end];
+		  const nt: [number, number] = [off + noteStart, off + end];
 		  if (nt[0] <= ct[1] && ct[0] <= nt[1]) {
-			 rv.push({...note,
-						 id: note.id + "__" + pu.lane,
-						 time: nt,
-						 instrument: getPatInst(pu.patName, pat),
-						 clipTime: [Math.max(nt[0], ct[0]), Math.min(nt[1], ct[1])]});
+			 const cn: ClipNote = {
+				  ...note,
+				id: note.id + "__" + pu.lane,
+				time: nt,
+				instrument: getPatInst(pu.patName, pat),
+				startFrame: Math.round((Math.max(nt[0], ct[0]) - ct[0]) * (score.seconds_per_tick * RATE)),
+				endFrame: Math.round((Math.min(nt[1], ct[1]) - ct[0]) * (score.seconds_per_tick * RATE)),
+//				maturityTicks: ct[0] - nt[0],
+			 };
+			 rv.push(cn);
 		  }
 		});
 	 });
@@ -139,71 +149,114 @@ function collectNotes(score: Score, start: number, duration: number): ClipNote[]
   return rv;
 }
 
-function clip_to_length(params: adsrParams, seconds: number): adsrParams {
-  return {...params,
-			 a: Math.min(params.a, seconds/2),
-			 r: Math.min(params.r, seconds/2)};
+
+// XXX: mutates oldNotes. Harmless for now, since I think every caller
+// essentially treates it linearly, but still I think it would be
+// nicer to be purely functional.
+function mergeNotes(oldNotes: NoteState[], newNotes: ClipNote[]): ClipState[] {
+  const newMerged: ClipState[] = [];
+  newNotes.forEach(note => {
+	 const matchingNoteIx = oldNotes.findIndex(n => n.id == note.id); // check for more matching data? maturityTicks?
+	 let state: NoteState;
+	 if (note.startFrame == 0 && matchingNoteIx != -1) {
+	 	state = oldNotes.splice(matchingNoteIx, 1)[0];
+	 }
+	 else {
+	 	state = {
+	 	  instrument: note.instrument,
+		  liveness: "live",
+	 	  id: note.id,
+	 	  phase: 0,
+		  envAge: 0,
+	 	  pitch: note.pitch,
+//		  maturityTicks: note.maturityTicks,
+	 	  freq: freq_of_pitch(note.pitch), // TODO: having both pitch and freq here is kinda redundant, eliminate one
+	 	  buf: 0,
+	 	};
+	 }
+	 newMerged.push({state,
+						  startFrame: note.startFrame,
+						  endFrame: note.endFrame,
+//						  maturityTicks: note.maturityTicks
+						 });
+  });
+  const moribund: ClipState[] = oldNotes.map(note => ({
+	 state: {...note, liveness: "moribund" as Liveness},
+	 startFrame: 0,
+//	 maturityTicks: note.maturityTicks,
+  }));
+  return newMerged.concat(moribund);
+}
+
+function newLiveNotes(mergedNotes: ClipState[]): NoteState[] {
+  return mergedNotes.map(x => x.state);
 }
 
 // Same as renderChunkInto below, except
 // (a) only fill the part of dat starting at datStart and proceeding for datDuration frames
 // (b) we're guaranteed the interval [startTicks, startTicks + datDuration * frames_per_tick]
 //     is logically contiguous; i.e. doesn't wrap across a loop point.
-function renderContiguousChunkInto(dat: Float32Array, datStart: number, datDuration: number,
-											  startTicks: number, score: Score, liveNotes: NoteState[]): NoteState[] {
 
-  const newLiveNotes = [];
-  for (const note of collectNotes(score, startTicks, datDuration / (score.seconds_per_tick * RATE))) {
-	 const noteState: NoteState = liveNotes.find(n => n.id == note.id) ||
-		{
-		  instrument: note.instrument,
-		  id: note.id,
-		  phase: 0,
-		  pitch: note.pitch,
-		  freq: freq_of_pitch(note.pitch), // TODO: having both pitch and freq here is kinda redundant, eliminate one
-		  buf: 0,
-		};
-	 newLiveNotes.push(noteState);
+function renderContiguousChunkInto(
+  dat: Float32Array,
+  datStart: number, // frames
+  datDuration: number, // frames
+  startTicks: number, // ticks
+  score: Score,
+  liveNotes: NoteState[]
+): NoteState[] {
+  const collectedNotes = collectNotes(score, startTicks, datDuration / (score.seconds_per_tick * RATE));
+  const mergedNotes = mergeNotes(liveNotes, collectedNotes);
+  for (const cs of mergedNotes) {
+	 const noteState = cs.state;
+	 const startFrame = cs.startFrame;
+	 const endFrame = cs.endFrame;
 
-	 const note_start_frame = Math.round((note.clipTime[0] - startTicks) * score.seconds_per_tick * RATE);
-	 const note_term_frame = Math.round((note.clipTime[1] - startTicks) * score.seconds_per_tick * RATE);
 	 const adsr_params = {...global_adsr_params};
 	 if (noteState.instrument == "drums") {
-		adsr_params.r = 0.0;
+		adsr_params.r = 0.2;
 		adsr_params.a = 0.001;
-		adsr_params.d = (note.time[1] - note.time[0]) * score.seconds_per_tick - adsr_params.a;
-		adsr_params.s = 0.000;
+		adsr_params.d = 0.0;
+		adsr_params.s = 1.000;
 	 }
-	 const env_f = adsr(clip_to_length(adsr_params, (note.time[1] - note.time[0]) * score.seconds_per_tick),
-							  (note.time[1] - note.time[0]) * score.seconds_per_tick);
+	 const env_f = ads(adsr_params);
 
-	 switch (note.instrument) {
+	 switch (noteState.instrument) {
 	 case "sine":
-		for (let i = note_start_frame; i < note_term_frame; i++) {
-		  // what time is it in this iteration of the loop? it's (in ticks from beginning of song)
-		  // note.clipTime[0] + (i - note_start_frame) / (score.seconds_per_tick * RATE)
-
-		  // therefore, the time in *seconds* since this note started is as follows:
-		  const env = env_f((i - note_start_frame) / RATE + (note.clipTime[0] - note.time[0]) * score.seconds_per_tick);
-		  noteState.phase += noteState.freq / RATE;
+		for (let i = startFrame; i < datDuration; i++) {
+		  const env = noteState.liveness == "live" ?
+			 env_f(noteState.envAge / RATE)
+			 : 1 - noteState.envAge / adsr_params.r;
 		  dat[datStart + i] += env * 0.15 * ((noteState.phase - Math.floor(noteState.phase)) < 0.5 ? 0.2 : -0.2);
+		  noteState.phase += noteState.freq / RATE;
+		  noteState.envAge++;
+		  if (noteState.liveness == "live") {
+			 if (i >= endFrame) {
+				noteState.liveness = "moribund";
+				noteState.envAge = 0;
+			 }
+		  }
+		  else if (noteState.liveness == "moribund" && noteState.envAge >= adsr_params.r) {
+			 noteState.liveness = "dead";
+			 break;
+		  }
 		}
 		break;
 	 case "drums":
-		const step = Math.pow(2, (note.pitch - 60) / 1.5);
-		const p = Math.min(1.0, noteState.freq * 8.0 / RATE);
-		const volumeAdjust = Math.pow(2.0, (50-note.pitch) / 12);
-		for (let i = note_start_frame; i < note_term_frame; i++) {
-		  const env = env_f((i - note_start_frame) / RATE + (note.clipTime[0] - note.time[0]) * score.seconds_per_tick);
-		  noteState.phase += step;
-		  if (noteState.phase >= NOISE_LENGTH) { noteState.phase -= NOISE_LENGTH; }
-		  noteState.buf = (1-p) * noteState.buf + p * noise[Math.floor(noteState.phase)];
-		  dat[datStart + i] += env * volumeAdjust * noteState.buf;
-		}
+		// const step = Math.pow(2, (noteState.pitch - 60) / 1.5);
+		// const p = Math.min(1.0, noteState.freq * 8.0 / RATE);
+		// const volumeAdjust = Math.pow(2.0, (50-noteState.pitch) / 12);
+		// for (let i = note_start_frame; i < datStart + datDuration; i++) {
+		//   const env = env_f((i - note_start_frame) / RATE + noteState.envAge);
+		//   noteState.phase += step;
+		//   if (noteState.phase >= NOISE_LENGTH) { noteState.phase -= NOISE_LENGTH; }
+		//   noteState.buf = (1-p) * noteState.buf + p * noise[Math.floor(noteState.phase)];
+		//   dat[datStart + i] += env * volumeAdjust * noteState.buf;
+		// }
 		break;
 	 }
   }
-  return newLiveNotes;
+  return newLiveNotes(mergedNotes);
 }
 
 type RenderChunkResult = {
