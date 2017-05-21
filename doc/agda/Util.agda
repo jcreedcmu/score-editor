@@ -39,17 +39,12 @@ Uniq B pred = Σ B (λ b → (pred b ≡ true) × ((b' : B) → pred b' ≡ true
 None : (B : Set) → (B → Bool) → Set
 None B pred = (b : B) → pred b ≡ false
 
-Balanced : {B : Set} → (B → Tern) → Set
-Balanced {B} f = Uniq B (λ b → Tern= (f b) t+) ×
-                 Uniq B (λ b → Tern= (f b) t-)
+Combi : (prop : (B : Set) → (B → Bool) → Set) (combiner : Set → Set → Set) → {B : Set} → (B → Tern) → Set
+Combi prop combiner {B} f = combiner (prop B (λ b → Tern= (f b) t+)) (prop B (λ b → Tern= (f b) t-))
 
-Triv : {B : Set} → (B → Tern) → Set
-Triv {B} f = None B (λ b → Tern= (f b) t+) ×
-             None B (λ b → Tern= (f b) t-)
-
-NonTriv : {B : Set} → (B → Tern) → Set
-NonTriv {B} f = One B (λ b → Tern= (f b) t+) ⊕
-                One B (λ b → Tern= (f b) t-)
+Balanced = Combi Uniq _×_
+Triv = Combi None _×_
+NonTriv = Combi One _⊕_
 
 Calm : {B : Set} → (B → Tern) → Set
 Calm {B} f = Balanced f ⊕ Triv f
