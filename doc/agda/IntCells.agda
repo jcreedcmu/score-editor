@@ -81,36 +81,29 @@ postulate
   SumOver : (B : Set) (Mb : B → Module) (M : Module) → ((b : B) → ModHom (Mb b) M)
             → ModHom (ProductMod B Mb) M
 
-{- Right now this is a tangled mutual recursive definition. Reordering the definition
-   clauses sometimes leads to failure of typechecking, which scares me. Going to
-   instead try to do this as an explicit record type, with a definition that advances
-   it forward one step -}
+record Bundle (n : ℕ) : Set₁ where
+  constructor MkBundle
+  field
+    ℂ : PreCell n → Module
+    𝔾 : Module
+    ∂ : (c : PreCell n) → ModHom (ℂ c) 𝔾
 
-CellModule : (n : ℕ) → PreCell n → Module
-GlobalModule : (n : ℕ) → Module
-CellBoundary : (n : ℕ) (c : PreCell n) → ModHom (CellModule n c) (GlobalModule n)
-GlobalBoundary : (n : ℕ) → ModHom (GlobalModule (suc n)) (GlobalModule n)
-LocalSubMod : (n : ℕ) (c : PreCell (suc n)) → ModHom (ResMod (PreCell n) (CellModule n) c) (GlobalModule (suc n))
+IncBundle : {n : ℕ} → Bundle n → Bundle (suc n)
+IncBundle {n} (MkBundle ℂ 𝔾 ∂) = MkBundle ℂ1 𝔾1 ∂1
+  where
+  𝔾1 : Module
+  𝔾1 = ProductMod (PreCell n) ℂ
+  G∂ : ModHom 𝔾1 𝔾
+  G∂ = SumOver (PreCell n) ℂ 𝔾 ∂
+  LocalSubM : (c : PreCell (suc n)) → ModHom (ResMod (PreCell n) ℂ c) 𝔾1
+  LocalSubM c = ResSubMod (PreCell n) ℂ c
+  ℂ1 : PreCell (suc n) → Module
+  ℂ1 c = ker (ModHomComp (LocalSubM c) G∂)
+  ∂1 : (c : PreCell (suc n)) → ModHom (ℂ1 c) 𝔾1
+  ∂1 c = ModHomComp
+    (KerHom (ModHomComp (ResSubMod (PreCell n) ℂ c) G∂))
+    (LocalSubM c)
 
-GlobalModule zero = ℤMod
-GlobalModule (suc n) = ProductMod (PreCell n) (CellModule n)
-LocalSubMod n c = ResSubMod (PreCell n) (CellModule n) c
-GlobalBoundary n = SumOver (PreCell n) (CellModule n) (GlobalModule n) (CellBoundary n)
-CellModule zero a = ℤMod
-CellModule (suc n) c =
-  ker (ModHomComp (LocalSubMod n c) (GlobalBoundary n))
-CellBoundary zero c = IdHom ℤMod
-CellBoundary (suc n) c =
-  ModHomComp
-    (KerHom (ModHomComp (ResSubMod (PreCell n) (CellModule n) c) (GlobalBoundary n)))
-    (LocalSubMod n c)
-
-
-{--
-
-A 3-cell is given by a mapping f from 2-cells to bool. The elements
-of its module are the kernel of the boundary map from the support of f.
-
-The boundary map from a 3-cell is a map from its module to the product module
-over the modules of all 2-cells given by taking
---}
+GiveBundle : (n : ℕ) → Bundle n
+GiveBundle zero = MkBundle (λ _ → ℤMod) ℤMod (λ _ → IdHom ℤMod)
+GiveBundle (suc n) = IncBundle (GiveBundle n)
