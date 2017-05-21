@@ -1,8 +1,8 @@
 module IntCells (A : Set) where
 
 -- open import Level renaming (suc to lsuc) hiding (zero)
-open import Data.Integer renaming (suc to isuc ; _+_ to _i+_ ; _*_ to _i*_ )
-open import Data.Nat
+open import Data.Integer renaming (suc to isuc ; _+_ to _i+_ ; _*_ to _i*_ ) hiding ( _⊔_ )
+open import Data.Nat hiding ( _⊔_ )
 open import Data.Unit
 open import Data.Empty
 open import Data.Bool
@@ -10,9 +10,14 @@ open import Data.Sum
 open import Data.Product
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
+open import Level hiding ( zero )
 
-Space : Set → Set
-Space A = A → ℤ
+record _st_{a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
+  constructor _,,_
+  field
+    Item : A
+    .Pf : B Item -- proof irrelevance
+open _st_
 
 record Module : Set₁ where
   field
@@ -25,6 +30,7 @@ record _⇒_ (M N : Module) : Set where
   field
     f : (Module.X M) → (Module.X N)
     p1 : f (Module.m0 M) ≡ Module.m0 N
+
 
 IdHom : (M : Module) → M ⇒ M
 IdHom M = record { f = λ x → x ; p1 = refl }
@@ -77,6 +83,8 @@ postulate
   SumOver : (B : Set) (Mb : B → Module) (M : Module) → ((b : B) → Mb b ⇒ M)
             → ProductMod B Mb ⇒ M
 
+  1Dim : Module → Set
+
 record Bundle : Set₁ where
   constructor MkBundle
   field
@@ -86,23 +94,30 @@ record Bundle : Set₁ where
     ∂ : (c : ℙ) → ℂ c ⇒ 𝔾
 
 IncBundle : Bundle → Bundle
-IncBundle (MkBundle ℙ ℂ 𝔾 ∂) = MkBundle ℙ1 ℂ1 𝔾1 ∂1
+IncBundle (MkBundle ℙ ℂ 𝔾 ∂) = MkBundle ℙ0 ℂ0 𝔾0 ∂0
   where
-  ℙ1 : Set
-  ℙ1 = ℙ → Bool
-  𝔾1 : Module
-  𝔾1 = ProductMod ℙ ℂ
-  G∂ : 𝔾1 ⇒ 𝔾
+  ℙ0 : Set
+  ℙ0 = ℙ → Bool
+  𝔾0 : Module
+  𝔾0 = ProductMod ℙ ℂ
+  G∂ : 𝔾0 ⇒ 𝔾
   G∂ = SumOver ℙ ℂ 𝔾 ∂
-  Local : (c : ℙ1) → ResMod ℙ ℂ c ⇒ 𝔾1
+  Local : (c : ℙ0) → ResMod ℙ ℂ c ⇒ 𝔾0
   Local c = ResSubMod ℙ ℂ c
-  LocGlo : (c : ℙ1) → ResMod ℙ ℂ c ⇒ 𝔾
+  LocGlo : (c : ℙ0) → ResMod ℙ ℂ c ⇒ 𝔾
   LocGlo c = ModHomComp (Local c) G∂
-  ℂ1 : ℙ1 → Module
-  ℂ1 c = ker (LocGlo c)
-  ∂1 : (c : ℙ1) → ℂ1 c ⇒ 𝔾1
-  ∂1 c = ModHomComp (KerHom (LocGlo c)) (Local c)
+  ℂ0 : ℙ0 → Module
+  ℂ0 c = ker (LocGlo c)
+  ∂0 : (c : ℙ0) → ℂ0 c ⇒ 𝔾0
+  ∂0 c = ModHomComp (KerHom (LocGlo c)) (Local c)
+
+ResBundle : Bundle → Bundle
+ResBundle (MkBundle ℙ ℂ 𝔾 ∂) = MkBundle ℙ1 ℂ1 𝔾 ∂1
+  where
+  ℙ1 = ℙ st (λ p → 1Dim (ℂ p))
+  ℂ1 = λ (c : ℙ1) →  ℂ (Item c)
+  ∂1 = λ (c : ℙ1) → ∂ (Item c)
 
 GiveBundle : ℕ → Bundle
 GiveBundle zero = MkBundle A (λ _ → ℤMod) ℤMod (λ _ → IdHom ℤMod)
-GiveBundle (suc n) = IncBundle (GiveBundle n)
+GiveBundle (suc n) = ResBundle (IncBundle (GiveBundle n))
