@@ -32,36 +32,36 @@ t+ ** x = x
 x ** t+ = x
 t- ** t- = t+
 
-record Oper (B : Set) : Set₁ where
-  constructor MkOper
-  field
-    one : (B → Bool) → Set
-    none : (B → Bool) → Set
 
-balanced : {B : Set} → (Oper B) → (B → Tern) → Set
-balanced ω f = Oper.one ω (λ b → Tern= (f b) t+) ×
-               Oper.one ω (λ b → Tern= (f b) t-)
+one : (B : Set) → (B → Bool) → Set
+one B pred = Σ B (λ b → (pred b ≡ true) × ((b' : B) → pred b' ≡ true → b ≡ b'))
 
-null : {B : Set} → (Oper B) → (B → Tern) → Set
-null ω f = Oper.none ω (λ b → Tern= (f b) t+) ×
-           Oper.none ω (λ b → Tern= (f b) t-)
+none : (B : Set) → (B → Bool) → Set
+none B pred = (b : B) → pred b ≡ false
 
-calm : {B : Set} → (Oper B) → (B → Tern) → Set
-calm ω f = balanced ω f ⊕ null ω f
+balanced : {B : Set} → (B → Tern) → Set
+balanced {B} f = one B (λ b → Tern= (f b) t+) ×
+                 one B (λ b → Tern= (f b) t-)
+
+null : {B : Set} → (B → Tern) → Set
+null {B} f = none B (λ b → Tern= (f b) t+) ×
+             none B (λ b → Tern= (f b) t-)
+
+calm : {B : Set} → (B → Tern) → Set
+calm {B} f = balanced f ⊕ null f
 
 record Chain : Set₁ where
   constructor MkChain
   field
     ℂ : ℕ → Set
-    ω : (n : ℕ) → Oper (ℂ n)
     δ : (n : ℕ) →  ℂ (suc n) → ℂ n → Tern
 
 isZeroCover : (χ : Chain) (n : ℕ) → (Chain.ℂ χ n → Tern) → Set
-isZeroCover (MkChain ℂ ω δ) zero v = balanced (ω zero) v
-isZeroCover (MkChain ℂ ω δ) (suc n) v = (c : ℂ n) → calm (ω (suc n)) (λ e → v e ** δ n e c)
+isZeroCover (MkChain ℂ δ) zero v = balanced v
+isZeroCover (MkChain ℂ δ) (suc n) v = (c : ℂ n) → calm (λ e → v e ** δ n e c)
 
 GoodCell : {n : ℕ} (χ : Chain) (c : Chain.ℂ χ (suc n)) → Set
-GoodCell {n} χ@(MkChain ℂ ω δ) c = isZeroCover χ n (δ n c)
+GoodCell {n} χ@(MkChain ℂ δ) c = isZeroCover χ n (δ n c)
 
 Good : Chain → Set
-Good χ@(MkChain ℂ ω δ) = (n : ℕ) (c : ℂ (suc n)) → GoodCell χ c
+Good χ@(MkChain ℂ δ) = (n : ℕ) (c : ℂ (suc n)) → GoodCell χ c
