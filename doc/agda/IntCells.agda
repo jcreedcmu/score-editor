@@ -11,6 +11,7 @@ open import Data.Product
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Level hiding ( zero )
+open import Function
 
 record _st_{a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
   constructor _,,_
@@ -93,31 +94,27 @@ record Bundle : Set₁ where
     𝔾 : Module
     ∂ : (c : ℂ) → 𝕄 c ⇒ 𝔾
 
+
+
 IncBundle : Bundle → Bundle
-IncBundle (MkBundle ℂ 𝕄 𝔾 ∂) = MkBundle ℂ0 𝕄0 𝔾0 ∂0
+IncBundle (MkBundle ℂ 𝕄 𝔾 ∂) = MkBundle ℂ1 𝕄1 𝔾1 ∂1
   where
   ℂ0 : Set
   ℂ0 = ℂ → Bool
-  𝔾0 : Module
-  𝔾0 = ProductMod ℂ 𝕄
-  G∂ : 𝔾0 ⇒ 𝔾
+  𝔾1 : Module
+  𝔾1 = ProductMod ℂ 𝕄
+  G∂ : 𝔾1 ⇒ 𝔾
   G∂ = SumOver ℂ 𝕄 𝔾 ∂
-  Local : (c : ℂ0) → ResMod ℂ 𝕄 c ⇒ 𝔾0
+  Local : (c : ℂ0) → ResMod ℂ 𝕄 c ⇒ 𝔾1
   Local c = ResSubMod ℂ 𝕄 c
   LocGlo : (c : ℂ0) → ResMod ℂ 𝕄 c ⇒ 𝔾
   LocGlo c = Local c ⊚ G∂
   𝕄0 : ℂ0 → Module
   𝕄0 c = ker (LocGlo c)
-  ∂0 : (c : ℂ0) → 𝕄0 c ⇒ 𝔾0
-  ∂0 c = KerHom (LocGlo c) ⊚ (Local c)
-
-ResBundle : Bundle → Bundle
-ResBundle (MkBundle ℂ 𝕄 𝔾 ∂) = MkBundle ℂ1 𝕄1 𝔾 ∂1
-  where
-  ℂ1 = ℂ st (λ p → 1Dim (𝕄 p))
-  𝕄1 = λ (c : ℂ1) →  𝕄 (Item c)
-  ∂1 = λ (c : ℂ1) → ∂ (Item c)
+  ℂ1 = ℂ0 st (λ p → 1Dim (𝕄0 p))
+  𝕄1 = 𝕄0 ∘ Item
+  ∂1 = (λ (c : ℂ0) → KerHom (LocGlo c) ⊚ (Local c)) ∘ Item
 
 GiveBundle : ℕ → Bundle
 GiveBundle zero = MkBundle A (λ _ → ℤMod) ℤMod (λ _ → IdHom ℤMod)
-GiveBundle (suc n) = ResBundle (IncBundle (GiveBundle n))
+GiveBundle (suc n) = IncBundle (GiveBundle n)
