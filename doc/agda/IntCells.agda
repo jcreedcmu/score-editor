@@ -60,10 +60,6 @@ ProductMod B f = record {
   _++_ = λ x y b →  Module._++_ (f b) (x b) (y b) ;
   _**_ = λ z x b → Module._**_ (f b) z (x b)  }
 
-PreCell : ℕ → Set
-PreCell zero = A
-PreCell (suc n) = PreCell n → Bool
-
 restrict : (B : Set) (pred : B → Bool) → Set
 restrict B pred = Σ B (λ b → pred b ≡ true)
 
@@ -81,29 +77,32 @@ postulate
   SumOver : (B : Set) (Mb : B → Module) (M : Module) → ((b : B) → ModHom (Mb b) M)
             → ModHom (ProductMod B Mb) M
 
-record Bundle (n : ℕ) : Set₁ where
+record Bundle : Set₁ where
   constructor MkBundle
   field
-    ℂ : PreCell n → Module
+    ℙ : Set
+    ℂ : ℙ → Module
     𝔾 : Module
-    ∂ : (c : PreCell n) → ModHom (ℂ c) 𝔾
+    ∂ : (c : ℙ) → ModHom (ℂ c) 𝔾
 
-IncBundle : {n : ℕ} → Bundle n → Bundle (suc n)
-IncBundle {n} (MkBundle ℂ 𝔾 ∂) = MkBundle ℂ1 𝔾1 ∂1
+IncBundle : Bundle → Bundle
+IncBundle (MkBundle ℙ ℂ 𝔾 ∂) = MkBundle ℙ1 ℂ1 𝔾1 ∂1
   where
+  ℙ1 : Set
+  ℙ1 = ℙ → Bool
   𝔾1 : Module
-  𝔾1 = ProductMod (PreCell n) ℂ
+  𝔾1 = ProductMod ℙ ℂ
   G∂ : ModHom 𝔾1 𝔾
-  G∂ = SumOver (PreCell n) ℂ 𝔾 ∂
-  LocalSubM : (c : PreCell (suc n)) → ModHom (ResMod (PreCell n) ℂ c) 𝔾1
-  LocalSubM c = ResSubMod (PreCell n) ℂ c
-  ℂ1 : PreCell (suc n) → Module
+  G∂ = SumOver ℙ ℂ 𝔾 ∂
+  LocalSubM : (c : ℙ1) → ModHom (ResMod ℙ ℂ c) 𝔾1
+  LocalSubM c = ResSubMod ℙ ℂ c
+  ℂ1 : ℙ1 → Module
   ℂ1 c = ker (ModHomComp (LocalSubM c) G∂)
-  ∂1 : (c : PreCell (suc n)) → ModHom (ℂ1 c) 𝔾1
+  ∂1 : (c : ℙ1) → ModHom (ℂ1 c) 𝔾1
   ∂1 c = ModHomComp
-    (KerHom (ModHomComp (ResSubMod (PreCell n) ℂ c) G∂))
+    (KerHom (ModHomComp (ResSubMod ℙ ℂ c) G∂))
     (LocalSubM c)
 
-GiveBundle : (n : ℕ) → Bundle n
-GiveBundle zero = MkBundle (λ _ → ℤMod) ℤMod (λ _ → IdHom ℤMod)
+GiveBundle : ℕ → Bundle
+GiveBundle zero = MkBundle A (λ _ → ℤMod) ℤMod (λ _ → IdHom ℤMod)
 GiveBundle (suc n) = IncBundle (GiveBundle n)
