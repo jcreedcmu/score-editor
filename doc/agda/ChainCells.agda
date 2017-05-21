@@ -95,9 +95,6 @@ record Bundle : Set₁ where
 ZeroFunc : (β : Bundle) → (Bundle.ℂ β → Tern) → Set
 ZeroFunc (MkBundle 𝔾 ℂ ∂) v = (g : 𝔾) → calm (λ e → v e ** ∂ e g)
 
-MinimalFunc : (β : Bundle) → (Bundle.ℂ β → Tern) → Set
-MinimalFunc (MkBundle 𝔾 ℂ ∂) v = (g : 𝔾) → calm (λ e → v e ** ∂ e g)
-
 OkayFunc : (β : Bundle) (v : Bundle.ℂ β → Tern) → Set
 OkayFunc β v = ZeroFunc β v × NonTriv v
 
@@ -110,11 +107,11 @@ _ ■ _ = false
 _⊑_ : {A : Set} → (A → Tern) → (A → Tern) → Set
 v ⊑ w = (a : _) → v a ■ w a ≡ true
 
-MinimalOkayFunc : (β : Bundle) (v : Bundle.ℂ β → Tern) → Set
-MinimalOkayFunc β@(MkBundle 𝔾 ℂ ∂) v = (w : ℂ → Tern) → w ⊑ v → OkayFunc β w → (c : ℂ) → Tern= (v c) (w c) ≡ true
+MinimalFunc : {X : Set} (pred : (X → Tern) → Set) (v : X → Tern) → Set
+MinimalFunc {X} pred v = (w : X → Tern) → w ⊑ v → pred w → (x : X) → Tern= (v x) (w x) ≡ true
 
 GoodFunc : (β : Bundle) (v : Bundle.ℂ β → Tern) → Set
-GoodFunc β v = OkayFunc β v × MinimalOkayFunc β v
+GoodFunc β v = OkayFunc β v × MinimalFunc (OkayFunc β) v
 
 IncBundle : Bundle → Bundle
 IncBundle β@(MkBundle 𝔾 ℂ ∂) = MkBundle ℂ ((ℂ → Tern) st (GoodFunc β)) Item
