@@ -79,7 +79,7 @@ postulate
   {- this is also just the fact that the kernel, as an inclusion, is a homomorphism -}
   KerHom : {M N : Module} (f : M ⇒ N) → ker f ⇒ M
 
-  ModHomComp : {M N P : Module} → M ⇒ N → N ⇒ P → M ⇒ P
+  _⊚_ : {M N P : Module} → M ⇒ N → N ⇒ P → M ⇒ P
   SumOver : (B : Set) (Mb : B → Module) (M : Module) → ((b : B) → Mb b ⇒ M)
             → ProductMod B Mb ⇒ M
 
@@ -105,11 +105,11 @@ IncBundle (MkBundle ℂ 𝕄 𝔾 ∂) = MkBundle ℂ0 𝕄0 𝔾0 ∂0
   Local : (c : ℂ0) → ResMod ℂ 𝕄 c ⇒ 𝔾0
   Local c = ResSubMod ℂ 𝕄 c
   LocGlo : (c : ℂ0) → ResMod ℂ 𝕄 c ⇒ 𝔾
-  LocGlo c = ModHomComp (Local c) G∂
+  LocGlo c = Local c ⊚ G∂
   𝕄0 : ℂ0 → Module
   𝕄0 c = ker (LocGlo c)
   ∂0 : (c : ℂ0) → 𝕄0 c ⇒ 𝔾0
-  ∂0 c = ModHomComp (KerHom (LocGlo c)) (Local c)
+  ∂0 c = KerHom (LocGlo c) ⊚ (Local c)
 
 ResBundle : Bundle → Bundle
 ResBundle (MkBundle ℂ 𝕄 𝔾 ∂) = MkBundle ℂ1 𝕄1 𝔾 ∂1
