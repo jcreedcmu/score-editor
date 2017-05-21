@@ -94,20 +94,13 @@ record Bundle : Set₁ where
     𝔾 : Module
     ∂ : (c : ℂ) → 𝕄 c ⇒ 𝔾
 
-
-
 IncBundle : Bundle → Bundle
-IncBundle (MkBundle ℂ 𝕄 𝔾 ∂) = MkBundle ℂ1 𝕄1 𝔾1 ∂1
+IncBundle (MkBundle ℂ 𝕄 𝔾 ∂) =
+  MkBundle ((ℂ → Bool) st (1Dim ∘ 𝕄0)) (𝕄0 ∘ Item) (ProductMod ℂ 𝕄) ((λ c → KerHom (LocGlo c) ⊚ (Local c)) ∘ Item)
   where
-  ℂ0 = ℂ → Bool
-  𝔾1 = ProductMod ℂ 𝕄
-  G∂ = SumOver ℂ 𝕄 𝔾 ∂
   Local = ResSubMod ℂ 𝕄
-  LocGlo = λ c → Local c ⊚ G∂
+  LocGlo = λ c → Local c ⊚ (SumOver ℂ 𝕄 𝔾 ∂)
   𝕄0 = ker ∘ LocGlo
-  ℂ1 = ℂ0 st (1Dim ∘ 𝕄0)
-  𝕄1 = 𝕄0 ∘ Item
-  ∂1 = (λ (c : ℂ0) → KerHom (LocGlo c) ⊚ (Local c)) ∘ Item
 
 GiveBundle : ℕ → Bundle
 GiveBundle zero = MkBundle A (λ _ → ℤMod) ℤMod (λ _ → IdHom ℤMod)
