@@ -52,8 +52,8 @@ sum : (n : ℕ) → (Fin n → ℕ) → ℕ
 sum n f = ffold ℕ n (λ m acc → acc + f m) 0
 
 
-FUS : (n : ℕ) → UniqueScanner (Fin n)
-FUS n pred = {!!}
+-- FUS : (n : ℕ) → UniqueScanner (Fin n)
+-- FUS n pred = {!!}
 
 isZeroCover : (χ : Chain) (n : ℕ) → (Chain.ℂ χ n → Tern) → Set
 isZeroCover = {!!}
