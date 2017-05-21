@@ -62,12 +62,15 @@ functor G f ⊚ nat1 η A
 = λ C k → functor G f C (η (comb A C) k)
 = λ C k → f (C ∘∘ G) (η (comb A C) k)
 -}
-nat2 : (ℂ 𝔻 : Set) (F G : ℂ ⇒ 𝔻) (η : F ≤ G) (A B : ℂ) (f : A ≤ B) → (nat1 η B ⊚ functor F f) ≤ (functor G f ⊚ nat1 η A)
-nat2 ℂ 𝔻 F G η A B f C k = {!!}
 
+-- nat2 : (ℂ 𝔻 : Set) (F G : ℂ ⇒ 𝔻) (η : F ≤ G) (A B : ℂ) (f : A ≤ B) → (nat1 η B ⊚ functor F f) ≤ (functor G f ⊚ nat1 η A)
+-- nat2 ℂ 𝔻 F G η A B f C k = {!!}
 
-{-
-λ C₁ k₁ →
-  η ((λ g → proj₁ C₁ (proj₁ g B)) , tt)
-  (f ((λ x → proj₁ C₁ (proj₁ F x)) , tt) k₁)
--}
+postulate
+  I : Set
+  i0 : I
+  i1 : I
+  reify : (f : I → Set) → f i0 → f i1
+
+thm : (A : Set) (ℓ : I → A) (C : A → Set) → C (ℓ i0) → C (ℓ i1)
+thm A ℓ C k = reify (C ∘ ℓ) k
