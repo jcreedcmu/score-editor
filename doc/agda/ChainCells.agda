@@ -6,7 +6,7 @@ open import Data.Nat hiding ( _⊔_ )
 open import Data.Unit
 open import Data.Empty
 open import Data.Bool
-open import Data.Sum
+open import Data.Sum renaming ( _⊎_ to _⊕_ )
 open import Data.Product
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
@@ -35,13 +35,19 @@ t- ** t- = t+
 record Oper (B : Set) : Set₁ where
   constructor MkOper
   field
-    φ : (A : Set) → (B → A → A) → A → A
-    all : (B → Bool) → Bool
-    one : (B → Bool) → Bool
+    one : (B → Bool) → Set
+    none : (B → Bool) → Set
 
 balanced : {B : Set} → (Oper B) → (B → Tern) → Set
-balanced ω f = (Oper.one ω (λ b → Tern= (f b) t+) ∧
-               Oper.one ω (λ b → Tern= (f b) t-)) ≡ true
+balanced ω f = Oper.one ω (λ b → Tern= (f b) t+) ×
+               Oper.one ω (λ b → Tern= (f b) t-)
+
+null : {B : Set} → (Oper B) → (B → Tern) → Set
+null ω f = Oper.none ω (λ b → Tern= (f b) t+) ×
+           Oper.none ω (λ b → Tern= (f b) t-)
+
+calm : {B : Set} → (Oper B) → (B → Tern) → Set
+calm ω f = balanced ω f ⊕ null ω f
 
 record Chain : Set₁ where
   constructor MkChain
@@ -74,7 +80,7 @@ sum n f = ffold ℕ n (λ m acc → acc + f m) 0
 
 isZeroCover : (χ : Chain) (n : ℕ) → (Chain.ℂ χ n → Tern) → Set
 isZeroCover (MkChain ℂ ω δ) zero v = balanced (ω zero) v
-isZeroCover (MkChain ℂ ω δ) (suc n) v = (c : ℂ n) → balanced (ω (suc n)) (λ e → v e ** δ n e c)
+isZeroCover (MkChain ℂ ω δ) (suc n) v = (c : ℂ n) → calm (ω (suc n)) (λ e → v e ** δ n e c)
 
 GoodCell : {n : ℕ} (χ : Chain) (c : Chain.ℂ χ (suc n)) → Set
 GoodCell {n} χ@(MkChain ℂ ω δ) c = isZeroCover χ n (δ n c)
