@@ -89,19 +89,19 @@ postulate
 record Bundle : Set₁ where
   constructor MkBundle
   field
+    𝔾 : Module
     ℂ : Set
     𝕄 : ℂ → Module
-    𝔾 : Module
     ∂ : (c : ℂ) → 𝕄 c ⇒ 𝔾
 
 IncBundle : Bundle → Bundle
-IncBundle (MkBundle ℂ 𝕄 𝔾 ∂) =
-  MkBundle ((ℂ → Bool) st (1Dim ∘ 𝕄0)) (𝕄0 ∘ Item) (ProductMod ℂ 𝕄) ((λ c → KerHom (LocGlo c) ⊚ (Local c)) ∘ Item)
+IncBundle (MkBundle 𝔾 ℂ 𝕄 ∂) =
+  MkBundle (ProductMod ℂ 𝕄) ((ℂ → Bool) st (1Dim ∘ 𝕄')) (𝕄' ∘ Item) ((λ c → KerHom (LocGlo c) ⊚ (Local c)) ∘ Item)
   where
   Local = ResSubMod ℂ 𝕄
   LocGlo = λ c → Local c ⊚ (SumOver ℂ 𝕄 𝔾 ∂)
-  𝕄0 = ker ∘ LocGlo
+  𝕄' = ker ∘ LocGlo
 
 GiveBundle : ℕ → Bundle
-GiveBundle zero = MkBundle A (λ _ → ℤMod) ℤMod (λ _ → IdHom ℤMod)
+GiveBundle zero = MkBundle ℤMod A (λ _ → ℤMod) (λ _ → IdHom ℤMod)
 GiveBundle (suc n) = IncBundle (GiveBundle n)
