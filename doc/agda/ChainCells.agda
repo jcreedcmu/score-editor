@@ -56,28 +56,6 @@ record Chain : Set₁ where
     ω : (n : ℕ) → Oper (ℂ n)
     δ : (n : ℕ) →  ℂ (suc n) → ℂ n → Tern
 
-UniqueScanner : Set → Set
-UniqueScanner A = (A → Bool) → Bool
-
--- all : (n : ℕ) → (Fin n → Bool) → Bool
--- all zero pred = true
--- all (suc n) pred = pred zero ∧ all n (pred ∘ suc)
-
--- sum : (n : ℕ) → (Fin n → ℕ) → ℕ
--- sum zero f = zero
--- sum (suc n) f = f zero + sum n (f ∘ suc)
-
-ffold : (A : Set) (n : ℕ) → (Fin n → A → A) → A → A
-ffold A zero f x = x
-ffold A (suc n) f x = f zero (ffold A n (f ∘ suc) x)
-
-sum : (n : ℕ) → (Fin n → ℕ) → ℕ
-sum n f = ffold ℕ n (λ m acc → acc + f m) 0
-
-
--- FUS : (n : ℕ) → UniqueScanner (Fin n)
--- FUS n pred = {!!}
-
 isZeroCover : (χ : Chain) (n : ℕ) → (Chain.ℂ χ n → Tern) → Set
 isZeroCover (MkChain ℂ ω δ) zero v = balanced (ω zero) v
 isZeroCover (MkChain ℂ ω δ) (suc n) v = (c : ℂ n) → calm (ω (suc n)) (λ e → v e ** δ n e c)
