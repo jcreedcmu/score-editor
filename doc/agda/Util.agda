@@ -30,29 +30,29 @@ t+ ** x = x
 x ** t+ = x
 t- ** t- = t+
 
-one : (B : Set) → (B → Bool) → Set
-one B pred = Σ B (λ b → (pred b ≡ true))
+One : (B : Set) → (B → Bool) → Set
+One B pred = Σ B (λ b → (pred b ≡ true))
 
-uniq : (B : Set) → (B → Bool) → Set
-uniq B pred = Σ B (λ b → (pred b ≡ true) × ((b' : B) → pred b' ≡ true → b ≡ b'))
+Uniq : (B : Set) → (B → Bool) → Set
+Uniq B pred = Σ B (λ b → (pred b ≡ true) × ((b' : B) → pred b' ≡ true → b ≡ b'))
 
-none : (B : Set) → (B → Bool) → Set
-none B pred = (b : B) → pred b ≡ false
+None : (B : Set) → (B → Bool) → Set
+None B pred = (b : B) → pred b ≡ false
 
-balanced : {B : Set} → (B → Tern) → Set
-balanced {B} f = uniq B (λ b → Tern= (f b) t+) ×
-                 uniq B (λ b → Tern= (f b) t-)
+Balanced : {B : Set} → (B → Tern) → Set
+Balanced {B} f = Uniq B (λ b → Tern= (f b) t+) ×
+                 Uniq B (λ b → Tern= (f b) t-)
 
-null : {B : Set} → (B → Tern) → Set
-null {B} f = none B (λ b → Tern= (f b) t+) ×
-             none B (λ b → Tern= (f b) t-)
-
-calm : {B : Set} → (B → Tern) → Set
-calm {B} f = balanced f ⊕ null f
+Triv : {B : Set} → (B → Tern) → Set
+Triv {B} f = None B (λ b → Tern= (f b) t+) ×
+             None B (λ b → Tern= (f b) t-)
 
 NonTriv : {B : Set} → (B → Tern) → Set
-NonTriv {B} f = one B (λ b → Tern= (f b) t+) ⊕
-                one B (λ b → Tern= (f b) t-)
+NonTriv {B} f = One B (λ b → Tern= (f b) t+) ⊕
+                One B (λ b → Tern= (f b) t-)
+
+Calm : {B : Set} → (B → Tern) → Set
+Calm {B} f = Balanced f ⊕ Triv f
 
 _■_ : Tern → Tern → Bool
 t0 ■ t = true

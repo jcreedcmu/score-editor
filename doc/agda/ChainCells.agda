@@ -15,7 +15,7 @@ record Bundle : Set₁ where
     ∂ : ℂ → 𝔾 → Tern
 
 ZeroFunc : (β : Bundle) → (Bundle.ℂ β → Tern) → Set
-ZeroFunc (MkBundle 𝔾 ℂ ∂) v = (g : 𝔾) → calm (λ e → v e ** ∂ e g)
+ZeroFunc (MkBundle 𝔾 ℂ ∂) v = (g : 𝔾) → Calm (λ e → v e ** ∂ e g)
 
 OkayFunc : (β : Bundle) (v : Bundle.ℂ β → Tern) → Set
 OkayFunc β v = ZeroFunc β v × NonTriv v
