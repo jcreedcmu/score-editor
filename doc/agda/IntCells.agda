@@ -88,35 +88,35 @@ postulate
 record Bundle : Set₁ where
   constructor MkBundle
   field
-    ℙ : Set
-    ℂ : ℙ → Module
+    ℂ : Set
+    𝕄 : ℂ → Module
     𝔾 : Module
-    ∂ : (c : ℙ) → ℂ c ⇒ 𝔾
+    ∂ : (c : ℂ) → 𝕄 c ⇒ 𝔾
 
 IncBundle : Bundle → Bundle
-IncBundle (MkBundle ℙ ℂ 𝔾 ∂) = MkBundle ℙ0 ℂ0 𝔾0 ∂0
+IncBundle (MkBundle ℂ 𝕄 𝔾 ∂) = MkBundle ℂ0 𝕄0 𝔾0 ∂0
   where
-  ℙ0 : Set
-  ℙ0 = ℙ → Bool
+  ℂ0 : Set
+  ℂ0 = ℂ → Bool
   𝔾0 : Module
-  𝔾0 = ProductMod ℙ ℂ
+  𝔾0 = ProductMod ℂ 𝕄
   G∂ : 𝔾0 ⇒ 𝔾
-  G∂ = SumOver ℙ ℂ 𝔾 ∂
-  Local : (c : ℙ0) → ResMod ℙ ℂ c ⇒ 𝔾0
-  Local c = ResSubMod ℙ ℂ c
-  LocGlo : (c : ℙ0) → ResMod ℙ ℂ c ⇒ 𝔾
+  G∂ = SumOver ℂ 𝕄 𝔾 ∂
+  Local : (c : ℂ0) → ResMod ℂ 𝕄 c ⇒ 𝔾0
+  Local c = ResSubMod ℂ 𝕄 c
+  LocGlo : (c : ℂ0) → ResMod ℂ 𝕄 c ⇒ 𝔾
   LocGlo c = ModHomComp (Local c) G∂
-  ℂ0 : ℙ0 → Module
-  ℂ0 c = ker (LocGlo c)
-  ∂0 : (c : ℙ0) → ℂ0 c ⇒ 𝔾0
+  𝕄0 : ℂ0 → Module
+  𝕄0 c = ker (LocGlo c)
+  ∂0 : (c : ℂ0) → 𝕄0 c ⇒ 𝔾0
   ∂0 c = ModHomComp (KerHom (LocGlo c)) (Local c)
 
 ResBundle : Bundle → Bundle
-ResBundle (MkBundle ℙ ℂ 𝔾 ∂) = MkBundle ℙ1 ℂ1 𝔾 ∂1
+ResBundle (MkBundle ℂ 𝕄 𝔾 ∂) = MkBundle ℂ1 𝕄1 𝔾 ∂1
   where
-  ℙ1 = ℙ st (λ p → 1Dim (ℂ p))
-  ℂ1 = λ (c : ℙ1) →  ℂ (Item c)
-  ∂1 = λ (c : ℙ1) → ∂ (Item c)
+  ℂ1 = ℂ st (λ p → 1Dim (𝕄 p))
+  𝕄1 = λ (c : ℂ1) →  𝕄 (Item c)
+  ∂1 = λ (c : ℂ1) → ∂ (Item c)
 
 GiveBundle : ℕ → Bundle
 GiveBundle zero = MkBundle A (λ _ → ℤMod) ℤMod (λ _ → IdHom ℤMod)
