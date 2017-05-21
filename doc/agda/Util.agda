@@ -49,11 +49,16 @@ NonTriv = Combi One _⊕_
 Calm : {B : Set} → (B → Tern) → Set
 Calm {B} f = Balanced f ⊕ Triv f
 
-_■_ : Tern → Tern → Bool
-t0 ■ t = true
-t+ ■ t+ = true
-t- ■ t- = true
-_ ■ _ = false
+module Tern⊑ where
+  _⊑_ : Tern → Tern → Bool
+  t0 ⊑ t = true
+  t+ ⊑ t+ = true
+  t- ⊑ t- = true
+  _ ⊑ _ = false
+open Tern⊑
 
-_⊑_ : {A : Set} → (A → Tern) → (A → Tern) → Set
-v ⊑ w = (a : _) → v a ■ w a ≡ true
+module Func⊑ where
+  _f⊑_ : {A : Set} → (A → Tern) → (A → Tern) → Set
+  v f⊑ w = (a : _) → v a ⊑ w a ≡ true
+
+open Func⊑ renaming (_f⊑_ to _⊑_) public
