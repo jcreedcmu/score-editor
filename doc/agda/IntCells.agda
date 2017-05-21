@@ -81,6 +81,11 @@ postulate
   SumOver : (B : Set) (Mb : B → Module) (M : Module) → ((b : B) → ModHom (Mb b) M)
             → ModHom (ProductMod B Mb) M
 
+{- Right now this is a tangled mutual recursive definition. Reordering the definition
+   clauses sometimes leads to failure of typechecking, which scares me. Going to
+   instead try to do this as an explicit record type, with a definition that advances
+   it forward one step -}
+
 CellModule : (n : ℕ) → PreCell n → Module
 GlobalModule : (n : ℕ) → Module
 CellBoundary : (n : ℕ) (c : PreCell n) → ModHom (CellModule n c) (GlobalModule n)
