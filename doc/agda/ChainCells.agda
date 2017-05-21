@@ -63,28 +63,6 @@ NonTriv : {B : Set} → (B → Tern) → Set
 NonTriv {B} f = one B (λ b → Tern= (f b) t+) ⊕
                 one B (λ b → Tern= (f b) t-)
 
-
-𝔻 : ((n : ℕ) → Set) → (n : ℕ) → Set
-𝔻 ℂ zero = ⊤
-𝔻 ℂ (suc n) = ℂ n
-
-record Chain : Set₁ where
-  constructor MkChain
-  field
-    ℂ : (n : ℕ) → Set
-    δ : (n : ℕ) → ℂ n → 𝔻 ℂ n → Tern
-
-isZeroCover : (χ : Chain) (n : ℕ) → (Chain.ℂ χ n → Tern) → Set
-isZeroCover (MkChain ℂ δ) n v = (c : 𝔻 ℂ n) → calm (λ e → v e ** δ n e c)
-
-GoodCell : {n : ℕ} (χ : Chain) (c : Chain.ℂ χ (suc n)) → Set
-GoodCell {n} χ@(MkChain ℂ δ) c = isZeroCover χ n (δ (suc n) c)
-
-Good : Chain → Set
-Good χ@(MkChain ℂ δ) = (n : ℕ) (c : ℂ (suc n)) → GoodCell χ c
-
-{--- an attempt to do bundle style development here ---}
-
 record Bundle : Set₁ where
   constructor MkBundle
   field
