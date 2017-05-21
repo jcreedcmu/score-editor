@@ -50,18 +50,21 @@ null {B} f = none B (λ b → Tern= (f b) t+) ×
 calm : {B : Set} → (B → Tern) → Set
 calm {B} f = balanced f ⊕ null f
 
+𝔻 : ((n : ℕ) → Set) → (n : ℕ) → Set
+𝔻 ℂ zero = ⊤
+𝔻 ℂ (suc n) = ℂ n
+
 record Chain : Set₁ where
   constructor MkChain
   field
-    ℂ : ℕ → Set
-    δ : (n : ℕ) →  ℂ (suc n) → ℂ n → Tern
+    ℂ : (n : ℕ) → Set
+    δ : (n : ℕ) → ℂ n → 𝔻 ℂ n → Tern
 
 isZeroCover : (χ : Chain) (n : ℕ) → (Chain.ℂ χ n → Tern) → Set
-isZeroCover (MkChain ℂ δ) zero v = balanced v
-isZeroCover (MkChain ℂ δ) (suc n) v = (c : ℂ n) → calm (λ e → v e ** δ n e c)
+isZeroCover (MkChain ℂ δ) n v = (c : 𝔻 ℂ n) → calm (λ e → v e ** δ n e c)
 
 GoodCell : {n : ℕ} (χ : Chain) (c : Chain.ℂ χ (suc n)) → Set
-GoodCell {n} χ@(MkChain ℂ δ) c = isZeroCover χ n (δ n c)
+GoodCell {n} χ@(MkChain ℂ δ) c = isZeroCover χ n (δ (suc n) c)
 
 Good : Chain → Set
 Good χ@(MkChain ℂ δ) = (n : ℕ) (c : ℂ (suc n)) → GoodCell χ c
