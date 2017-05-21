@@ -40,14 +40,17 @@ x ** t+ = x
 t- ** t- = t+
 
 one : (B : Set) → (B → Bool) → Set
-one B pred = Σ B (λ b → (pred b ≡ true) × ((b' : B) → pred b' ≡ true → b ≡ b'))
+one B pred = Σ B (λ b → (pred b ≡ true))
+
+uniq : (B : Set) → (B → Bool) → Set
+uniq B pred = Σ B (λ b → (pred b ≡ true) × ((b' : B) → pred b' ≡ true → b ≡ b'))
 
 none : (B : Set) → (B → Bool) → Set
 none B pred = (b : B) → pred b ≡ false
 
 balanced : {B : Set} → (B → Tern) → Set
-balanced {B} f = one B (λ b → Tern= (f b) t+) ×
-                 one B (λ b → Tern= (f b) t-)
+balanced {B} f = uniq B (λ b → Tern= (f b) t+) ×
+                 uniq B (λ b → Tern= (f b) t-)
 
 null : {B : Set} → (B → Tern) → Set
 null {B} f = none B (λ b → Tern= (f b) t+) ×
@@ -55,6 +58,11 @@ null {B} f = none B (λ b → Tern= (f b) t+) ×
 
 calm : {B : Set} → (B → Tern) → Set
 calm {B} f = balanced f ⊕ null f
+
+NonTriv : {B : Set} → (B → Tern) → Set
+NonTriv {B} f = one B (λ b → Tern= (f b) t+) ⊕
+                one B (λ b → Tern= (f b) t-)
+
 
 𝔻 : ((n : ℕ) → Set) → (n : ℕ) → Set
 𝔻 ℂ zero = ⊤
@@ -84,11 +92,32 @@ record Bundle : Set₁ where
     ℂ : Set
     ∂ : ℂ → 𝔾 → Tern
 
-GoodFunc : (β : Bundle) → (Bundle.ℂ β → Tern) → Set
-GoodFunc (MkBundle 𝔾 ℂ ∂) v = (g : 𝔾) → calm (λ e → v e ** ∂ e g)
+ZeroFunc : (β : Bundle) → (Bundle.ℂ β → Tern) → Set
+ZeroFunc (MkBundle 𝔾 ℂ ∂) v = (g : 𝔾) → calm (λ e → v e ** ∂ e g)
+
+MinimalFunc : (β : Bundle) → (Bundle.ℂ β → Tern) → Set
+MinimalFunc (MkBundle 𝔾 ℂ ∂) v = (g : 𝔾) → calm (λ e → v e ** ∂ e g)
+
+OkayFunc : (β : Bundle) (v : Bundle.ℂ β → Tern) → Set
+OkayFunc β v = ZeroFunc β v × NonTriv v
+
+_■_ : Tern → Tern → Bool
+t0 ■ t = true
+t+ ■ t+ = true
+t- ■ t- = true
+_ ■ _ = false
+
+_⊑_ : {A : Set} → (A → Tern) → (A → Tern) → Set
+v ⊑ w = (a : _) → v a ■ w a ≡ true
+
+MinimalOkayFunc : (β : Bundle) (v : Bundle.ℂ β → Tern) → Set
+MinimalOkayFunc β@(MkBundle 𝔾 ℂ ∂) v = (w : ℂ → Tern) → w ⊑ v → OkayFunc β w → (c : ℂ) → Tern= (v c) (w c) ≡ true
+
+GoodFunc : (β : Bundle) (v : Bundle.ℂ β → Tern) → Set
+GoodFunc β v = OkayFunc β v × MinimalOkayFunc β v
 
 IncBundle : Bundle → Bundle
-IncBundle χ@(MkBundle 𝔾 ℂ ∂) = MkBundle ℂ ((ℂ → Tern) st (GoodFunc χ)) Item
+IncBundle β@(MkBundle 𝔾 ℂ ∂) = MkBundle ℂ ((ℂ → Tern) st (GoodFunc β)) Item
 
 GiveBundle : ℕ → Bundle
 GiveBundle zero = MkBundle ⊤ A (λ a _ → t+)
