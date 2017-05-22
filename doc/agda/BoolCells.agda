@@ -78,14 +78,14 @@ module FixChains (χ : Chain) (π : OverChain χ) where
   above : (n : ℕ) (g : 𝔻 𝕏 n) → Set
   above n g = (𝕧 n) st (λ v → p v ≡ g)
 
-  Sectional : {n : ℕ} (c : 𝕏 n) (g : 𝔻 𝕏 n) → (𝕧 n → Bool) → Set
-  Sectional {n} c g ν = (if δ c g then ⊤ else ⊥) ≅ ((𝕧 n) st (λ v → (p v ≡ g) × (ν v ≡ true)))
-
   module FixN (n : ℕ) where
     ℍ = 𝕏 (suc n)
     ℂ = 𝕏 n
     𝔾 = 𝔻 𝕏 n
+    𝕨 = 𝕧 n
 
+    Sectional : (c : ℂ) (g : 𝔾) (ν : 𝕨 → Bool) → Set
+    Sectional c g ν = (if δ c g then ⊤ else ⊥) ≅ (𝕨 st (λ v → (p v ≡ g) × (ν v ≡ true)))
 
     GoodCells : Set
     GoodCells = (h : ℍ) → GoodFunc n (δ h)
