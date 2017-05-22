@@ -4,34 +4,39 @@ open import Data.Nat
 open import Data.Unit
 open import Data.Bool
 open import Data.Product
-open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; subst; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; subst; sym; cong; trans)
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
 open import BoolUtil
 
-{- Surely don't need *all* of these... --------}
-Size2 : (B : Set) → Set
-Size2 B = Σ B (λ b₁ → Σ B (λ b₂ →
-  b₁ ≢ b₂ × ((b : B) → b ≡ b₁ ⊕ b ≡ b₂)))
+data 𝟚 : Set where
+  𝟘 : 𝟚
+  𝟙 : 𝟚
 
-Size2f : (B : Set) → Set
-Size2f B = Σ (Bool → B) (λ f →
-  f true ≢ f false
-  × ((b : B) → b ≡ f true ⊕ b ≡ f false))
+Epi : {A B : Set} → (A → B) → Set
+Epi {A} {B} f = (b : B) → Σ A (λ a → f a ≡ b)
+
+Mono : {A B : Set} → (A → B) → Set
+Mono {A} {B} f = (a₁ a₂ : A) → f a₁ ≡ f a₂ → a₁ ≡ a₂
+
+_⊚_ : {A : Set} {a b c : A} → a ≡ b → b ≡ c → a ≡ c
+p ⊚ q = trans p q
+infixr 20 _⊚_
+
+_≅_ : (A B : Set) → Set
+A ≅ B = Σ (A → B) (λ f → Epi f × Mono f)
+
+≅sym : {A B : Set} → A ≅ B → B ≅ A
+≅sym {A} {B} (f , (e , m)) = (λ b → proj₁ (e b)) , epiPf , monoPf where
+  epiPf : (a : A) → Σ B (λ v → proj₁ (e v) ≡ a)
+  epiPf = (λ a → (f a) , (m (proj₁ (e (f a))) a (proj₂ (e (f a)))))
+  monoPf : Mono (λ b → proj₁ (e b))
+  monoPf = λ a₁ a₂ eq → sym (proj₂ (e a₁)) ⊚ cong f eq ⊚ (proj₂ (e a₂))
+
+Doubleton : (B : Set) → Set
+Doubleton B = 𝟚 ≅ B
 
 2niq : (B : Set) → (B → Set) → Set
-2niq B pred = Σ B (λ b₁ → Σ B (λ b₂ →
-  b₁ ≢ b₂
-  × pred b₁
-  × pred b₂
-  × ((b : B) → pred b → b ≡ b₁ ⊕ b ≡ b₂)))
-
-2niqf : (B : Set) → (B → Set) → Set
-2niqf B pred = Σ (Bool → B) (λ f →
-  f true ≢ f false
-  × pred (f true)
-  × pred (f false)
-  × ((b : B) → pred b → b ≡ f true ⊕ b ≡ f false))
-{---------}
+2niq B pred = Doubleton (B st pred)
 
 𝔻 : ((n : ℕ) → Set) → (n : ℕ) → Set
 𝔻 𝕏 zero = ⊤
@@ -48,9 +53,16 @@ module FixChain (χ : Chain) where
   δ = Chain.δ χ
 
   GoodFunc : (n : ℕ) → (𝕏 n → Bool) → Set
-  Duple : (n : ℕ) (k : 𝕏 n → Bool) → Set
-  Duple n k = {!!}
-  GoodFunc n v = {!!}
+
+
+  Signing : (n : ℕ) (v : 𝕏 n → Bool) → Set
+  Signing n v = (c : 𝕏 n st (λ c → v c ≡ true)) → 𝟚
+
+  GoodSigning : (n : ℕ) (v : 𝕏 n → Bool) → Signing n v → Set
+  GoodSigning = {!!}
+
+
+  GoodFunc n v = 2niq (Signing n v) (GoodSigning n v)
 
   module FixN (n : ℕ) where
     ℍ = 𝕏 (suc n)
