@@ -7,7 +7,7 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; subst; sym; cong; trans)
 open import Data.Empty
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
-open import BoolUtil
+open import BoolUtil hiding (Calm)
 
 data 𝟚 : Set where
   𝟘 : 𝟚
@@ -63,18 +63,7 @@ module FixChains (χ : Chain) (π : OverChain χ) where
   open Chain χ
   open OverChain π
 
-  GoodFunc : (n : ℕ) → (𝕏 n → Bool) → Set
-
-
-  Signing : (n : ℕ) (v : 𝕏 n → Bool) → Set
-  Signing n v = (c : 𝕏 n st (λ c → v c ≡ true)) → 𝟚
-
-  GoodSigning : (n : ℕ) (v : 𝕏 n → Bool) → Signing n v → Set
-  GoodSigning = {!!}
-
-
-  GoodFunc n v = 2niq (Signing n v) (GoodSigning n v)
-
+  -- XXX ?
   above : (n : ℕ) (g : 𝔻 𝕏 n) → Set
   above n g = (𝕧 n) st (λ v → p v ≡ g)
 
@@ -86,8 +75,23 @@ module FixChains (χ : Chain) (π : OverChain χ) where
     𝕔 = 𝕧 (suc n)
     -- p : 𝕘 → 𝔾 , 𝕔 → ℂ
 
-    Sectional : (c : ℂ) (g : 𝔾) (ν : 𝕘 → Bool) → Set
-    Sectional c g ν = (if δ c g then ⊤ else ⊥) ≅ (𝕘 st (λ g' → (p g' ≡ g) × (ν g' ≡ true)))
+    Sectional : (c : ℂ) (ν : 𝕘 → Bool) → Set
+    Sectional c ν = (g : 𝔾) → (if δ c g then ⊤ else ⊥) ≅ (𝕘 st (λ g' → (p g' ≡ g) × (ν g' ≡ true)))
 
-    GoodCells : Set
-    GoodCells = (h : ℍ) → GoodFunc n (δ h)
+    WholeFiber : ((B : Set) → (B → Bool) → Set) → (g : 𝔾) (ν : 𝕔 → Bool) → Set
+    WholeFiber cond g ν = (g' : 𝕘) → p g' ≡ g → cond 𝕔 (λ c' → ν c' ∧ ∂ c' g')
+
+    Calm : (ν : 𝕔 → Bool) → Set
+    Calm ν = (g : 𝔾) → WholeFiber Uniq g ν ⊕ WholeFiber None g ν
+
+  module PredCalm where
+    open FixN
+    PredCalm : (n : ℕ) (ν : 𝕧 n → Bool) → Set
+    PredCalm zero ν = ⊤
+    PredCalm (suc n) ν = Calm n ν
+  open PredCalm
+
+  module FixN2 (n : ℕ) where
+    open FixN n
+    GoodFunc : (c : ℂ) (ν : 𝕘 → Bool)  → Set
+    GoodFunc c ν = Sectional c ν × PredCalm n ν
