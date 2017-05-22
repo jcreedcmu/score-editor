@@ -64,3 +64,6 @@ And the rough progression of ideas from earliest to latest is
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
 `ChainCells.agda` maybe?
+
+Oh, nope, it was back in `IntCells.agda`. The first bundling commit was
+befa16adb.
