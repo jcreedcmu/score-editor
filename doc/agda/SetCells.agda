@@ -50,7 +50,7 @@ module FixChains (χ : Chain) (π : OverChain χ) where
     Sectional c ν = (g : 𝔾) → δ c g ≅ Σ 𝕘 (λ g' → Fiber g g' × ν g')
 
     Calm : (h : ℍ) (ν : 𝕔 → Set) → Set
-    Calm h ν = (g : 𝔾) (g' : 𝕘) → Fiber g g' → θ h g ≅ Σ 𝕔 (λ c' → ∂ c' g' × ν c')
+    Calm h ν = (g' : 𝕘) → θ h (p g') ≅ Σ 𝕔 (λ c' → ∂ c' g' × ν c')
 
   module PredCalm where
     open FixN
@@ -67,6 +67,7 @@ module FixChains (χ : Chain) (π : OverChain χ) where
     Match : (c : ℂ) → Set₁
     Match c = (𝕔 st (Fiber c) ≅ (𝕘 → Set) st (GoodFunc c))
 
+    {- the isomoprhism in m preserves the 'relation' ∂ -}
     PresRel : (c : ℂ) → Match c → Set₁
     PresRel c m =  (c' : 𝕔 st Fiber c) (g' : 𝕘) → Item (proj₁ m c') g' ≡ ∂ (Item c') g'
 
