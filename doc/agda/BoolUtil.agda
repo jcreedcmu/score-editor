@@ -2,7 +2,7 @@ module BoolUtil where
 open import Level
 open import Data.Bool
 open import Data.Product
-open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; sym; cong; trans)
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
 
 record _st_{a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
@@ -44,3 +44,28 @@ open Func⊑ renaming (_f⊑_ to _⊑_) public
 
 Minimal : {X : Set} (pred : (X → Bool) → Set) (v : X → Bool) → Set
 Minimal {X} pred v = (w : X → Bool) → w Func⊑.f⊑ v → pred w → (x : X) → Bool= (v x) (w x) ≡ true
+
+data 𝟚 : Set where
+  𝟘 : 𝟚
+  𝟙 : 𝟚
+
+Epi : {A B : Set} → (A → B) → Set
+Epi {A} {B} f = (b : B) → Σ A (λ a → f a ≡ b)
+
+Mono : {A B : Set} → (A → B) → Set
+Mono {A} {B} f = (a₁ a₂ : A) → f a₁ ≡ f a₂ → a₁ ≡ a₂
+
+_⊚_ : {A : Set} {a b c : A} → a ≡ b → b ≡ c → a ≡ c
+p ⊚ q = trans p q
+infixr 20 _⊚_
+
+_≅_ : (A B : Set) → Set
+infix 5 _≅_
+A ≅ B = Σ (A → B) (λ f → Epi f × Mono f)
+
+≅sym : {A B : Set} → A ≅ B → B ≅ A
+≅sym {A} {B} (f , (e , m)) = (λ b → proj₁ (e b)) , epiPf , monoPf where
+  epiPf : (a : A) → Σ B (λ v → proj₁ (e v) ≡ a)
+  epiPf = (λ a → (f a) , (m (proj₁ (e (f a))) a (proj₂ (e (f a)))))
+  monoPf : Mono (λ b → proj₁ (e b))
+  monoPf = λ a₁ a₂ eq → sym (proj₂ (e a₁)) ⊚ cong f eq ⊚ (proj₂ (e a₂))
