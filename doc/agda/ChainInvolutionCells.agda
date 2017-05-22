@@ -12,10 +12,14 @@ record InvSet : Set₁ where
   field
     # : Set
     ι : # → #
+    isInv : (x : #) → ι (ι x) ≡ x
 open InvSet
 
 DoubleInv : (B : Set) → InvSet
-DoubleInv B = MkInvSet (B × Bool) (λ p → (proj₁ p , not (proj₂ p)))
+DoubleInv B = MkInvSet (B × Bool) (λ p → (proj₁ p , not (proj₂ p))) isInvPf where
+  isInvPf : (p : B × Bool) → (proj₁ p , not (not (proj₂ p))) ≡ p
+  isInvPf (b , false) = refl
+  isInvPf (b , true) = refl
 
 𝔻 : ((n : ℕ) → InvSet) → (n : ℕ) → InvSet
 𝔻 𝕏 zero = DoubleInv ⊤
