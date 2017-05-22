@@ -62,6 +62,7 @@ And the rough progression of ideas from earliest to latest is
 	ChainInvolutionCells.agda -- May 22, bool instead of ternary, chain instead of bundle
 	BoolCells.agda -- May 22, attempting to have just sets and relations without involution
 	SetCells.agda -- May 22, a categorified version of BoolCells
+	FuncCells.agda -- May 22, a version of SetCells that is less relational and more functional
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
