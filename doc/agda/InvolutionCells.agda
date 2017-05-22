@@ -58,6 +58,12 @@ module FixBundle (β : Bundle) where
     lemma c = {!!}
 --    lemma : (c : C) → (it c') ∧ (∂ c g) ≡ (it c) ∧ (∂ c' g) ??????
 
+{- This is getting quite hard. Maybe what I actually should do is
+require GoodFunc v ∧ GoodFunc (ι v) at the outset; then proving that
+the involution of v is still good is merely showing that I have
+GoodFunc (ι v) ∧ GoodFunc v, which should be a much easier, merely
+shallow swizzling proof. -}
+
   module FixIt (it : C → Bool) where
     itt = λ c → it (ι ℂ c)
 
