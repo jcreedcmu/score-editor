@@ -7,7 +7,8 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality using (_≡_)
 open import Data.Empty
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
-open import BoolUtil hiding (Calm)
+open import BoolUtil using (_≅_ ; _st_ ; 𝟚 )
+open _st_
 
 𝔻 : ((n : ℕ) → Set) → (n : ℕ) → Set
 𝔻 𝕏 zero = ⊤
