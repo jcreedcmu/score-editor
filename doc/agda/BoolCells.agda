@@ -48,9 +48,15 @@ record Chain : Set₁ where
     𝕏 : (n : ℕ) → Set
     δ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Bool
 
-module FixChain (χ : Chain) where
+record OverChain (χ : Chain) : Set₁ where
+  constructor MkOverChain
+  field
+    𝕧 : (n : ℕ) → 𝔻 (Chain.𝕏 χ) n → Set
+
+module FixChain (χ : Chain) (π : OverChain χ) where
   𝕏 = Chain.𝕏 χ
   δ = Chain.δ χ
+  𝕧 = OverChain.𝕧 π
 
   GoodFunc : (n : ℕ) → (𝕏 n → Bool) → Set
 
