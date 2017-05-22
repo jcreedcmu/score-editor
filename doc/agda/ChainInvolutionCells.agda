@@ -25,23 +25,25 @@ DoubleInv B = MkInvSet (B × Bool) (λ p → (proj₁ p , not (proj₂ p))) isIn
 𝔻 𝕏 zero = DoubleInv ⊤
 𝔻 𝕏 (suc n) = 𝕏 n
 
-
 record Chain : Set₁ where
   constructor MkChain
   field
     𝕏 : (n : ℕ) → InvSet
-    δ : (n : ℕ) → # (𝕏 n )→ # (𝔻 𝕏 n) → Bool
+    δ : (n : ℕ) → # (𝕏 n) → # (𝔻 𝕏 n) → Bool
 
 module FixChain (χ : Chain) where
   𝕏 = Chain.𝕏 χ
   δ = Chain.δ χ
 
   module FixN (n : ℕ) where
+    ℍ = 𝕏 (suc n)
     ℂ = 𝕏 n
     𝔾 = 𝔻 𝕏 n
+    H = # ℍ
     C = # ℂ
     G = # 𝔾
     ∂ = δ n
+    ∂' = δ (suc n)
 
     matcher : G → (C → Bool) → C → Bool
     matcher = λ g v c → (v c) ∧ (∂ c g)
@@ -58,11 +60,18 @@ module FixChain (χ : Chain) where
     GoodFunc : (C → Bool) → Set
     GoodFunc v = OkayFunc v × Minimal OkayFunc v
 
+    Goodδ : Set
+    Goodδ = (c : C) (g : G) → ∂ (ι ℂ c) (ι 𝔾 g) ≡ ∂ c g
+
+    GoodCells : Set
+    GoodCells = (h : H) → GoodFunc (δ (suc n) h)
+
+    GoodAtN : Set
+    GoodAtN = Goodδ × GoodCells
+
   open FixN public
+
+  GoodChain : Set
+  GoodChain = (n : ℕ) → GoodAtN n
+
 open FixChain
-
-GoodCell : {n : ℕ} (χ : Chain) (c : # (Chain.𝕏 χ (suc n))) → Set
-GoodCell {n} χ@(MkChain 𝕏 δ) c = GoodFunc χ n (δ (suc n) c)
-
-Good : Chain → Set
-Good χ@(MkChain 𝕏 δ) = (n : ℕ) (c : # (𝕏 (suc n))) → GoodCell χ c
