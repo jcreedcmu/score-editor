@@ -48,15 +48,19 @@ record Chain : Set₁ where
     𝕏 : (n : ℕ) → Set
     δ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Bool
 
-record OverChain (χ : Chain) : Set₁ where
-  constructor MkOverChain
-  field
-    𝕧 : (n : ℕ) → 𝔻 (Chain.𝕏 χ) n → Set
+module _OverChain (χ : Chain) where
+  open Chain χ
+  record OverChain : Set₁ where
+    constructor MkOverChain
+    field
+      𝕧 : (n : ℕ) → Set -- this is "(-1)-indexed": e.g. 𝕧 0 lives over the ⊤ inserted by 𝔻
+      p : (n : ℕ) → 𝕧 n → 𝔻 𝕏 n -- this type realizes the above comment
+      ∂ : (n : ℕ) → 𝕧 (suc n) → 𝕧 n → Bool
+open _OverChain
 
-module FixChain (χ : Chain) (π : OverChain χ) where
-  𝕏 = Chain.𝕏 χ
-  δ = Chain.δ χ
-  𝕧 = OverChain.𝕧 π
+module FixChains (χ : Chain) (π : OverChain χ) where
+  open Chain χ
+  open OverChain π
 
   GoodFunc : (n : ℕ) → (𝕏 n → Bool) → Set
 
@@ -69,6 +73,9 @@ module FixChain (χ : Chain) (π : OverChain χ) where
 
 
   GoodFunc n v = 2niq (Signing n v) (GoodSigning n v)
+
+  Sectional : {n : ℕ} → 𝕧 n → Bool
+  Sectional = {!𝕧!}
 
   module FixN (n : ℕ) where
     ℍ = 𝕏 (suc n)
