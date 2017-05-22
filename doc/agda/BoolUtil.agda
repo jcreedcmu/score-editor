@@ -41,3 +41,6 @@ module Func⊑ where
   v f⊑ w = (a : _) → v a ⊑ w a ≡ true
 
 open Func⊑ renaming (_f⊑_ to _⊑_) public
+
+postulate
+  funext : {A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g

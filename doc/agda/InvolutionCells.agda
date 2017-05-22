@@ -4,7 +4,7 @@ open import Data.Nat
 open import Data.Unit
 open import Data.Bool
 open import Data.Product
-open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; subst)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; subst; sym)
 open import BoolUtil
 
 record InvSet : Set₁ where
@@ -34,6 +34,7 @@ module FixBundle (β : Bundle) where
   {- XXX should be part of the appropriate records -}
   postulate
     isInv : (ℂ : InvSet) (x : # ℂ) → x ≡ ι ℂ (ι ℂ x)
+    pres : (c : C) (g : G) → ∂ (ι ℂ c) g ≡ ∂ c (ι 𝔾 g)
 
   matcher : G → (C → Bool) → C → Bool
   matcher = λ g v c → (v c) ∧ (∂ c g)
@@ -50,21 +51,29 @@ module FixBundle (β : Bundle) where
   GoodFunc : (v : C → Bool) → Set
   GoodFunc v = OkayFunc v × Minimal OkayFunc v
 
+  EqualMatcher : (it : C → Bool) (g : G)
+    → matcher (ι 𝔾 g) it ≡ matcher g (λ c → it (ι ℂ c))
+  EqualMatcher it g = funext lemma where
+    lemma : (c : C) → (it c) ∧ (∂ c (ι 𝔾 g)) ≡ (it (ι ℂ c)) ∧ (∂ c g)
+    lemma c = {!!}
+--    lemma : (c : C) → (it c') ∧ (∂ c g) ≡ (it c) ∧ (∂ c' g) ??????
+
   module FixIt (it : C → Bool) where
     itt = λ c → it (ι ℂ c)
 
     TransferFunctional : Functional it → Functional itt
     TransferFunctional p = λ c x → p (ι ℂ c) x
 
-    TransferCalm : (it : C → Bool) (g : G)
-      → Calm C (matcher (ι 𝔾 g) it)
-               (matcher g it)
-      → Calm C (matcher g itt)
-               (matcher (ι 𝔾 g) itt)
+    TransferCalm : (g : G)
+      → Calm C (matcher (ι 𝔾 g) it) (matcher g it)
+      → Calm C (matcher g itt)       (matcher (ι 𝔾 g) itt)
     TransferCalm = {!!}
 
     TransferZeroFunc : ZeroFunc it → ZeroFunc itt
-    TransferZeroFunc p = λ g → {!!}
+    TransferZeroFunc p g =
+      TransferCalm g psub where
+      palt = p (ι 𝔾 g)
+      psub = subst (λ ■ → Calm C (matcher (ι 𝔾 g) it) (matcher ■ it)) (sym (isInv 𝔾 g)) palt
 
     TransferNonTriv : NonTriv it → NonTriv itt
     TransferNonTriv (x , pf) = (ι ℂ x) , subst (λ t → it t ≡ true) (isInv ℂ x) pf
