@@ -64,7 +64,8 @@ module FixChains (χ : Chain) (π : OverChain χ) where
     GoodFunc c ν = Sectional c ν × PredCalm n ν
 
     AllMatch : Set
-    AllMatch = (c : ℂ) → (𝕘 → Bool) st (GoodFunc c) ≅ 𝕔 st (Fiber c)
+    AllMatch = (c : ℂ) → Σ (𝕔 st (Fiber c) ≅ (𝕘 → Bool) st (GoodFunc c))
+      (λ f → (g' : 𝕘) (c' : 𝕔 st Fiber c) → Item (proj₁ f c') g' ≡ ∂ (Item c') g') {- this isomorphism agrees with ∂ -}
 
     AllDouble : Set
     AllDouble = (c : ℂ) → 𝟚 ≅ 𝕔 st (Fiber c)
