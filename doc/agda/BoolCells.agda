@@ -5,6 +5,7 @@ open import Data.Unit
 open import Data.Bool
 open import Data.Product
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; subst; sym; cong; trans)
+open import Data.Empty
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
 open import BoolUtil
 
@@ -54,8 +55,8 @@ module _OverChain (χ : Chain) where
     constructor MkOverChain
     field
       𝕧 : (n : ℕ) → Set -- this is "(-1)-indexed": e.g. 𝕧 0 lives over the ⊤ inserted by 𝔻
-      p : (n : ℕ) → 𝕧 n → 𝔻 𝕏 n -- this type realizes the above comment
-      ∂ : (n : ℕ) → 𝕧 (suc n) → 𝕧 n → Bool
+      p : {n : ℕ} → 𝕧 n → 𝔻 𝕏 n -- this type realizes the above comment
+      ∂ : {n : ℕ} → 𝕧 (suc n) → 𝕧 n → Bool
 open _OverChain
 
 module FixChains (χ : Chain) (π : OverChain χ) where
@@ -74,8 +75,11 @@ module FixChains (χ : Chain) (π : OverChain χ) where
 
   GoodFunc n v = 2niq (Signing n v) (GoodSigning n v)
 
-  Sectional : {n : ℕ} → 𝕧 n → Bool
-  Sectional = {!𝕧!}
+  above : (n : ℕ) (g : 𝔻 𝕏 n) → Set
+  above n g = (𝕧 n) st (λ v → p v ≡ g)
+
+  Sectional : {n : ℕ} (c : 𝕏 n) (g : 𝔻 𝕏 n) → (above n g → Bool) → Set
+  Sectional {n} c g ν = (if δ c g then ⊤ else ⊥) ≅ ((above n g) st (λ v → ν v ≡ true))
 
   module FixN (n : ℕ) where
     ℍ = 𝕏 (suc n)
