@@ -37,12 +37,10 @@ module FixChains (χ : Chain) (π : OverChain χ) where
   Fiber g v = p v ≡ g
 
   module FixN (n : ℕ) where
-    ℍ = 𝕏 (suc n)
     ℂ = 𝕏 n
     𝔾 = 𝔻 𝕏 n
     𝕘 = 𝕧 n
     𝕔 = 𝕧 (suc n)
-    -- p : 𝕘 → 𝔾 , 𝕔 → ℂ
 
     Sectional : (c : ℂ) (ν : 𝕘 → Bool) → Set
     Sectional c ν = (g : 𝔾) → (if δ c g then ⊤ else ⊥) ≅ (𝕘 st (λ g' → Fiber g g' × (ν g' ≡ true)))
