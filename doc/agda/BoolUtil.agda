@@ -49,17 +49,17 @@ data 𝟚 : Set where
   𝟘 : 𝟚
   𝟙 : 𝟚
 
-Epi : {A B : Set} → (A → B) → Set
-Epi {A} {B} f = (b : B) → Σ A (λ a → f a ≡ b)
+Epi : ∀ {n m} {A : Set n} {B : Set m} → (A → B) → Set (n ⊔ m)
+Epi {n} {m} {A} {B} f = (b : B) → Σ A (λ a → f a ≡ b)
 
-Mono : {A B : Set} → (A → B) → Set
-Mono {A} {B} f = (a₁ a₂ : A) → f a₁ ≡ f a₂ → a₁ ≡ a₂
+Mono : ∀ {n m} {A : Set n} {B : Set m} → (A → B) → Set (n ⊔ m)
+Mono {n} {m} {A} {B} f = (a₁ a₂ : A) → f a₁ ≡ f a₂ → a₁ ≡ a₂
 
 _⊚_ : {A : Set} {a b c : A} → a ≡ b → b ≡ c → a ≡ c
 p ⊚ q = trans p q
 infixr 20 _⊚_
 
-_≅_ : (A B : Set) → Set
+_≅_ : ∀ {n m} (A : Set n) (B : Set m) → Set (n ⊔ m)
 infix 5 _≅_
 A ≅ B = Σ (A → B) (λ f → Epi f × Mono f)
 
