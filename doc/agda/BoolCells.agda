@@ -78,8 +78,8 @@ module FixChains (χ : Chain) (π : OverChain χ) where
   above : (n : ℕ) (g : 𝔻 𝕏 n) → Set
   above n g = (𝕧 n) st (λ v → p v ≡ g)
 
-  Sectional : {n : ℕ} (c : 𝕏 n) (g : 𝔻 𝕏 n) → (above n g → Bool) → Set
-  Sectional {n} c g ν = (if δ c g then ⊤ else ⊥) ≅ ((above n g) st (λ v → ν v ≡ true))
+  Sectional : {n : ℕ} (c : 𝕏 n) (g : 𝔻 𝕏 n) → (𝕧 n → Bool) → Set
+  Sectional {n} c g ν = (if δ c g then ⊤ else ⊥) ≅ ((𝕧 n) st (λ v → (p v ≡ g) × (ν v ≡ true)))
 
   module FixN (n : ℕ) where
     ℍ = 𝕏 (suc n)
