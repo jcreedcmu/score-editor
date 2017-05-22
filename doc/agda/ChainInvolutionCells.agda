@@ -29,7 +29,7 @@ record Chain : Set₁ where
   constructor MkChain
   field
     𝕏 : (n : ℕ) → InvSet
-    δ : (n : ℕ) → # (𝕏 n) → # (𝔻 𝕏 n) → Bool
+    δ : {n : ℕ} → # (𝕏 n) → # (𝔻 𝕏 n) → Bool
 
 module FixChain (χ : Chain) where
   𝕏 = Chain.𝕏 χ
@@ -42,11 +42,9 @@ module FixChain (χ : Chain) where
     H = # ℍ
     C = # ℂ
     G = # 𝔾
-    ∂ = δ n
-    ∂' = δ (suc n)
 
     matcher : G → (C → Bool) → C → Bool
-    matcher = λ g v c → (v c) ∧ (∂ c g)
+    matcher = λ g v c → (v c) ∧ (δ c g)
 
     ZeroFunc : (C → Bool) → Set
     ZeroFunc v = (g : G) → Calm C (matcher g v) (matcher (ι 𝔾 g) v)
@@ -61,10 +59,10 @@ module FixChain (χ : Chain) where
     GoodFunc v = OkayFunc v × Minimal OkayFunc v
 
     Goodδ : Set
-    Goodδ = (c : C) (g : G) → ∂ (ι ℂ c) (ι 𝔾 g) ≡ ∂ c g
+    Goodδ = (c : C) (g : G) → δ (ι ℂ c) (ι 𝔾 g) ≡ δ c g
 
     GoodCells : Set
-    GoodCells = (h : H) → GoodFunc (δ (suc n) h)
+    GoodCells = (h : H) → GoodFunc (δ h)
 
     GoodAtN : Set
     GoodAtN = Goodδ × GoodCells
