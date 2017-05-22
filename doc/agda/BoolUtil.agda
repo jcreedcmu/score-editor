@@ -42,5 +42,5 @@ module Func⊑ where
 
 open Func⊑ renaming (_f⊑_ to _⊑_) public
 
-postulate
-  funext : {A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
+Minimal : {X : Set} (pred : (X → Bool) → Set) (v : X → Bool) → Set
+Minimal {X} pred v = (w : X → Bool) → w Func⊑.f⊑ v → pred w → (x : X) → Bool= (v x) (w x) ≡ true

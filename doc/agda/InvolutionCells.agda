@@ -7,6 +7,9 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; subst; sym)
 open import BoolUtil
 
+postulate
+  funext : {A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
+
 record InvSet : Set₁ where
   constructor MkInvSet
   field
@@ -20,9 +23,6 @@ record Bundle : Set₁ where
     𝔾 : InvSet
     ℂ : InvSet
     ∂ : # ℂ → # 𝔾 → Bool
-
-Minimal : {X : Set} (pred : (X → Bool) → Set) (v : X → Bool) → Set
-Minimal {X} pred v = (w : X → Bool) → w ⊑ v → pred w → (x : X) → Bool= (v x) (w x) ≡ true
 
 module FixBundle (β : Bundle) where
   ℂ = Bundle.ℂ β
