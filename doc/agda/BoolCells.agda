@@ -68,7 +68,7 @@ module FixChains (χ : Chain) (π : OverChain χ) where
       (λ f → (g' : 𝕘) (c' : 𝕔 st Fiber c) → Item (proj₁ f c') g' ≡ ∂ (Item c') g') {- this isomorphism agrees with ∂ -}
 
     AllDouble : Set
-    AllDouble = (c : ℂ) → 𝟚 ≅ 𝕔 st (Fiber c)
+    AllDouble = (g : 𝔾) → 𝟚 ≅ 𝕘 st (Fiber g)
 
   open FixN2
 
