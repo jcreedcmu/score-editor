@@ -47,7 +47,7 @@ module FixChains (χ : Chain) (π : OverChain χ) where
     𝕔 = 𝕧 (suc n)
 
     Sectional : (c : ℂ) (ν : 𝕘 → Set) → Set
-    Sectional c ν = (g : 𝔾) → δ c g ≅ (𝕘 st (λ g' → Fiber g g' × ν g'))
+    Sectional c ν = (g : 𝔾) → δ c g ≅ Σ 𝕘 (λ g' → Fiber g g' × ν g')
 
     Calm : (h : ℍ) (ν : 𝕔 → Set) → Set
     Calm h ν = (g : 𝔾) (g' : 𝕘) → Fiber g g' → θ h g ≅ Σ 𝕔 (λ c' → ∂ c' g' × ν c')
