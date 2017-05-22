@@ -60,6 +60,7 @@ And the rough progression of ideas from earliest to latest is
     ChainCells.agda -- May 21, ternary, but with whole chain at once, then bundles
     InvolutionCells.agda -- May 21, bool instead of ternary, bundle attempt, difficult
 	ChainInvolutionCells.agda -- May 22, bool instead of ternary, chain instead of bundle
+	BoolCells.agda -- May 22, attempting to have just sets and relations without involution
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
