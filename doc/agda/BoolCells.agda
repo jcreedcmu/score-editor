@@ -65,7 +65,7 @@ module FixChains (χ : Chain) (π : OverChain χ) where
 
     AllMatch : Set
     AllMatch = (c : ℂ) → Σ (𝕔 st (Fiber c) ≅ (𝕘 → Bool) st (GoodFunc c))
-      (λ f → (g' : 𝕘) (c' : 𝕔 st Fiber c) → Item (proj₁ f c') g' ≡ ∂ (Item c') g') {- this isomorphism agrees with ∂ -}
+      (λ f → (c' : 𝕔 st Fiber c) (g' : 𝕘) → Item (proj₁ f c') g' ≡ ∂ (Item c') g') {- this isomorphism agrees with ∂ -}
 
     AllDouble : Set
     AllDouble = (g : 𝔾) → 𝟚 ≅ 𝕘 st (Fiber g)
