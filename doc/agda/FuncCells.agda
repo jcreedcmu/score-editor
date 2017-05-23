@@ -49,7 +49,7 @@ module FixChains (χ : Chain) (π : OverChain χ) where
     Section c = {g : 𝔾} → δ c g → 𝕘
 
     Sectional : {c : ℂ} → Section c → Set
-    Sectional {c} σ = (g : 𝔾) (m : δ c g) → p (σ {g} m) ≡ g
+    Sectional {c} σ = (g : 𝔾) (m : δ c g) → Fiber g (σ m)
   open SectionN hiding (module Abbrevs)
 
   module FixN (n : ℕ) where
