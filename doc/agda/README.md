@@ -64,6 +64,7 @@ And the rough progression of ideas from earliest to latest is
 	SetCells.agda -- May 22, a categorified version of BoolCells
 	FuncCells.agda -- May 22, a version of SetCells that is less relational and more functional
 	FuncCells2.agda -- May 23, a more concrete version with chosen 2-fibers
+	FuncCells2Examples.agda -- May 23, some constructions of chains
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
