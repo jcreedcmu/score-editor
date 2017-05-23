@@ -75,3 +75,13 @@ A ≅ B = Σ (A → B) (λ f → Epi f × Mono f)
 
 isubst : ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} → .(x ≡ y) → P x → P y
 isubst P refl p = p
+
+isubst-eq : ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} (e1 e2 : x ≡ y) (p : P x)
+  → isubst P e1 p ≡ isubst P e2 p
+isubst-eq P refl refl p = refl
+
+-- still can't see to define this:
+{-
+foo : (A B : Set) .(x : A) (f : A → B) (same : (a a' : A) → f a ≡ f a') → B
+foo A B x f same = {!f x!}
+-}
