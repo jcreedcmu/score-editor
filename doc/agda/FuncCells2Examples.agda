@@ -23,7 +23,7 @@ open import FuncCells2
   φ : {n : ℕ} {g : 𝕐 (suc n)} → 𝟚 → (z : 𝕐 n) → .(δ n g z) → 𝟚
   φ {zero} {g} t () d
   φ {suc n} {()} t z d
-  θ : {n : ℕ} → 𝕏 n → 𝕐 n → Bool
+  θ : {n : ℕ} → 𝕏 n → 𝕐 n → Set
   θ {n} () g
 
 0GoodChain : GoodChain 0Chain
@@ -51,7 +51,7 @@ VOverChain A = MkOverChain (λ {n} {c} → φ {n} {c}) (λ {n} → θ {n})
   φ {0} {g} t () d
   φ {1} {c} t tt d = t
   φ {suc (suc n)} {()} t g d
-  θ : {n : ℕ} → 𝕏 n → 𝕐 n → Bool
+  θ : {n : ℕ} → 𝕏 n → 𝕐 n → Set
   θ {0} g ()
   θ {suc n} () z
 
@@ -63,10 +63,10 @@ VGoodChain A = VOverChain A , match where
   TrivCalm : (a : A) (t : 𝟚) → Calm 0 a (φ {1} {a} t)
   TrivCalm a t ()
 
-  φmono : (c : A) (t u : 𝟚) → (λ g .d → t) ≡ (λ g .d → u) → t ≡ u
-  φmono c t u pf = cong-iapp (cong-app pf tt) tt
+  φmono : (c : A) (t u : 𝟚) → (λ g d → t) ≡ (λ g d → u) → t ≡ u
+  φmono c t u pf = cong-app (cong-app pf tt) tt
 
-  φepi : (c : A) (b : (z : 𝕐 1) → .(δ 1 c z) → 𝟚) → Σ 𝟚 (λ a → φ {1} {c} a ≡ b)
+  φepi : (c : A) (b : (z : 𝕐 1) → (δ 1 c z) → 𝟚) → Σ 𝟚 (λ a → φ {1} {c} a ≡ b)
   φepi c b = b tt tt , refl
 
   match : (n : ℕ) → MatchAt n
