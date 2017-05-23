@@ -116,7 +116,7 @@ VGoodChain A = oc , match where
   φmono c t u pf = cong-iapp (cong-app pf tt) tt
 
   φepi : (c : A) → (b : (g : ⊤) → .(δ c g) → 𝟚) → ⊤ → Σ 𝟚 (λ a → (λ g .d → a) ≡ b)
-  φepi t u pf = (u tt tt) , refl
+  φepi c u tt = (u tt tt) , refl
 
   θ : {n : ℕ} → 𝕏 (suc n) → 𝔻 𝕏 n → Bool
   θ {n} () g
