@@ -7,7 +7,7 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality using (_≡_ ; subst ; sym)
 open import Data.Empty
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
-open import BoolUtil using (_≅_ ; _st_ ; 𝟚 ; IsoFor )
+open import BoolUtil using (_≅_ ; _st_ ; 𝟚 ; IsoFor ; MkIsoFor )
 open _st_
 
 𝔻 : ((n : ℕ) → Set) → (n : ℕ) → Set
@@ -75,3 +75,23 @@ open FixChains
 
 GoodChain : (χ : Chain) → Set₁
 GoodChain χ = Σ (OverChain χ) (λ π → (n : ℕ) → MatchAt χ π n)
+
+{- examples -}
+
+0Chain : Chain
+0Chain = MkChain 𝕏 (λ {n} → δ {n}) where
+  𝕏 : (n : ℕ) → Set
+  𝕏 n = ⊥
+  δ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Set
+  δ () y
+
+0GoodChain : GoodChain 0Chain
+0GoodChain = oc , match where
+  open Chain 0Chain
+  φ : {n : ℕ} {c : 𝕏 n} → 𝟚 → (g : 𝔻 𝕏 n) → .(δ c g) → 𝟚
+  φ {n} {()} t g d
+  θ : {n : ℕ} → 𝕏 (suc n) → 𝔻 𝕏 n → Bool
+  θ {n} () g
+  oc = MkOverChain (λ {n} → φ {n}) (λ {n} → θ {n})
+  match : (n : ℕ) → MatchAt 0Chain oc n
+  match n ()

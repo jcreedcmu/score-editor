@@ -66,8 +66,15 @@ infix 5 _≅_
 A ≅ B = Σ (A → B) (λ f → Epi f × Mono f)
 
 -- f is an essentially isomorphism from A to (B st p)
-IsoFor : {A B : Set} (f : A → B) (p : B → Set) → Set
-IsoFor {A} {B} f p = (A ≅ B st p) st (λ cong → (a : A) → f a ≡ Item (proj₁ cong a))
+record IsoFor {A B : Set} (f : A → B) (p : B → Set) : Set where
+  constructor MkIsoFor
+  field
+    if-sat : (a : A) → p (f a)
+    if-mono : Mono f
+    if-epi : (b : B) → p b → Σ A (λ a → f a ≡ b)
+
+IsoFor2 : {A B : Set} (f : A → B) (p : B → Set) → Set
+IsoFor2 {A} {B} f p = (A ≅ B st p) st (λ cong → (a : A) → f a ≡ Item (proj₁ cong a))
 
 ≅sym : {A B : Set} → A ≅ B → B ≅ A
 ≅sym {A} {B} (f , (e , m)) = (λ b → proj₁ (e b)) , epiPf , monoPf where
