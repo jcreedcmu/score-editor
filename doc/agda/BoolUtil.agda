@@ -1,3 +1,5 @@
+{-# OPTIONS --experimental-irrelevance #-}
+
 module BoolUtil where
 open import Level
 open import Data.Bool
@@ -69,3 +71,7 @@ A ≅ B = Σ (A → B) (λ f → Epi f × Mono f)
   epiPf = (λ a → (f a) , (m (proj₁ (e (f a))) a (proj₂ (e (f a)))))
   monoPf : Mono (λ b → proj₁ (e b))
   monoPf = λ a₁ a₂ eq → sym (proj₂ (e a₁)) ⊚ cong f eq ⊚ (proj₂ (e a₂))
+
+
+isubst : ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} → .(x ≡ y) → P x → P y
+isubst P refl p = p
