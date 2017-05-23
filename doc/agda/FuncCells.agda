@@ -89,24 +89,16 @@ module FixChains (χ : Chain) (π : OverChain χ) where
         coe-m : δ (p (Item c')) g
         coe-m = isubst (λ x → δ x g) (sym (Pf c')) m
 
-    AllMatch : Set
-    AllMatch = (c : ℂ) → Σ (Match c) (PresRel c)
+    record GoodAtN : Set where
+      field
+        AllMatch : (c : ℂ) → Σ (Match c) (PresRel c)
+        AllDouble : (g : 𝔾) → 𝕘 st (Fiber g) ≅ 𝟚
+        AllSingle : (h : ℍ) (g : 𝔾) → θ h g ≅ ⊥ ⊕ θ h g ≅ ⊤
+        Goodφ : (c' : 𝕔) (g : 𝔾) (m : δ (p c') g) → Fiber g (φ c' m)
 
-    AllDouble : Set
-    AllDouble = (g : 𝔾) → 𝟚 ≅ 𝕘 st (Fiber g)
-
-    AllSingle : Set
-    AllSingle = (h : ℍ) (g : 𝔾) → θ h g ≅ ⊥ ⊕ θ h g ≅ ⊤
-
-    Goodφ : Set
-    Goodφ = (c' : 𝕔) (g : 𝔾) (m : δ (p c') g) → Fiber g (φ c' m)
-
-  open FixN2
-
-  GoodOverChain : Set
-  GoodOverChain = ((n : ℕ) → AllMatch n × AllDouble n × AllSingle n × Goodφ n)
+  open FixN2 public using ( GoodAtN )
 
 open FixChains
 
 GoodChain : (χ : Chain) → Set₁
-GoodChain χ = Σ (OverChain χ) (λ π → GoodOverChain χ π)
+GoodChain χ = Σ (OverChain χ) (λ π → (n : ℕ) → GoodAtN χ π n)
