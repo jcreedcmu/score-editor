@@ -18,10 +18,7 @@ record Chain : Set₁ where
   constructor MkChain
   field
     𝕏 : (n : ℕ) → Set
-    ∂ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Bool
-
-  δ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Set
-  δ c g = ∂ c g ≡ true
+    δ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Set
 
 module _OverChain (χ : Chain) where
   open Chain χ
