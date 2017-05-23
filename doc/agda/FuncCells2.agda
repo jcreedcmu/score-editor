@@ -36,80 +36,20 @@ open _OverChain
 module Fix (χ : Chain) (π : OverChain χ) (n : ℕ) where
   open Chain χ
   open OverChain π
-
   ℂ = 𝕐 (suc (suc n))
   𝔾 = 𝕐 (suc n)
   ℤ = 𝕐 n
   Δcg = λ c g → δ {suc n} c g
   Δgz = λ g z → δ {n} g z
-
-  Section : ℂ → Set
-  Section c = (g : 𝔾) → .(Δcg c g) → 𝟚
-
-  record TwoHop (c : ℂ) (ν : Section c) (z : ℤ) (z' : 𝟚) : Set where
+  record TwoHop (c : ℂ) (ν : (g : 𝔾) → .(Δcg c g) → 𝟚) (z : ℤ) (z' : 𝟚) : Set where
     field
       g : 𝔾
       .hop1 : Δcg c g
       .hop2 : Δgz g z
       .transport : φ (ν g hop1) z hop2 ≡ z'
-
-  Calm : (c : ℂ) (ν : Section c) → Set
-  Calm c ν = (z : ℤ) (z' : 𝟚) → (if θ c z then ⊤ else ⊥) ≅ TwoHop c ν z z'
-
   MatchAt : Set
-  MatchAt = (c : ℂ) → IsoFor φ (Calm c)
-
+  MatchAt = (c : ℂ) → IsoFor φ (λ ν → (z : ℤ) (z' : 𝟚) → (if θ c z then ⊤ else ⊥) ≅ TwoHop c ν z z')
 open Fix
 
 GoodChain : (χ : Chain) → Set₁
 GoodChain χ = Σ (OverChain χ) (λ π → (n : ℕ) → MatchAt χ π n)
-
-{- obsolete examples -}
-{-
-0Chain : Chain
-0Chain = MkChain 𝕏 (λ {n} → δ {n}) where
-  𝕏 : (n : ℕ) → Set
-  𝕏 n = ⊥
-  δ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Set
-  δ () y
-
-0GoodChain : GoodChain 0Chain
-0GoodChain = oc , match where
-  open Chain 0Chain
-  φ : {n : ℕ} {c : 𝕏 n} → 𝟚 → (g : 𝔻 𝕏 n) → .(δ c g) → 𝟚
-  φ {n} {()} t g d
-  θ : {n : ℕ} → 𝕏 (suc n) → 𝔻 𝕏 n → Bool
-  θ {n} () g
-  oc = MkOverChain (λ {n} → φ {n}) (λ {n} → θ {n})
-  match : (n : ℕ) → MatchAt 0Chain oc n
-  match n ()
-
-VChain : (A : Set) → Chain
-VChain A = MkChain 𝕏 (λ {n} → δ {n}) where
-  𝕏 : (n : ℕ) → Set
-  𝕏 0 = A
-  𝕏 (suc n) = ⊥
-  δ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Set
-  δ {0} c tt = ⊤
-  δ {suc n} () g
-
-VGoodChain : (A : Set) → GoodChain (VChain A)
-VGoodChain A = oc , match where
-  open Chain (VChain A)
-  φ : {n : ℕ} {c : 𝕏 n} → 𝟚 → (g : 𝔻 𝕏 n) → .(δ c g) → 𝟚
-  φ {zero} {c} t tt d = t
-  φ {suc n} {()} t g d
-
-  φmono : (c : A) (t u : 𝟚) → (λ g .d → t) ≡ (λ g .d → u) → t ≡ u
-  φmono c t u pf = cong-iapp (cong-app pf tt) tt
-
-  φepi : (c : A) → (b : (g : ⊤) → .(δ c g) → 𝟚) → ⊤ → Σ 𝟚 (λ a → (λ g .d → a) ≡ b)
-  φepi c u tt = (u tt tt) , refl
-
-  θ : {n : ℕ} → 𝕏 (suc n) → 𝔻 𝕏 n → Bool
-  θ {n} () g
-  oc = MkOverChain (λ {n} {c} → φ {n} {c}) (λ {n} → θ {n})
-  match : (n : ℕ) → MatchAt (VChain A) oc n
-  match zero c = MkIsoFor (λ t → tt) (φmono c) (φepi c)
-  match (suc n) ()
--}
