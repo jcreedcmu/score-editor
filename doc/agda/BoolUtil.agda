@@ -96,3 +96,7 @@ isubst-eq P refl refl p = refl
 foo : (A B : Set) .(x : A) (f : A → B) (same : (a a' : A) → f a ≡ f a') → B
 foo A B x f same = {!f x!}
 -}
+
+cong-iapp : ∀ {a b} {A : Set a} {B : Set b} {f g : .(x : A) → B} →
+           f ≡ g → (x : A) → f x ≡ g x
+cong-iapp refl x = refl

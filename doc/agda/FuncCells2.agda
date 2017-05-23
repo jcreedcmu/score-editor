@@ -7,7 +7,7 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality using (_≡_ ; subst ; sym ; cong-app ; refl)
 open import Data.Empty
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
-open import BoolUtil using (_≅_ ; _st_ ; 𝟚 ; IsoFor ; MkIsoFor )
+open import BoolUtil using (_≅_ ; _st_ ; 𝟚 ; IsoFor ; MkIsoFor ; cong-iapp )
 open _st_
 
 𝔻 : ((n : ℕ) → Set) → (n : ℕ) → Set
@@ -104,11 +104,6 @@ VChain A = MkChain 𝕏 (λ {n} → δ {n}) where
   δ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Set
   δ {0} c tt = ⊤
   δ {suc n} () g
-
-cong-iapp : ∀ {a b} {A : Set a} {B : Set b} {f g : .(x : A) → B} →
-           f ≡ g → (x : A) → f x ≡ g x
-cong-iapp refl x = refl
-
 
 VGoodChain : (A : Set) → GoodChain (VChain A)
 VGoodChain A = oc , match where
