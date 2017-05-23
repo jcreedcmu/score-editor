@@ -28,7 +28,7 @@ module _OverChain (χ : Chain) where
   record OverChain : Set₁ where
     constructor MkOverChain
     field
-      φ : {n : ℕ} {g : 𝕐 (suc n)} → 𝟚 → (z : 𝕐 n) → .(δ n g z) → 𝟚
+      φ : {n : ℕ} {g : 𝕐 (suc n)} → 𝟚 → (z : 𝕐 n) → δ n g z → 𝟚
       θ : {n : ℕ} → 𝕏 n → 𝕐 n → Bool
 
 open _OverChain public
@@ -40,13 +40,13 @@ module Fix (χ : Chain) (π : OverChain χ) (n : ℕ) where
   𝔾 = 𝕐 (suc n)
   ℤ = 𝕐 n
   Section : (c : ℂ) → Set
-  Section c = (g : 𝔾) → .(δ (suc n) c g) → 𝟚
+  Section c = (g : 𝔾) → δ (suc n) c g → 𝟚
   record TwoHop (c : ℂ) (ν : Section c) (z : ℤ) (z' : 𝟚) : Set where
     field
       g : 𝔾
-      .hop1 : δ (suc n) c g
-      .hop2 : δ n g z
-      .transport : φ (ν g hop1) z hop2 ≡ z'
+      hop1 : δ (suc n) c g
+      hop2 : δ n g z
+      transport : φ (ν g hop1) z hop2 ≡ z'
   Calm : (c : ℂ) → Section c → Set
   Calm c ν = (z : ℤ) (z' : 𝟚) → (if θ c z then ⊤ else ⊥) ≅ TwoHop c ν z z'
   MatchAt : Set
