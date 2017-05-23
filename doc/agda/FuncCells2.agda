@@ -112,16 +112,10 @@ VGoodChain A = oc , match where
   φ {zero} {c} t tt d = t
   φ {suc n} {()} t g d
 
-  φmono' : {c : A} (t u : 𝟚) (g : ⊤) .(d : δ {zero} c g) → φ {zero} {c} t g d ≡ φ {zero} {c} u g d → t ≡ u
-  φmono' 𝟚.𝟘 𝟚.𝟘 g d eq = refl
-  φmono' 𝟚.𝟘 𝟚.𝟙 g d ()
-  φmono' 𝟚.𝟙 𝟚.𝟘 g d ()
-  φmono' 𝟚.𝟙 𝟚.𝟙 g d eq = refl
-
-  φmono : (c : A) (t u : 𝟚) → φ {zero} {c} t ≡ φ {zero} {c} u → t ≡ u
+  φmono : (c : A) (t u : 𝟚) → (λ g .d → t) ≡ (λ g .d → u) → t ≡ u
   φmono c t u pf = cong-iapp (cong-app pf tt) tt
 
-  φepi : (c : A) → (b : (g : ⊤) → .(δ c g) → 𝟚) → ⊤ → Σ 𝟚 (λ a → φ {zero} {c} a ≡ b)
+  φepi : (c : A) → (b : (g : ⊤) → .(δ c g) → 𝟚) → ⊤ → Σ 𝟚 (λ a → (λ g .d → a) ≡ b)
   φepi t u pf = (u tt tt) , refl
 
   θ : {n : ℕ} → 𝕏 (suc n) → 𝔻 𝕏 n → Bool
