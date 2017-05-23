@@ -1,0 +1,37 @@
+\documentclass{article}
+\input{prooftree}
+\usepackage{stmaryrd}
+\input{linear}
+\def\erule#1#2{\begin{prooftree}#1\justifies #2\end{prooftree}}
+\def\ups{{\uparrow}}
+\def\dns{{\downarrow}}
+\def\op{^\mathrm{op}}
+\def\C{{\bf C}}
+\def\dd{\partial}
+\def\Set{\mathrm{Set}}
+\def\cn{{:}}
+\begin{document}
+A prechain consists of the following data:
+\begin{itemize}
+\item $\C$ is a `graded graph' whose vertices are $(C_n)_{n \ge 0}$ (and conventionally
+$C_{-1} = 1$ and $C_{-2} = 0$) and whose edges are given by $[\dash, \dash]_{n \ge -2} : C_{n+1} \times C_{n} \to \Set$ between
+adjacent grades.
+\item $\#$ is  a graph homomorphism from $\C$ to the graph of all sets and functions. That is,
+\[ \# : C_n \to \Set \]
+\[ \# :  [X, Y] \to (\# X \to \# Y) \]
+\end{itemize}
+
+
+For any $n\ge 0$, if $X \in C_{n}$, the type of {\em $X$-sections} is defined by
+$$\sigma(X) = \Pi Y \cn C_n .  [X, Y] \to \# Y$$
+If $s : \sigma(X)$, $Z \in C_{n-2}$, and $z \in \# Z$, the set of $s$-{\em traversals} to $z$ is defined by
+\[s_z = \{Y \in C_{n-1}, f \in [X, Y], g \in [Y, Z] \st \# g(s\ Y\ f) = z\}\]
+Say $s$ is {\em calm} if for all $Z \in C_{n-2}$ and $z, z' \in \# Z$, we have $s_z \cong s_{z'}$.
+Let $\bar \sigma(X)$ be the set of calm $X$-sections.
+A chain is a prechain equipped with a family of isomorphisms $\iota_X : \# X \cong \bar \sigma(X)$
+for every $X \in C_n$, such that for every
+$ n\ge 0,  X\in C_n,  Y \in C_{n-1},  f\in[X, Y],  x \in \# X$, we have
+\[ \iota_X\ x\ Y\ f = \# f(x) \]
+
+
+\end{document}
