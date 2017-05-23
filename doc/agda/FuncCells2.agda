@@ -2,7 +2,6 @@ module FuncCells2 where
 
 open import Data.Nat
 open import Data.Unit
-open import Data.Bool
 open import Data.Product
 open import Relation.Binary.PropositionalEquality using (_≡_)
 open import Data.Empty
@@ -29,7 +28,7 @@ module _OverChain (χ : Chain) where
     constructor MkOverChain
     field
       φ : {n : ℕ} {g : 𝕐 (suc n)} → 𝟚 → (z : 𝕐 n) → δ n g z → 𝟚
-      θ : {n : ℕ} → 𝕏 n → 𝕐 n → Bool
+      θ : {n : ℕ} → 𝕏 n → 𝕐 n → Set
 
 open _OverChain public
 
@@ -48,7 +47,7 @@ module Fix (χ : Chain) (π : OverChain χ) (n : ℕ) where
       hop2 : δ n g z
       transport : φ (ν g hop1) z hop2 ≡ z'
   Calm : (c : ℂ) → Section c → Set
-  Calm c ν = (z : ℤ) (z' : 𝟚) → (if θ c z then ⊤ else ⊥) ≅ TwoHop c ν z z'
+  Calm c ν = (z : ℤ) (z' : 𝟚) → θ c z ≅ TwoHop c ν z z'
   MatchAt : Set
   MatchAt = (c : ℂ) → IsoFor φ (Calm c)
 
