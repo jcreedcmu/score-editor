@@ -26,7 +26,7 @@ module _OverChain (χ : Chain) where
     constructor MkOverChain
     field
       φ : {n : ℕ} {c : 𝕏 n} → 𝟚 → (g : 𝔻 𝕏 n) → .(δ c g) → 𝟚
-      θ : {n : ℕ} → 𝕏 (suc n) → 𝔻 𝕏 n → Set
+      θ : {n : ℕ} → 𝕏 (suc n) → 𝔻 𝕏 n → Bool
 
 open _OverChain
 
@@ -55,7 +55,7 @@ module FixChains (χ : Chain) (π : OverChain χ) where
         .transport : φ (ν c hop1) g hop2  ≡ g'
 
     Calm : (h : ℍ) (ν : Section h) → Set
-    Calm h ν = (g : 𝔾) (g' : 𝟚) → θ h g ≅ TwoHop h ν g g'
+    Calm h ν = (g : 𝔾) (g' : 𝟚) → (if θ h g then ⊤ else ⊥) ≅ TwoHop h ν g g'
 
   module PredCalm where
     open FixN
