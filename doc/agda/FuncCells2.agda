@@ -37,20 +37,19 @@ module FixChains (χ : Chain) (π : OverChain χ) where
   open Chain χ
   open OverChain π
 
-  module SectionN {n : ℕ} where
-    module Abbrevs where
-      ℂ = 𝕏 n
-      𝔾 = 𝔻 𝕏 n
-    open Abbrevs
-    Section : ℂ → Set
-    Section c = (g : 𝔾) → .(δ c g) → 𝟚
-  open SectionN hiding (module Abbrevs)
-
-  module FixN (n : ℕ) where
+  module Abbrevs (n : ℕ) where
     ℍ = 𝕏 (suc n)
     ℂ = 𝕏 n
     𝔾 = 𝔻 𝕏 n
 
+  module SectionN {n : ℕ} where
+    open Abbrevs n
+    Section : ℂ → Set
+    Section c = (g : 𝔾) → .(δ c g) → 𝟚
+  open SectionN
+
+  module FixN (n : ℕ) where
+    open Abbrevs n
     record TwoHop (h : ℍ) (ν : Section h) (g : 𝔾) (g' : 𝟚) : Set where
       field
         c : ℂ
@@ -69,22 +68,14 @@ module FixChains (χ : Chain) (π : OverChain χ) where
   open PredCalm
 
   module FixN2 (n : ℕ) where
-    open FixN n public
+    open Abbrevs n
+    MatchAt : Set
+    MatchAt = (c : ℂ) → Σ (𝟚 ≅ (Section c) st (PredCalm n c))
+      (λ M → (c' : 𝟚) (g : 𝔾) .(m : δ c g) → Item (proj₁ M c') g m ≡ φ g m c')
 
-    Match : (c : ℂ) → Set
-    Match c = 𝟚 ≅ (Section c) st (PredCalm n c)
-
-    PresRel : (c : ℂ) → Match c → Set
-    PresRel c M = (c' : 𝟚) (g : 𝔾) .(m : δ c g) → Item (proj₁ M c') g m ≡ φ g m c'
-
-    record GoodAtN : Set where
-      field
-        AllMatch : (c : ℂ) → Σ (Match c) (PresRel c)
-        AllSingle : (h : ℍ) (g : 𝔾) → θ h g ≅ ⊥ ⊕ θ h g ≅ ⊤
-
-  open FixN2 public using ( GoodAtN )
+  open FixN2 public
 
 open FixChains
 
 GoodChain : (χ : Chain) → Set₁
-GoodChain χ = Σ (OverChain χ) (λ π → (n : ℕ) → GoodAtN χ π n)
+GoodChain χ = Σ (OverChain χ) (λ π → (n : ℕ) → MatchAt χ π n)
