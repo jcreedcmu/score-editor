@@ -4,7 +4,7 @@ open import Data.Nat
 open import Data.Unit
 open import Data.Bool
 open import Data.Product
-open import Relation.Binary.PropositionalEquality using (_≡_ ; subst ; sym)
+open import Relation.Binary.PropositionalEquality using (_≡_ ; subst ; sym ; cong-app ; refl)
 open import Data.Empty
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
 open import BoolUtil using (_≅_ ; _st_ ; 𝟚 ; IsoFor ; MkIsoFor )
@@ -95,3 +95,43 @@ GoodChain χ = Σ (OverChain χ) (λ π → (n : ℕ) → MatchAt χ π n)
   oc = MkOverChain (λ {n} → φ {n}) (λ {n} → θ {n})
   match : (n : ℕ) → MatchAt 0Chain oc n
   match n ()
+
+VChain : (A : Set) → Chain
+VChain A = MkChain 𝕏 (λ {n} → δ {n}) where
+  𝕏 : (n : ℕ) → Set
+  𝕏 0 = A
+  𝕏 (suc n) = ⊥
+  δ : {n : ℕ} → 𝕏 n → 𝔻 𝕏 n → Set
+  δ {0} c tt = ⊤
+  δ {suc n} () g
+
+cong-iapp : ∀ {a b} {A : Set a} {B : Set b} {f g : .(x : A) → B} →
+           f ≡ g → (x : A) → f x ≡ g x
+cong-iapp refl x = refl
+
+
+VGoodChain : (A : Set) → GoodChain (VChain A)
+VGoodChain A = oc , match where
+  open Chain (VChain A)
+  φ : {n : ℕ} {c : 𝕏 n} → 𝟚 → (g : 𝔻 𝕏 n) → .(δ c g) → 𝟚
+  φ {zero} {c} t tt d = t
+  φ {suc n} {()} t g d
+
+  φmono' : {c : A} (t u : 𝟚) (g : ⊤) .(d : δ {zero} c g) → φ {zero} {c} t g d ≡ φ {zero} {c} u g d → t ≡ u
+  φmono' 𝟚.𝟘 𝟚.𝟘 g d eq = refl
+  φmono' 𝟚.𝟘 𝟚.𝟙 g d ()
+  φmono' 𝟚.𝟙 𝟚.𝟘 g d ()
+  φmono' 𝟚.𝟙 𝟚.𝟙 g d eq = refl
+
+  φmono : (c : A) (t u : 𝟚) → φ {zero} {c} t ≡ φ {zero} {c} u → t ≡ u
+  φmono c t u pf = cong-iapp (cong-app pf tt) tt
+
+  φepi : (c : A) → (b : (g : ⊤) → .(δ c g) → 𝟚) → ⊤ → Σ 𝟚 (λ a → φ {zero} {c} a ≡ b)
+  φepi t u pf = (u tt tt) , refl
+
+  θ : {n : ℕ} → 𝕏 (suc n) → 𝔻 𝕏 n → Bool
+  θ {n} () g
+  oc = MkOverChain (λ {n} {c} → φ {n} {c}) (λ {n} → θ {n})
+  match : (n : ℕ) → MatchAt (VChain A) oc n
+  match zero c = MkIsoFor (λ t → tt) (φmono c) (φepi c)
+  match (suc n) ()
