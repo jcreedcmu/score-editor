@@ -7,7 +7,7 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality using (_≡_ ; subst ; sym)
 open import Data.Empty
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
-open import BoolUtil using (_≅_ ; _st_ ; 𝟚 ; isubst )
+open import BoolUtil using (_≅_ ; _st_ ; 𝟚 ; IsoFor )
 open _st_
 
 𝔻 : ((n : ℕ) → Set) → (n : ℕ) → Set
@@ -70,8 +70,7 @@ module FixChains (χ : Chain) (π : OverChain χ) where
   module FixN2 (n : ℕ) where
     open Abbrevs n
     MatchAt : Set
-    MatchAt = (c : ℂ) → Σ (𝟚 ≅ (Section c) st (PredCalm n c))
-      (λ M → (c' : 𝟚) (g : 𝔾) .(m : δ c g) → Item (proj₁ M c') g m ≡ φ c' g m)
+    MatchAt = (c : ℂ) → IsoFor φ (PredCalm n c)
 
   open FixN2 public
 
