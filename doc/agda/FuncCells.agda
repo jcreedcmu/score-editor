@@ -27,11 +27,7 @@ module _OverChain (χ : Chain) where
     field
       𝕧 : (n : ℕ) → Set -- this is "(-1)-indexed": e.g. 𝕧 0 lives over the ⊤ inserted by 𝔻
       p : {n : ℕ} → 𝕧 n → 𝔻 𝕏 n -- this type realizes the above comment
-      ∂ : {n : ℕ} → 𝕧 (suc n) → 𝕧 n → Set
-
       φ : {n : ℕ} (v : 𝕧 (suc n)) {g : 𝔻 𝕏 n} (m : δ (p v) g) → 𝕧 n
-      φgood : {n : ℕ} (v : 𝕧 (suc n)) (g : 𝔻 𝕏 n) (m : δ (p v) g) → p (φ v {g} m) ≡ g
-
       θ : {n : ℕ} → 𝕏 (suc n) → 𝔻 𝕏 n → Set
 
 open _OverChain
@@ -102,13 +98,13 @@ module FixChains (χ : Chain) (π : OverChain χ) where
     AllSingle : Set
     AllSingle = (h : ℍ) (g : 𝔾) → θ h g ≅ ⊥ ⊕ θ h g ≅ ⊤
 
+    Goodφ : Set
+    Goodφ = (c' : 𝕔) (g : 𝔾) (m : δ (p c') g) → Fiber g (φ c' m)
+
   open FixN2
 
-  Good∂ : Set
-  Good∂ = {n : ℕ} (v₁ : 𝕧 (suc n)) (v₂ : 𝕧 n) → ∂ v₁ v₂ → δ (p v₁) (p v₂)
-
   GoodOverChain : Set
-  GoodOverChain = ((n : ℕ) → AllMatch n × AllDouble n × AllSingle n) × Good∂
+  GoodOverChain = ((n : ℕ) → AllMatch n × AllDouble n × AllSingle n × Goodφ n)
 
 open FixChains
 
