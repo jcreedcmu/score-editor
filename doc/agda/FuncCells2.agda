@@ -6,7 +6,7 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality using (_≡_)
 open import Data.Empty
 open import Data.Sum renaming ( _⊎_ to _⊕_ )
-open import BoolUtil using (_≅_ ; _st_ ; 𝟚 ; IsoFor ; MkIsoFor )
+open import BoolUtil using (_≅_ ; _st_ ; IsoFor ; MkIsoFor )
 open _st_
 
 𝔻 : ((n : ℕ) → Set) → (n : ℕ) → Set
@@ -27,7 +27,8 @@ module _OverChain (χ : Chain) where
   record OverChain : Set₁ where
     constructor MkOverChain
     field
-      φ : {n : ℕ} {g : 𝕐 (suc n)} → 𝟚 → (z : 𝕐 n) → δ n g z → 𝟚
+      F : Set -- fiber
+      φ : {n : ℕ} {g : 𝕐 (suc n)} → F → (z : 𝕐 n) → δ n g z → F
       θ : {n : ℕ} → 𝕏 n → 𝕐 n → Set
 
 open _OverChain public
@@ -39,15 +40,15 @@ module Fix (χ : Chain) (π : OverChain χ) (n : ℕ) where
   𝔾 = 𝕐 (suc n)
   ℤ = 𝕐 n
   Section : (c : ℂ) → Set
-  Section c = (g : 𝔾) → δ (suc n) c g → 𝟚
-  record TwoHop (c : ℂ) (ν : Section c) (z : ℤ) (z' : 𝟚) : Set where
+  Section c = (g : 𝔾) → δ (suc n) c g → F
+  record TwoHop (c : ℂ) (ν : Section c) (z : ℤ) (z' : F) : Set where
     field
       g : 𝔾
       hop1 : δ (suc n) c g
       hop2 : δ n g z
       transport : φ (ν g hop1) z hop2 ≡ z'
   Calm : (c : ℂ) → Section c → Set
-  Calm c ν = (z : ℤ) (z' : 𝟚) → θ c z ≅ TwoHop c ν z z'
+  Calm c ν = (z : ℤ) (z' : F) → θ c z ≅ TwoHop c ν z z'
   MatchAt : Set
   MatchAt = (c : ℂ) → IsoFor φ (Calm c)
 

@@ -18,7 +18,7 @@ open import FuncCells2
   δ (suc n) () z
 
 0OverChain : OverChain 0Chain
-0OverChain = MkOverChain (λ {n} {c} → φ {n} {c}) (λ {n} → θ {n}) where
+0OverChain = MkOverChain 𝟚 (λ {n} {c} → φ {n} {c}) (λ {n} → θ {n}) where
   open Chain 0Chain
   φ : {n : ℕ} {g : 𝕐 (suc n)} → 𝟚 → (z : 𝕐 n) → .(δ n g z) → 𝟚
   φ {zero} {g} t () d
@@ -44,7 +44,7 @@ VChain A = MkChain 𝕏 δ where
 
 
 VOverChain : (A : Set) → OverChain (VChain A)
-VOverChain A = MkOverChain (λ {n} {c} → φ {n} {c}) (λ {n} → θ {n})
+VOverChain A = MkOverChain 𝟚 (λ {n} {c} → φ {n} {c}) (λ {n} → θ {n})
   where
   open Chain (VChain A)
   φ : {n : ℕ} {g : 𝕐 (suc n)} → 𝟚 → (z : 𝕐 n) → .(δ n g z) → 𝟚
