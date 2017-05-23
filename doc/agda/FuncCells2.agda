@@ -20,7 +20,6 @@ record Chain : Set₁ where
   field
     𝕏 : (n : ℕ) → Set
     δ : {n : ℕ} → 𝔻 𝕏 (suc n) → 𝔻 𝕏 n  → Set
-
   𝕐 : (n : ℕ) → Set
   𝕐 n = 𝔻 𝕏 n
 
@@ -34,37 +33,33 @@ module _OverChain (χ : Chain) where
 
 open _OverChain
 
-module FixChains (χ : Chain) (π : OverChain χ) where
+module Fix (χ : Chain) (π : OverChain χ) (n : ℕ) where
   open Chain χ
   open OverChain π
 
-  module Abbrevs (n : ℕ) where
-    ℂ = 𝕐 (suc (suc n))
-    𝔾 = 𝕐 (suc n)
-    ℤ = 𝕐 n
-    Δcg = λ c g → δ {suc n} c g
-    Δgz = λ g z → δ {n} g z
+  ℂ = 𝕐 (suc (suc n))
+  𝔾 = 𝕐 (suc n)
+  ℤ = 𝕐 n
+  Δcg = λ c g → δ {suc n} c g
+  Δgz = λ g z → δ {n} g z
 
-  module FixN (n : ℕ) where
-    open Abbrevs n
+  Section : ℂ → Set
+  Section c = (g : 𝔾) → .(Δcg c g) → 𝟚
 
-    Section : ℂ → Set
-    Section c = (g : 𝔾) → .(Δcg c g) → 𝟚
+  record TwoHop (c : ℂ) (ν : Section c) (z : ℤ) (z' : 𝟚) : Set where
+    field
+      g : 𝔾
+      .hop1 : Δcg c g
+      .hop2 : Δgz g z
+      .transport : φ (ν g hop1) z hop2 ≡ z'
 
-    record TwoHop (c : ℂ) (ν : Section c) (z : ℤ) (z' : 𝟚) : Set where
-      field
-        g : 𝔾
-        .hop1 : Δcg c g
-        .hop2 : Δgz g z
-        .transport : φ (ν g hop1) z hop2 ≡ z'
+  Calm : (c : ℂ) (ν : Section c) → Set
+  Calm c ν = (z : ℤ) (z' : 𝟚) → (if θ c z then ⊤ else ⊥) ≅ TwoHop c ν z z'
 
-    Calm : (c : ℂ) (ν : Section c) → Set
-    Calm c ν = (z : ℤ) (z' : 𝟚) → (if θ c z then ⊤ else ⊥) ≅ TwoHop c ν z z'
+  MatchAt : Set
+  MatchAt = (c : ℂ) → IsoFor φ (Calm c)
 
-    MatchAt : Set
-    MatchAt = (c : ℂ) → IsoFor φ (Calm c)
-  open FixN public using ( MatchAt )
-open FixChains
+open Fix
 
 GoodChain : (χ : Chain) → Set₁
 GoodChain χ = Σ (OverChain χ) (λ π → (n : ℕ) → MatchAt χ π n)
