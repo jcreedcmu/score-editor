@@ -37,14 +37,14 @@ module FixChain (χ : Chain) (Charge : Set) where
     ℤ = 𝕐 n
     Section : Set
     Section = (g : 𝔾) → δ (suc n) c g → Fsuc {n} g
-    record TwoHop (ν : Section) (z : ℤ) (z' : F {n} z) : Set where
-      field
-        g : 𝔾
-        hop1 : δ (suc n) c g
-        hop2 : δ n g z
-        transport : φ {n} (ν g hop1) z hop2 ≡ z'
     Calm : Section → Set
-    Calm ν = (z : ℤ) (z1' z2' : F {n} z) → TwoHop ν z z1' ≅ TwoHop ν z z2'
+    Calm ν = (z : ℤ) (z1' z2' : F {n} z) → PathsTo z1' ≅ PathsTo z2' where
+      record PathsTo {z : ℤ} (z' : F {n} z) : Set where
+        field
+          g : 𝔾
+          hop1 : δ (suc n) c g
+          hop2 : δ n g z
+          transport : φ {n} (ν g hop1) z hop2 ≡ z'
 
   Fsuc {zero} tt = Charge
   Fsuc {suc n} c = Section st Calm where open FixN n c
