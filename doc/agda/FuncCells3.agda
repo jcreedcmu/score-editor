@@ -42,7 +42,7 @@ module FixChain (χ : Chain) (Charge : Set) where
         g : 𝔾
         hop1 : δ (suc n) c g
         hop2 : δ n g z
-        transport : φ {n} (ν g hop1) z hop2 ≡ z'
+        transport : φ (ν g hop1) z hop2 ≡ z'
     Calm : Section → Set
     Calm ν = (z : ℤ) (z1' z2' : F {n} z) → PathsTo ν z1' ≅ PathsTo ν z2' where
 
