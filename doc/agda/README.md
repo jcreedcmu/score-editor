@@ -3,7 +3,13 @@
 In here is a bunch of agda mumbling about various things tangentially
 related to category theory or FRP or whatever.
 
-Four main categories of ideas:
+Five main categories of ideas:
+
+## HoTT thoughts
+
+	Contractible.agda
+
+The pushout of a span of contractible types is contractible.
 
 ## Cache types
 
