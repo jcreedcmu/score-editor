@@ -10,7 +10,11 @@ open import Data.Sum renaming ( _⊎_ to _⊕_ )
 open import BoolUtil using (_≅_ ; _st_ ; IsoFor ; MkIsoFor)
 open _st_
 
-open import FuncCells3 using ( Chain ; 𝔻 )
+record Chain : Set₁ where
+  constructor MkChain
+  field
+    𝕏 : (n : ℕ) → Set
+    δ : (n : ℕ) → 𝕏 (suc n) → 𝕏 n  → Set
 
 module FixChain (χ : Chain) (X : Set) where
   open Chain χ
@@ -31,7 +35,7 @@ module FixChain (χ : Chain) (X : Set) where
   ModelUpto 0 = ⊤
   ModelUpto (suc n) = Σ (ModelUpto n) (λ M → (c : 𝕏 n) → Cell n M c)
 
-  Partial n M d = (c : 𝕏 n) (m : δ (suc (suc n)) d c) → Cell n (proj₁ M) c
+  Partial n M d = (c : 𝕏 n) (m : δ n d c) → Cell n (proj₁ M) c
 
   Restrict n M d c m = proj₂ M c
   data AllEq (n : ℕ) where
