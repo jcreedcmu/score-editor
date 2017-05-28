@@ -18,7 +18,6 @@ module FixChain (χ : Chain) (X : Set) where
 {-- decls --}
 
   ModelUpto : (n : ℕ) → Set
-  ModelAt : (n : ℕ) (M : ModelUpto n) → Set
   Cell : (n : ℕ) (M : ModelUpto n) (c : 𝕏 n) → Set
   Partial : (n : ℕ) (M : ModelUpto (suc n)) (d : 𝕏 (suc n)) → Set
   Restrict : (n : ℕ) (M : ModelUpto (suc n)) (d : 𝕏 (suc n)) → Partial n M d
@@ -30,9 +29,7 @@ module FixChain (χ : Chain) (X : Set) where
 {-- defns --}
 
   ModelUpto 0 = ⊤
-  ModelUpto (suc n) = Σ (ModelUpto n) (ModelAt n)
-
-  ModelAt n M = (c : 𝕏 n) → Cell n M c
+  ModelUpto (suc n) = Σ (ModelUpto n) (λ M → (c : 𝕏 n) → Cell n M c)
 
   Partial n M d = (c : 𝕏 n) (m : δ (suc (suc n)) d c) → Cell n (proj₁ M) c
 
