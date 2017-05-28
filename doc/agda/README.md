@@ -72,6 +72,7 @@ And the rough progression of ideas from earliest to latest is
 	FuncCells2.agda -- May 23, a more concrete version with chosen 2-fibers
 	FuncCells2Examples.agda -- May 23, some constructions of chains
 	FuncCells3.agda -- May 24, can *compute* fibers given base graph!
+	TopCells.agda -- May 28, topological realization of cells, maybe?
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
