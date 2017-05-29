@@ -24,6 +24,7 @@ module FixGraph (χ : Graph) (X : Set) where
       point : 𝕍 → X
       cell : (v : 𝕍) → ==i (point v) (λ (we : Σ 𝕍 (𝔼 v)) → point (fst we))
 open FixGraph
+open FixGraph public using ( Model )
 
 {--- define the circle via some cells ---}
 
@@ -98,48 +99,4 @@ module FixModel {χ : Graph} {X : Set} (M : Model χ X) where
   graphPath va vb vm dom cod = lemma va vb vm (λ we → point (fst we)) dom cod (cell vm) where
     lemma : (va vb vm : 𝕍) (f : (Σ 𝕍 (𝔼 vm)) → X) (dom : 𝔼 vm va) (cod : 𝔼 vm vb) → ==i (point vm) f → f (va , dom) == f (vb , cod)
     lemma va vb vm f dom cod refli = idp
-open FixModel
-
-{--- prove them equiv ---}
-
-modelInCirc : Model ○gr ○
-modelInCirc = record { point = point ; cell = cell } where
-  open Graph ○gr
-  point : 𝕍 → ○
-  point vn = north
-  point vs = south
-  point ve = (pointOfPath east)
-  point vw = (pointOfPath west)
-
-  cell : (v : 𝕍) → ==i (point v) (λ (we : Σ 𝕍 (𝔼 v)) → point (fst we))
-  cell v =  coe (ap (==i (point v)) (λ= (subgoal v))) refli where
-    subgoal : (v : 𝕍) (we : Σ 𝕍 (𝔼 v)) → point v == point (fst we)
-    subgoal ve (vn , ene) = pointOfPathDom east
-    subgoal ve (vs , ese) = pointOfPathCod east
-    subgoal vw (vn , enw) = pointOfPathDom west
-    subgoal vw (vs , esw) = pointOfPathCod west
-    -- note no cases for subgoal vn, subgoal vs
-
-thm : (X : Set) → Model ○gr X ≃ (○ → X)
-thm X = modelToLoop , record { g = loopToModel ; f-g = f-g ; g-f = g-f ; adj = adj } where
-  modelToLoop : Model ○gr X → ○ → X
-  modelToLoop M = ○-elim  {λ x → X} (point vn) (point vs) eastEdge westEdge where
-    open Model M
-    eastEdge = pathToOver east (graphPath M vn vs ve ene ese)
-    westEdge = pathToOver west (graphPath M vn vs vw enw esw)
-
-  loopToModel : (○ → X) → Model ○gr X
-  loopToModel f = record { point = λ v → f (point v) ; cell = λ v → api f (cell v) } where
-    open Model modelInCirc
-
-  f-g : (f : ○ → X) → modelToLoop (loopToModel f) == f
-  f-g f = λ= lemma where
-    lemma : (c : ○) → modelToLoop (loopToModel f) c == f c
-    lemma = {!!} -- use ○ induction
-
-  g-f : (M : Model ○gr X) → loopToModel (modelToLoop M) == M
-  g-f record { point = point ; cell = cell } = {!!}
-
-  adj : (a : Model ○gr X) →
-        ap modelToLoop (g-f a) == f-g (modelToLoop a)
-  adj = {!!}
+open FixModel public
