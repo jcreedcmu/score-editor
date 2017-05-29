@@ -132,11 +132,13 @@ thm X = modelToLoop , record { g = loopToModel ; f-g = f-g ; g-f = g-f ; adj = a
   loopToModel f = record { point = λ v → f (point v) ; cell = λ v → api f (cell v) } where
     open Model modelInCirc
 
-  f-g : (b : ○ → X) → modelToLoop (loopToModel b) == b
-  f-g = {!!}
+  f-g : (f : ○ → X) → modelToLoop (loopToModel f) == f
+  f-g f = λ= lemma where
+    lemma : (c : ○) → modelToLoop (loopToModel f) c == f c
+    lemma = {!!} -- use ○ induction
 
-  g-f : (a : Model ○gr X) → loopToModel (modelToLoop a) == a
-  g-f = {!!}
+  g-f : (M : Model ○gr X) → loopToModel (modelToLoop M) == M
+  g-f record { point = point ; cell = cell } = {!!}
 
   adj : (a : Model ○gr X) →
         ap modelToLoop (g-f a) == f-g (modelToLoop a)
