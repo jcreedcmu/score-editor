@@ -87,6 +87,9 @@ pointOfPathDom {A} {a} {.a} idp = idp
 pointOfPathCod : {A : Set} {a b : A} (p : a == b) → pointOfPath p == b
 pointOfPathCod {A} {a} {.a} idp = idp
 
+api : {A B C : Set} {b : B} {k : A → B} (f : B → C) → ==i b k → ==i (f b) (f ∘ k)
+api f refli = refli
+
 module FixModel {χ : Graph} {X : Set} (M : Model χ X) where
   open Graph χ
   open Model M
@@ -99,33 +102,42 @@ open FixModel
 
 {--- prove them equiv ---}
 
-thm : (X : Set) → Model ○gr X ≃ (○ → X)
-thm X = modelToCirc , record { g = circToModel ; f-g = {!f-g!} ; g-f = {!!} ; adj = {!!} } where
+modelInCirc : Model ○gr ○
+modelInCirc = record { point = point ; cell = cell } where
   open Graph ○gr
+  point : 𝕍 → ○
+  point vn = north
+  point vs = south
+  point ve = (pointOfPath east)
+  point vw = (pointOfPath west)
 
-  modelToCirc : Model ○gr X → ○ → X
-  modelToCirc M = ○-elim  {λ x → X} (point vn) (point vs) eastEdge westEdge where
+  cell : (v : 𝕍) → ==i (point v) (λ (we : Σ 𝕍 (𝔼 v)) → point (fst we))
+  cell v =  coe (ap (==i (point v)) (λ= (subgoal v))) refli where
+    subgoal : (v : 𝕍) (we : Σ 𝕍 (𝔼 v)) → point v == point (fst we)
+    subgoal ve (vn , ene) = pointOfPathDom east
+    subgoal ve (vs , ese) = pointOfPathCod east
+    subgoal vw (vn , enw) = pointOfPathDom west
+    subgoal vw (vs , esw) = pointOfPathCod west
+    -- note no cases for subgoal vn, subgoal vs
+
+thm : (X : Set) → Model ○gr X ≃ (○ → X)
+thm X = modelToLoop , record { g = loopToModel ; f-g = f-g ; g-f = g-f ; adj = adj } where
+  modelToLoop : Model ○gr X → ○ → X
+  modelToLoop M = ○-elim  {λ x → X} (point vn) (point vs) eastEdge westEdge where
     open Model M
     eastEdge = pathToOver east (graphPath M vn vs ve ene ese)
     westEdge = pathToOver west (graphPath M vn vs vw enw esw)
 
-  circToModel : (○ → X) → Model ○gr X
-  circToModel f = record { point = point ; cell = cell } where
-    point : 𝕍 → X
-    point vn = f north
-    point vs = f south
-    point ve = f (pointOfPath east)
-    point vw = f (pointOfPath west)
+  loopToModel : (○ → X) → Model ○gr X
+  loopToModel f = record { point = λ v → f (point v) ; cell = λ v → api f (cell v) } where
+    open Model modelInCirc
 
-    cell : (v : 𝕍) → ==i (point v) (λ (we : Σ 𝕍 (𝔼 v)) → point (fst we))
-    cell v =  coe (ap (==i (point v)) (λ= (subgoal v))) refli where
-      subgoal : (v : 𝕍) (we : Σ 𝕍 (𝔼 v)) → point v == point (fst we)
-      subgoal ve (vn , ene) = ap f (pointOfPathDom east)
-      subgoal ve (vs , ese) = ap f (pointOfPathCod east)
-      subgoal vw (vn , enw) = ap f (pointOfPathDom west)
-      subgoal vw (vs , esw) = ap f (pointOfPathCod west)
-      -- note no cases for subgoal vn, subgoal vs
-
-
-  f-g : (b : ○ → X) → modelToCirc (circToModel b) == b
+  f-g : (b : ○ → X) → modelToLoop (loopToModel b) == b
   f-g = {!!}
+
+  g-f : (a : Model ○gr X) → loopToModel (modelToLoop a) == a
+  g-f = {!!}
+
+  adj : (a : Model ○gr X) →
+        ap modelToLoop (g-f a) == f-g (modelToLoop a)
+  adj = {!!}
