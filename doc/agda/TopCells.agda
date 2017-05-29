@@ -1,51 +1,131 @@
+{-# OPTIONS --without-K --rewriting #-}
+
 module TopCells where
 
-open import Level using (_⊔_)
-open import Data.Nat hiding (_⊔_)
-open import Data.Unit
-open import Data.Product
-open import Relation.Binary.PropositionalEquality using (_≡_)
-open import Data.Empty
-open import Data.Sum renaming ( _⊎_ to _⊕_ )
-open import BoolUtil using (_≅_ ; _st_ ; IsoFor ; MkIsoFor)
-open _st_
+open import HoTT hiding ( _$_ ; north ; south ) renaming ( Type to _Type )
 
-record Chain : Set₁ where
-  constructor MkChain
+{--- general way of specifying HITs? ---}
+
+record Graph : Set₁ where
+  constructor MkGraph
   field
-    𝕏 : (n : ℕ) → Set
-    δ : (n : ℕ) → 𝕏 (suc n) → 𝕏 n  → Set
+    𝕍 : Set
+    𝔼 : 𝕍 → 𝕍 → Set
 
-module FixChain (χ : Chain) (X : Set) where
-  open Chain χ
+data ==i {A : Set} {B : Set} : B → (f : A → B) → Set where
+  refli : {b : B} → ==i b (λ _ → b)
+-- (==i b (λ a → f a) means "b and all the f a are simultaneously equal")
 
-{-- decls --}
+module FixGraph (χ : Graph) (X : Set) where
+  open Graph χ
 
-  ModelUpto : (n : ℕ) → Set
-  Cell : (n : ℕ) (M : ModelUpto n) (c : 𝕏 n) → Set
-  Partial : (n : ℕ) (M : ModelUpto (suc n)) (d : 𝕏 (suc n)) → Set
-  Restrict : (n : ℕ) (M : ModelUpto (suc n)) (d : 𝕏 (suc n)) → Partial n M d
-  data AllEq (n : ℕ) : (M : ModelUpto (suc n)) (d : 𝕏 (suc n)) → Partial n M d → Set
+  record Model : Set where
+    field
+      point : 𝕍 → X
+      cell : (v : 𝕍) → ==i (point v) (λ (we : Σ 𝕍 (𝔼 v)) → point (fst we))
+open FixGraph
 
-  idModel : X → (n : ℕ) → ModelUpto n
-  idCell : (x : X) → (n : ℕ) (c : 𝕏 n) → Cell n (idModel x n) c
+{--- define the circle via some cells ---}
 
-{-- defns --}
+data ○vert : Set where
+  vn vs ve vw : ○vert
 
-  ModelUpto 0 = ⊤
-  ModelUpto (suc n) = Σ (ModelUpto n) (λ M → (c : 𝕏 n) → Cell n M c)
+data ○edge : ○vert → ○vert → Set where
+  enw : ○edge vw vn
+  esw : ○edge vw vs
+  ene : ○edge ve vn
+  ese : ○edge ve vs
 
-  Partial n M d = (c : 𝕏 n) (m : δ n d c) → Cell n (proj₁ M) c
+○gr : Graph
+○gr = MkGraph ○vert ○edge
 
-  Restrict n M d c m = proj₂ M c
-  data AllEq (n : ℕ) where
-    aeid : (x : X) (c : 𝕏 (suc n)) → AllEq n (idModel x (suc n)) c (Restrict n (idModel x (suc n)) c)
+{--- define the circle in a way that is hopefully convenient ---}
 
-  Cell zero M c = X
-  Cell (suc n) M c = AllEq n M c (Restrict n M c)
+module _ where
 
-  idModel x zero = tt
-  idModel x (suc n) = (idModel x n) , (idCell x n)
+  postulate  -- HIT
+    ○ : Set
 
-  idCell x zero c = x
-  idCell x (suc n) c = aeid x c
+  module _ where
+
+    postulate  -- HIT
+      north south : ○
+      east west : north == south
+
+  module ○Elim {P : ○ → Set}
+    (n* : P north)
+    (s* : P south)
+    (e* : n* == s*  [ P ↓ east ])
+    (w* : n* == s*  [ P ↓ west ]) where
+
+    postulate  -- HIT
+      f : Π (○) P
+      n-β : f north ↦ n*
+      s-β : f south ↦ s*
+    {-# REWRITE n-β #-}
+    {-# REWRITE s-β #-}
+
+    postulate -- HIT
+      e-β : apd f east ↦ e*
+      w-β : apd f west ↦ w*
+    {-# REWRITE e-β #-}
+    {-# REWRITE w-β #-}
+
+○-elim = ○Elim.f
+
+{--- some lemmas ---}
+
+pathToOver : {A X : Set} {a b : A} {x y : X} (p : a == b) → x == y → x == y [ (λ _ → X) ↓ p ]
+pathToOver idp idp = idp
+
+pointOfPath : {A : Set} {a b : A} → a == b → A
+pointOfPath {A} {a} {.a} idp = a
+
+pointOfPathDom : {A : Set} {a b : A} (p : a == b) → pointOfPath p == a
+pointOfPathDom {A} {a} {.a} idp = idp
+
+pointOfPathCod : {A : Set} {a b : A} (p : a == b) → pointOfPath p == b
+pointOfPathCod {A} {a} {.a} idp = idp
+
+module FixModel {χ : Graph} {X : Set} (M : Model χ X) where
+  open Graph χ
+  open Model M
+
+  graphPath : (va vb vm : 𝕍) (dom : 𝔼 vm va) (cod : 𝔼 vm vb) → point va == point vb
+  graphPath va vb vm dom cod = lemma va vb vm (λ we → point (fst we)) dom cod (cell vm) where
+    lemma : (va vb vm : 𝕍) (f : (Σ 𝕍 (𝔼 vm)) → X) (dom : 𝔼 vm va) (cod : 𝔼 vm vb) → ==i (point vm) f → f (va , dom) == f (vb , cod)
+    lemma va vb vm f dom cod refli = idp
+open FixModel
+
+{--- prove them equiv ---}
+
+thm : (X : Set) → Model ○gr X ≃ (○ → X)
+thm X = modelToCirc , record { g = circToModel ; f-g = {!f-g!} ; g-f = {!!} ; adj = {!!} } where
+  open Graph ○gr
+
+  modelToCirc : Model ○gr X → ○ → X
+  modelToCirc M = ○-elim  {λ x → X} (point vn) (point vs) eastEdge westEdge where
+    open Model M
+    eastEdge = pathToOver east (graphPath M vn vs ve ene ese)
+    westEdge = pathToOver west (graphPath M vn vs vw enw esw)
+
+  circToModel : (○ → X) → Model ○gr X
+  circToModel f = record { point = point ; cell = cell } where
+    point : 𝕍 → X
+    point vn = f north
+    point vs = f south
+    point ve = f (pointOfPath east)
+    point vw = f (pointOfPath west)
+
+    cell : (v : 𝕍) → ==i (point v) (λ (we : Σ 𝕍 (𝔼 v)) → point (fst we))
+    cell v =  coe (ap (==i (point v)) (λ= (subgoal v))) refli where
+      subgoal : (v : 𝕍) (we : Σ 𝕍 (𝔼 v)) → point v == point (fst we)
+      subgoal ve (vn , ene) = ap f (pointOfPathDom east)
+      subgoal ve (vs , ese) = ap f (pointOfPathCod east)
+      subgoal vw (vn , enw) = ap f (pointOfPathDom west)
+      subgoal vw (vs , esw) = ap f (pointOfPathCod west)
+      -- note no cases for subgoal vn, subgoal vs
+
+
+  f-g : (b : ○ → X) → modelToCirc (circToModel b) == b
+  f-g = {!!}
