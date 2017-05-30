@@ -12,19 +12,44 @@ record Graph : Set₁ where
     𝕍 : Set
     𝔼 : 𝕍 → 𝕍 → Set
 
-data Gr : Set → Set₁ where
-  gnil : Gr ⊤
-  gcons : (Lo Hi : Set) (∂ : Hi → Lo → Set) → Gr Lo → Gr Hi
+data Gr : {n : ℕ} → Set → Set₁ where
+  gnil : (Hi : Set) → Gr {0} Hi
+  gcons : {n : ℕ} (Lo Hi : Set) (∂ : Hi → Lo → Set) → Gr {n} Lo → Gr {S n} Hi
 
+
+_⋆_ : {Hi Lo : Set} (∂ : Hi → Set) (∂' : Hi → Lo → Set) → Lo → Set
+∂ ⋆ ∂' = λ ℓ → Σ _ (λ h → ∂' h ℓ × ∂ h)
+
+ResG : {n : ℕ} {Lo : Set} (∂ : Lo → Set) → Gr {n} Lo → Gr {n} (Σ Lo ∂)
+ResG ∂ (gnil Hi) = gnil (Σ Hi ∂)
+ResG ∂ (gcons Lo Hi ∂' G) = gcons (Σ Lo (∂ ⋆ ∂')) (Σ Hi ∂) (λ h ℓ → ∂' (fst h) (fst ℓ)) (ResG (∂ ⋆ ∂') G) where
 
 module GFixX (X : Set) where
-  Mod : {Hi : Set} → Gr Hi → Set
-  Id : (x : X) {Hi : Set} (G : Gr Hi) → Mod G
+  Mod : {n : ℕ} {Hi : Set} → Gr {n} Hi → Set
+  Id : {n : ℕ} (x : X) {Hi : Set} (G : Gr {n} Hi) → Mod {n} G
+  Res : {n : ℕ} {Lo : Set} (∂ : Lo → Set) (G : Gr {n} Lo) → Mod {n} G → Mod {n} (ResG ∂ G)
+  IdRes : {n : ℕ} (x : X) {Hi : Set} (G : Gr {n} Hi) (∂ : Hi → Set) → Res ∂ G (Id x G) == Id x (ResG ∂ G)
 
-  Mod gnil = ⊤
-  Mod (gcons Lo Hi ∂ G') = {!!}
-  Id x gnil = tt
-  Id x (gcons Lo Hi ∂ G') = {!!}
+  Mod (gnil Hi) = Hi → X
+  Mod (gcons Lo Hi ∂ G) = Σ (Mod G) (λ M → (h : Hi) → Σ X (λ x → Res (∂ h) G M == Id x (ResG (∂ h) G)))
+  Id x (gnil Hi) = (λ _ → x)
+  Id x (gcons Lo Hi ∂ G) = (Id x G) , (λ h → x , IdRes x G (∂ h))
+  Res ∂ (gnil Hi) M = M ∘ fst
+  Res ∂ (gcons Lo Hi ∂' G) M = (Res (∂ ⋆ ∂') G (fst M)) , pfs where
+    ∂2 : Lo → Set
+    ∂2 = ∂ ⋆ ∂'
+    ∂* : Σ Hi ∂ → Σ Lo ∂2 → Set
+    ∂* h = λ ℓ → ∂' (fst h) (fst ℓ)
+    G* : Gr (Σ Lo ∂2)
+    G* = ResG ∂2 G
+    pfs : (h : Σ Hi ∂) → Σ X (λ x → Res (∂* h) G* (Res ∂2 G (fst M)) == Id x (ResG (∂* h) G*))
+    pfs h = (fst (snd M (fst h))) , ap (Res ∂*h G*) (ap (Res ∂2 G) {!!} ∙ IdRes x* G ∂2) ∙ IdRes x* G* ∂*h where
+      ∂*h = ∂* h
+      x* : X
+      x* = fst (snd M (fst h))
+
+  IdRes x (gnil Hi) ∂ = idp
+  IdRes x (gcons Lo Hi ∂ G) ∂₁ = {!!}
 
 record ⊙Set : Set₁ where
   constructor Mk⊙Set
