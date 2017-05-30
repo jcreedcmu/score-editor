@@ -74,6 +74,7 @@ And the rough progression of ideas from earliest to latest is
 	FuncCells3.agda -- May 24, can *compute* fibers given base graph!
 	TopCells.agda -- May 28, topological realization of cells, maybe?
 	TopCellsPf.agda -- May 29, prove that it works for representing S1
+	TopCellsFix.agda -- May 30, trying to fix the (spatial!) gaps in TopCells.agda
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
