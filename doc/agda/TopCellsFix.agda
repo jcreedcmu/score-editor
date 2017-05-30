@@ -15,15 +15,12 @@ record Gr : Set₁ where
 module FixGr (X : Set) (G : Gr) where
   open Gr G
   Mod : {n : ℕ} → Set
-  data Located (x : X) : {n : ℕ} (M : Mod {n}) (w : 𝕍) → Set
+  Located : (x : X) {n : ℕ} (M : Mod {n}) (w : 𝕍) → Set
 
 {--- declarations above, definitions below ---}
 
   Mod {0} = ⊤
   Mod {S n} = Σ (Mod {n}) (λ M → (v : 𝕍) → Σ X (λ x → Located x M v))
 
-  data Located (x : X) where
-    ℓ0 : {w : 𝕍} → Located x tt w
-    ℓn : {n : ℕ} {M : Mod {S n}} {w : 𝕍} →
-      ((v : 𝕍) (m : 𝔼 w v) → Σ (Located x {n} (fst M) v) (λ ℓ → (x , ℓ) == snd M v)) →
-      Located x M w
+  Located x {0} M w = ⊤
+  Located x {S n} M w = (v : 𝕍) (m : 𝔼 w v) → Σ (Located x {n} (fst M) v) (λ ℓ → (x , ℓ) == snd M v)
