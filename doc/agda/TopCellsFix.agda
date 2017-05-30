@@ -20,7 +20,18 @@ module FixGr (X : Set) (G : Gr) where
 {--- declarations above, definitions below ---}
 
   Mod {0} = ⊤
-  Mod {S n} = Σ (Mod {n}) (λ M → (v : 𝕍) → Σ X (Located M v))
+  Mod {S n} = Σ (Mod {n}) (λ M → (w : 𝕍) → Σ X (Located {n} M w))
 
   Located {0} M w x = ⊤
-  Located {S n} M w x = (v : 𝕍) (m : 𝔼 w v) → Σ (Located (fst M) v x) (λ ℓ → (x , ℓ) == snd M v)
+  Located {S n} M w x = (v : 𝕍) (m : 𝔼 w v) → Σ (Located {n} (fst M) v x) (λ ℓ → (x , ℓ) == snd M v)
+
+{-
+
+Mod 1 == 𝕍 → X
+Located 1 (M : Mod 1) w x == (v : 𝕍) (m : 𝔼 w v) → (x == M v)
+
+Mod 2 == Σ (𝕍 → X) (λ M → (w : 𝕍) → Σ X (Located 1 M w))
+Located 2 (M : Mod 2) w x == (v : 𝕍) (m : 𝔼 w v) → Σ (Located {1} (fst M) v x) (λ ℓ → (x , ℓ) == snd M v)
+
+
+-}
