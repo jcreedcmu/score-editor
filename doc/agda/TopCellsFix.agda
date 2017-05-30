@@ -2,7 +2,7 @@
 
 module TopCellsFix where
 
-open import HoTT hiding ( _$_ ; north ; south ) renaming ( Type to _Type )
+open import HoTT
 
 record Gr : Set₁ where
   constructor MkGraph
@@ -15,12 +15,12 @@ record Gr : Set₁ where
 module FixGr (X : Set) (G : Gr) where
   open Gr G
   Mod : {n : ℕ} → Set
-  Located : (x : X) {n : ℕ} (M : Mod {n}) (w : 𝕍) → Set
+  Located : {n : ℕ} (M : Mod {n}) (w : 𝕍) (x : X) → Set
 
 {--- declarations above, definitions below ---}
 
   Mod {0} = ⊤
-  Mod {S n} = Σ (Mod {n}) (λ M → (v : 𝕍) → Σ X (λ x → Located x M v))
+  Mod {S n} = Σ (Mod {n}) (λ M → (v : 𝕍) → Σ X (Located M v))
 
-  Located x {0} M w = ⊤
-  Located x {S n} M w = (v : 𝕍) (m : 𝔼 w v) → Σ (Located x {n} (fst M) v) (λ ℓ → (x , ℓ) == snd M v)
+  Located {0} M w x = ⊤
+  Located {S n} M w x = (v : 𝕍) (m : 𝔼 w v) → Σ (Located (fst M) v x) (λ ℓ → (x , ℓ) == snd M v)
