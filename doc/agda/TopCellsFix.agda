@@ -19,11 +19,11 @@ module FixGr (X : Set) (G : Gr) where
 
 {--- declarations above, definitions below ---}
 
-  Mod {O} = 𝕍 → X
+  Mod {0} = ⊤
   Mod {S n} = Σ (Mod {n}) (λ M → (v : 𝕍) → Σ X (λ x → Located x M v))
 
   data Located (x : X) where
-    ℓ0 : {M : Mod {0}} {w : 𝕍} → ((v : 𝕍) → 𝔼 w v → M v == x) → Located x {0} M w
+    ℓ0 : {w : 𝕍} → Located x tt w
     ℓn : {n : ℕ} {M : Mod {S n}} {w : 𝕍} →
       ((v : 𝕍) (m : 𝔼 w v) → Σ (Located x {n} (fst M) v) (λ ℓ → (x , ℓ) == snd M v)) →
-      Located x {S n} M w
+      Located x M w
