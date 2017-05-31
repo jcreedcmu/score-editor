@@ -10,18 +10,19 @@ data Gr : (C : Set) → Set₁ where
 
 module FixX (X : Set) where
 
+  data RawMod : {C : Set} (G : Gr C) → Set₁
+  data RawMod where
+    rnil : RawMod gnil
+    rcons : {C D : Set} {G : Gr D} {δ : (C → D → Set)}
+      (R : RawMod G) (xofc : C → X) → RawMod (gcons C δ G)
+
 {--- mutual recursive declarations: ---}
 
-  data RawMod : {C : Set} (G : Gr C) → Set₁
   data Mod : {C : Set} {G : Gr C} (R : RawMod G) → Set₁
   Located : {C : Set} (G : Gr C) {R : RawMod G} (M : Mod R) (∂ : C → Set) (x : X) → Set
 
 {--- declarations above, definitions below ---}
 
-  data RawMod where
-    rnil : RawMod gnil
-    rcons : {C D : Set} {G : Gr D} {δ : (C → D → Set)}
-      (R : RawMod G) (xofc : C → X) → RawMod (gcons C δ G)
 
   data Mod where
     mnil : Mod rnil
