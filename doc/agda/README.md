@@ -75,6 +75,7 @@ And the rough progression of ideas from earliest to latest is
 	TopCells.agda -- May 28, topological realization of cells, maybe?
 	TopCellsPf.agda -- May 29, prove that it works for representing S1
 	TopCellsFix.agda -- May 30, trying to fix the (spatial!) gaps in TopCells.agda
+	TopCellsProgressive.agda -- May 31, I think I like this pretty well
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
