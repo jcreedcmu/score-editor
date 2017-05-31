@@ -61,6 +61,73 @@ module Version2 where
 
     Located mnil fnil x = ⊤
     Located {gcons G δ} {rcons R x0} (mcons M ℓ0) (fcons ∂ δ0) x = (Located M δ0 x) × ((m : ∂) → Σ (Located M δ x) (λ ℓ → (x , ℓ) == (x0 , ℓ0)))
+  open FixX
 
-  ○gr : Gr
-  ○gr = gcons (gcons gnil fnil) (fcons Bool fnil)
+  module _ where
+
+    postulate  -- HIT
+      ○ : Set
+
+    module _ where
+
+      postulate  -- HIT
+        ○pt : ○
+        ○path : ○pt == ○pt
+
+    module ○Elim {P : ○ → Set}
+      (pt* : P ○pt)
+      (path* : pt* == pt* [ P ↓ ○path ]) where
+
+      postulate  -- HIT
+        f : Π (○) P
+        pt-β : f ○pt ↦ pt*
+      {-# REWRITE pt-β #-}
+
+      postulate -- HIT
+        path-β : apd f ○path ↦ path*
+      {-# REWRITE path-β #-}
+
+  ○-elim = ○Elim.f
+
+  ●gr : Gr
+  ●gr = gcons (gcons gnil fnil) (fcons Bool fnil)
+
+  ○R : RawMod ○ ●gr
+  ○R = rcons (rcons rnil ○pt) ○pt
+
+  id↓ : {A C : Set} (a b : A) (c : C) (p : a == b) → c == c [ (λ _ → C) ↓ p ]
+  id↓ a b c idp = idp
+
+  ○M : Mod ○ ○R
+  ○M = mcons (mcons mnil tt) (tt , (λ m → tt , (pair= ○path (id↓ ○pt ○pt tt ○path))))
+
+  {--- Defining the circle as the thing whose homs into X are ●gr-models ---}
+
+  postulate
+    ● : Set
+    ●! : (X : Set) → (Σ (RawMod X ●gr) (λ R → Mod X R)) ≃ (● → X)
+
+  ●J1 : Σ (RawMod ● ●gr) (λ R → Mod ● R)
+  ●J1 = <– (●! ●) (idf ●)
+
+  ●R1 : RawMod ● ●gr
+  ●R1 = fst ●J1
+
+  ●M1 : Mod ● ●R1
+  ●M1 = snd ●J1
+
+  thm : ● ≃ ○
+  thm = equiv into out zig zag where
+    into : ● → ○
+    into = –> (●! ○) mod where
+      mod : Σ (RawMod ○ ●gr) (λ R → Mod ○ R)
+      mod = ○R , ○M
+
+    out : ○ → ●
+    out = ○-elim {P = (λ _ → ●)} {!!} {!!}
+
+    zig : (b : ○) → into (out b) == b
+    zig = {!!}
+
+    zag : (a : ●) → out (into a) == a
+    zag = {!!}
