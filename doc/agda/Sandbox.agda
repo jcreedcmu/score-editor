@@ -25,6 +25,48 @@ data f2eq {X : Set} : (a b c : X)
     (r : req Bool (bf a c)) → Set where
     f2refl : (x : X) → f2eq x x x (kreq x) (kreq x) (kreq x)
 
+data 𝕍 : Set where
+  𝕍a 𝕍b 𝕍c 𝕍d : 𝕍
+
+data 𝔼 : Set where
+  𝔼f 𝔼g 𝔼h 𝔼k 𝔼m : 𝔼
+
+data 𝔽 : Set where
+  𝔽α 𝔽β : 𝔽
+
+∂ev : 𝔼 → 𝕍 → Set
+∂ev 𝔼f 𝕍a = ⊤
+∂ev 𝔼f 𝕍b = ⊤
+∂ev 𝔼k 𝕍a = ⊤
+∂ev 𝔼k 𝕍d = ⊤
+∂ev 𝔼h 𝕍b = ⊤
+∂ev 𝔼h 𝕍d = ⊤
+∂ev 𝔼g 𝕍b = ⊤
+∂ev 𝔼g 𝕍c = ⊤
+∂ev 𝔼m 𝕍d = ⊤
+∂ev 𝔼m 𝕍c = ⊤
+∂ev _ _ = ⊥
+
+∂fe : 𝔽 → 𝔼 → Set
+∂fe 𝔽α 𝔼f = ⊤
+∂fe 𝔽α 𝔼h = ⊤
+∂fe 𝔽α 𝔼k = ⊤
+∂fe 𝔽β 𝔼g = ⊤
+∂fe 𝔽β 𝔼h = ⊤
+∂fe 𝔽β 𝔼m = ⊤
+∂fe _ _ = ⊥
+
+∂fv : 𝔽 → 𝕍 → Set
+∂fv 𝔽α 𝕍a = ⊤
+∂fv 𝔽α 𝕍b = ⊤
+∂fv 𝔽α 𝕍d = ⊤
+∂fv 𝔽β 𝕍b = ⊤
+∂fv 𝔽β 𝕍d = ⊤
+∂fv 𝔽β 𝕍c = ⊤
+∂fv _ _ = ⊥
+
+data f3eq ({X} 𝕍 𝔼 : Set) (∂ : 𝔼 → 𝕍 → Set) : (vm : 𝕍 → X) (em : (e : 𝔼) → feq (Σ 𝕍 (∂ e)) (vm ∘ fst)) → Set where
+  f3refl : (x : X) → f3eq 𝕍 𝔼 ∂ (λ _ → x) (λ _ → frefl x)
 
 module FixX (X : Set) where
   record Bundle1 : Set₁ where
@@ -49,6 +91,17 @@ module FixX (X : Set) where
       Em : req Bool (bf VD VC)
       Fα : f2eq VA VB VD Ef Eh Ek
       Fβ : f2eq VB VD VC Eh Em Eg
+
+  record EyeMod2 : Set where
+    field
+      2V : 𝕍 → X
+      2E : (e : 𝔼) → feq (Σ 𝕍 (∂ev e)) (2V ∘ fst)
+
+  Foo : Set
+  Foo =
+    (2V : 𝕍 → X)
+    (2E : (e : 𝔼) → feq (Σ 𝕍 (∂ev e)) (2V ∘ fst))
+    (f : 𝔽) → f3eq {X} (Σ 𝕍 (∂fv f)) (Σ 𝔼 (∂fe f)) (λ e v → ∂ev (fst e) (fst v)) (2V ∘ fst) (λ e → {!!})
 
   data Gr : Set₁ where
     gnil : Gr
