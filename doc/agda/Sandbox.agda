@@ -10,8 +10,11 @@ data feq {X : Set} (𝕀 : Set) : (fam : 𝕀 → X) → Set where
 data req {X : Set} (𝕀 : Set) : (fam : 𝕀 → X) → Set where
   rrefl : (x : X) (f : 𝕀 → X) (e : (i : 𝕀) → x == f i) → req 𝕀 f
 
+fequp : {X : Set} (𝕀 : Set) (δ : 𝕀 → Set) (fam : 𝕀 → X) (x : X) → Set
+fequp 𝕀 δ f x = feq (Σ 𝕀 δ) (f ∘ fst)
+
 data fequ {X : Set} (𝕀 : Set) (δ : 𝕀 → Set) : (fam : 𝕀 → X) → Set where
-  furefl : (x : X) (f : 𝕀 → X) → feq (Σ 𝕀 δ) (f ∘ fst) → fequ 𝕀 δ f
+  furefl : (x : X) (f : 𝕀 → X) → fequp 𝕀 δ f x → fequ 𝕀 δ f
 
 fequk : {X 𝕀 : Set} {δ : 𝕀 → Set} (x : X) → fequ 𝕀 δ (λ _ → x)
 fequk x = furefl x (λ _ → x) (frefl x)
@@ -24,9 +27,11 @@ data f3eq ({X} 𝕍 𝔼 : Set) (∂ : 𝔼 → 𝕍 → Set) : (vm : 𝕍 → X
   (em : (e : 𝔼) → fequ 𝕍 (∂ e) vm) → Set where
   f3refl : (x : X) → f3eq 𝕍 𝔼 ∂ (λ _ → x) (λ _ → fequk x)
 
--- data f3equ ({X} 𝕍 𝔼 : Set) (δev : 𝔼 → 𝕍 → Set) (δe : 𝔼 → Set) (δv : 𝕍 → Set)
---   : (vm : 𝕍 → X) (em : (e : 𝔼) → fequ 𝕍 (δev e) vm) → Set where
---   f3urefl : (x : X) →
+f3equp : ({X} 𝕍 𝔼 : Set) (δev : 𝔼 → 𝕍 → Set) (δe : 𝔼 → Set) (δv : 𝕍 → Set)
+    (vm : 𝕍 → X) (em : (e : 𝔼) → fequ 𝕍 (δev e) vm) → Set
+f3equp {X} 𝕍 𝔼 δev δe δv vm em =
+  f3eq {X} (Σ 𝕍 δv) (Σ 𝔼 δe) (λ e v → δev (fst e) (fst v)) (vm ∘ fst) {!!}
+
 
 data 𝕍 : Set where
   𝕍a 𝕍b 𝕍c 𝕍d : 𝕍
