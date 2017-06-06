@@ -1,50 +1,135 @@
 {-# OPTIONS --without-K --rewriting #-}
 
+{-
+
+data Bool : Set where
+  true : Bool
+  false : Bool
+
+if_then_else_ : ∀ {i} {A : Type i}
+  → Bool → A → A → A
+if true then t else e = t
+if false then t else e = e
+
+data Filt : (n : ℕ) → Set where
+  fnil : Filt 0
+  fcons : {n : ℕ} → Bool → Filt n → Filt (S n)
+
+data Gr : (n : ℕ) → Set where
+  lnil : Gr 0
+  lcons : {n : ℕ} → Gr n → Filt n → Gr (S n)
+
+_∧_ : Bool → Bool → Bool
+false ∧ _ = false
+_ ∧ false = false
+true ∧ true = true
+
+_⋆_ : {n : ℕ} → Filt n → Filt n → Filt n
+fnil ⋆ fnil = fnil
+(fcons b1 f1) ⋆ (fcons b2 f2) = fcons (b1 ∧ b2) (f1 ⋆ f2)
+
+postulate
+  ⋆comm : {n : ℕ} (f1 f2 : Filt n) → (f1 ⋆ f2) == (f2 ⋆ f1)
+
+module Fix {X : Set} where
+  Mod : {n : ℕ} → Gr n → Set
+  Cell : {n : ℕ} → (G : Gr n) (M : Mod G) (f : Filt n) → Set
+  CondCompat : (b : Bool) {n : ℕ} (G : Gr n) {M : Mod G} (f1 f2 : Filt n) (c1 : Cell G M f1) (c2 : Cell G M f2) → Set
+  Compat : {n : ℕ} (G : Gr n) {M : Mod G} (f1 f2 : Filt n) (c1 : Cell G M f1) (c2 : Cell G M f2) → Set -- f1 might say false when f2 says true
+  Res : {n : ℕ} (G : Gr n) {M : Mod G} ({f1} f2 : Filt n) (c2 : Cell G M f1) → Cell G M (f1 ⋆ f2)
+--  CondCompatLem : {n : ℕ} (G : Gr n) {fstM : Mod G} {f f1 f2 : Filt n} (ie : f1 ⊑ f2) (csndM : Cell G fstM f) (c0 : Cell G fstM f2) {b1 b2 : Bool}
+--    (b■ : b1 ■ b2)  → CondCompat b2 G f f2 csndM c0 → CondCompat b1 G f f1 csndM (Res G ie c0)
+  CompatLem : {n : ℕ} (G : Gr n) {M : Mod G} {f f1 f2 : Filt n} (mc : Cell G M f) (c0 : Cell G M f1)
+      → Compat G f f1 mc c0  → Compat G f (f1 ⋆ f2) mc (Res G f2 c0)
+
+
+
+  Mod lnil = ⊤
+  Mod (lcons G f) = Σ (Mod G) (λ M → Cell G M f)
+  CondCompat b G f1 f2 c1 c2 = if b then Compat G f1 f2 c1 c2 else ⊤
+  Cell lnil tt fnil = X
+  Cell (lcons G f1) (M , mc) (fcons b f2) = Σ (Cell G M f2) (CondCompat b G f1 f2 mc)
+  Compat G {M} f1 f2 c1 c2 = Res G f1 c2 == coe (ap (Cell G M) (⋆comm f1 f2)) (Res G f2 c1)
+  Res G {M} {fnil} fnil x = x
+  Res (lcons G fG) {M , mc} {fcons true f1} (fcons true f2) (c0 , compat) = Res G f2 c0 , CompatLem G mc c0 compat
+  Res (lcons G fG) {M , mc} {fcons true f1} (fcons false f2) (c0 , compat) = Res G f2 c0 , tt
+  Res (lcons G fG) {M , mc} {fcons false f1} (fcons b2 f2) (c0 , compat) = Res G f2 c0 , tt
+  CompatLem lnil {unit} {fnil} {fnil} {fnil} mc c0 compat = compat
+  CompatLem (lcons G x) {M , mc} {fcons b f} {fcons true f1} {fcons true f2} (mcc , mccompat) (c0c , c0compat) compat = {!!}
+  CompatLem (lcons G x) {M , mc} {fcons b f} {fcons false f1} {fcons b2 f2} (mcc , mccompat) (c0c , c0compat) compat = {!!}
+  CompatLem (lcons G x) {M , mc} {fcons b f} {fcons true f1} {fcons false f2} (mcc , mccompat) (c0c , c0compat) compat = {!!}
+
+
+
+open Fix
+
+## : Filt 0
+## = fnil
+
+_#_ : {n : ℕ} → Bool → Filt n → Filt (S n)
+_#_ = fcons
+infixr 20 _#_
+
+_⊞_ : {n : ℕ} → Filt n → Gr n → Gr (S n)
+_⊞_ f g = lcons g f
+infixr 19 _⊞_
+
+
+
+𝕀G0 = ## ⊞ lnil -- one vertex
+𝕀G1 = false # ## ⊞ ## ⊞ lnil -- two vertices
+𝕀G2 = true # true # ## ⊞ false # ## ⊞ ## ⊞ lnil -- two vertices which are equal
+
+q : {X : Set} (x y : X) (p : x == y) → Mod {X} 𝕀G2
+q {X} x y p = final where
+  m0 : Σ ⊤ (λ M → X) -- = Mod 𝕀G0
+  m0 = tt , x
+
+  m1 : Σ (Mod 𝕀G0) (λ M → Cell 𝕀G0 M (false # ##)) -- = Mod 𝕀G1
+  m1 = m0 , (y , tt)
+
+  c1 : Cell 𝕀G0 m0 (true # ##)
+  c1 = x , {!!}
+
+  c2 : Cell 𝕀G1 m1 (true # true # ##)
+  c2 = c1 , {!!}
+
+  final : Σ (Mod 𝕀G1) (λ M → Cell 𝕀G1 M (true # true # ##))
+  final = m1 , c2
+
+
+-}
+
 module Asdf where
 
 open import HoTT hiding (_≤_)
 
-postulate
-  Subset : Set → Set
-  Elt : {X : Set} → Subset X → Set
-  Real : {X : Set} {s : Subset X} → Elt s → X
-  Union : {X Y : Set} (fam1 : Subset X) (fam2 : X → Subset Y) → Subset Y
-  _≤_ : {X : Set} → Subset X → Subset X → Set
-  UnionSub : {C D : Set} (s : Subset C) (δ : C → Subset D) (σ : Elt s) → δ (Real σ) ≤ Union s δ
-  Union≤ : {C D : Set} (s1 s2 : Subset C) (δ : C → Subset D) → Union s1 δ ≤ Union s2 δ
-  ≤coe : {C : Set} {s1 s2 : Subset C} → s1 ≤ s2 → Elt s1 → Elt s2
-
-Res : {X Y : Set} → (X → Y) → (s : Subset X) → Elt s → Y
-Res f s e = f (Real e)
 
 data feq {X : Set} (𝕀 : Set) : (fam : 𝕀 → X) → Set where
   frefl : (x : X) → feq 𝕀 (λ _ → x)
 
-data Gr : (C : Set) → Set₁ where
-  gnil : Gr ⊤
-  gcons : (C {D} : Set) (δ : C → Subset D) (G : Gr D)  → Gr C
+data Opt (X : Set) : Set where
+  None : Opt X
+  Some : X → Opt X
 
 module Fix {X : Set} where
-  Mod : {C : Set} (G : Gr C) → Set
-  Cell : {C : Set} (G : Gr C) (M : Mod G) (s : Subset C) → Set
-  Compat : {C D : Set} {s : Subset C} (G : Gr D) {M : Mod G} {δ : C → Subset D} {σ : Elt s} → Cell G M (δ (Real σ)) → Cell G M (Union s δ) → Set
-  Compat2 : {C : Set} (G : Gr C) {M : Mod G} {s1 s2 : Subset C} → s1 ≤ s2 → Cell G M s1 → Cell G M s2 → Set
-  ResC : {C : Set} (G : Gr C) {M : Mod G} {s1 s2 : Subset C} → s1 ≤ s2 → Cell G M s2 → Cell G M s1
-  CompatLem : {C D : Set} (G : Gr D) {M : Mod G} {δ : C → Subset D} {s1 s2 : Subset C} (ie : s1 ≤ s2)
-     (mc : (c : C) → Cell G M (δ c)) (σ : Elt s1) (cc : Cell G M (Union s2 δ)) →
-     Compat G (mc (Real (≤coe ie σ))) cc → Compat G (mc (Real σ)) (ResC G (Union≤ s1 s2 δ) cc)
+  data Mod : Set
+  Cell : Mod → X → Set
+  IdCell : (M : Mod) (x : X) → Cell M x
+  ModPt : Mod → Set
+  Compat : {M : Mod} → ModPt M → X → Set
 
-  Mod (gnil) = ⊤
-  Mod (gcons C δ G) = Σ (Mod G) (λ M → (c : C) → Cell G M (δ c))
-  Cell (gnil) m s = X
-  Cell (gcons C δ G) (M , mc) s = Σ (Cell G M (Union s δ)) (λ oc → (σ : Elt s) → Compat G (mc (Real σ)) oc)
-  Compat {s = s} G {δ = δ} {σ} c1 c2 = Compat2 G (UnionSub s δ σ) c1 c2
-  Compat2 G ie c1 c2 = ResC G ie c2 == c1
-  ResC gnil ie c = c
-  ResC (gcons C δ G) {M , mc} {s1 = s1} {s2} ie (cc , compat) = ResC G (Union≤ s1 s2 δ) cc , (λ σ → CompatLem G ie mc σ cc (compat (≤coe ie σ)))
-  CompatLem G {M} {δ} {s1} {s2} ie mc σ cc compat = goal where
-    goal : ResC G (UnionSub s1 δ σ) (ResC G (Union≤ s1 s2 δ) cc) == (mc (Real σ))
-    goal = {!!}
+  data Mod where
+    mnil : Mod
+    mcons : (M : Mod) (x : X) (c : Cell M x) → Mod
 
-    have : ResC G (UnionSub s2 δ (≤coe ie σ)) cc == mc (Real (≤coe ie σ))
-    have = compat
+  Cell M x = (m : ModPt M) → Opt (Compat m x)
+
+  ModPt mnil = ⊥
+  ModPt (mcons M x c) = Opt (ModPt M)
+
+  Compat {mnil} ()
+  Compat {mcons M x1 c} None x2 = (x1 == x2) × (c == IdCell M x1)
+  Compat {mcons M x1 c} (Some mp) x2 = Compat {M} mp x2
+
+  IdCell = {!!}
