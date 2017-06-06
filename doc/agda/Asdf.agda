@@ -38,11 +38,8 @@ module Fix {X : Set} where
   Cell : {n : ℕ} → (G : Gr n) (M : Mod G) (f : Filt n) → Set
   CondCompat : (b : Bool) {n : ℕ} (G : Gr n) {M : Mod G} (f1 f2 : Filt n) (c1 : Cell G M f1) (c2 : Cell G M f2) → Set
   Compat : {n : ℕ} (G : Gr n) {M : Mod G} (f1 f2 : Filt n) (c1 : Cell G M f1) (c2 : Cell G M f2) → Set -- f1 might say false when f2 says true
-  Res : {n : ℕ} (G : Gr n) {M : Mod G} ({f1} f2 : Filt n) (c2 : Cell G M f1) → Cell G M (f1 ⋆ f2)
---  CondCompatLem : {n : ℕ} (G : Gr n) {fstM : Mod G} {f f1 f2 : Filt n} (ie : f1 ⊑ f2) (csndM : Cell G fstM f) (c0 : Cell G fstM f2) {b1 b2 : Bool}
---    (b■ : b1 ■ b2)  → CondCompat b2 G f f2 csndM c0 → CondCompat b1 G f f1 csndM (Res G ie c0)
-  CompatLem : {n : ℕ} (G : Gr n) {M : Mod G} {f f1 f2 : Filt n} (mc : Cell G M f) (c0 : Cell G M f1)
-      → Compat G f f1 mc c0  → Compat G f (f1 ⋆ f2) mc (Res G f2 c0)
+
+
 
 
 
@@ -51,15 +48,11 @@ module Fix {X : Set} where
   CondCompat b G f1 f2 c1 c2 = if b then Compat G f1 f2 c1 c2 else ⊤
   Cell lnil tt fnil = X
   Cell (lcons G f1) (M , mc) (fcons b f2) = Σ (Cell G M f2) (CondCompat b G f1 f2 mc)
-  Compat G {M} f1 f2 c1 c2 = Res G f1 c2 == coe (ap (Cell G M) (⋆comm f1 f2)) (Res G f2 c1)
-  Res G {M} {fnil} fnil x = x
-  Res (lcons G fG) {M , mc} {fcons true f1} (fcons true f2) (c0 , compat) = Res G f2 c0 , CompatLem G mc c0 compat
-  Res (lcons G fG) {M , mc} {fcons true f1} (fcons false f2) (c0 , compat) = Res G f2 c0 , tt
-  Res (lcons G fG) {M , mc} {fcons false f1} (fcons b2 f2) (c0 , compat) = Res G f2 c0 , tt
-  CompatLem lnil {unit} {fnil} {fnil} {fnil} mc c0 compat = compat
-  CompatLem (lcons G x) {M , mc} {fcons b f} {fcons true f1} {fcons true f2} (mcc , mccompat) (c0c , c0compat) compat = {!!}
-  CompatLem (lcons G x) {M , mc} {fcons b f} {fcons false f1} {fcons b2 f2} (mcc , mccompat) (c0c , c0compat) compat = {!!}
-  CompatLem (lcons G x) {M , mc} {fcons b f} {fcons true f1} {fcons false f2} (mcc , mccompat) (c0c , c0compat) compat = {!!}
+  Compat G fnil fnil c1 c2 = c1 == c2
+  Compat (lcons G fG) (fcons true f1) (fcons true f2) c1 c2 = Compat G f1 f2 (fst c1) (fst c2) × {!!}
+  Compat (lcons G fG) (fcons true f1) (fcons false f2) c1 c2 = Compat G f1 f2 (fst c1) (fst c2)
+  Compat (lcons G fG) (fcons false f1) (fcons true f2) c1 c2 = Compat G f1 f2 (fst c1) (fst c2)
+  Compat (lcons G fG) (fcons false f1) (fcons false f2) c1 c2 = Compat G f1 f2 (fst c1) (fst c2)
 
 
 
