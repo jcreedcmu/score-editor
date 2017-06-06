@@ -43,8 +43,8 @@ module Fix {X : Set} where
   ResC gnil ie c = c
   ResC (gcons C δ G) {M , mc} {s1 = s1} {s2} ie (cc , compat) = ResC G (Union≤ s1 s2 δ) cc , (λ σ → CompatLem G ie mc σ cc (compat (≤coe ie σ)))
   CompatLem G {M} {δ} {s1} {s2} ie mc σ cc compat = goal where
-    goal : Compat G (mc (Real σ)) (ResC G (Union≤ s1 s2 δ) cc)
+    goal : ResC G (UnionSub s1 δ σ) (ResC G (Union≤ s1 s2 δ) cc) == (mc (Real σ))
     goal = {!!}
 
-    have : Compat2 G (UnionSub s2 δ (≤coe ie σ)) (mc (Real (≤coe ie σ))) cc
+    have : ResC G (UnionSub s2 δ (≤coe ie σ)) cc == mc (Real (≤coe ie σ))
     have = compat
