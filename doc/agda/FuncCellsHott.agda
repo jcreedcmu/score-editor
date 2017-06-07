@@ -36,14 +36,11 @@ module Fix {G : Gr} (M : Mod G) (c : Gr.C G) where
       hop2 : δ g z
       trans : φ g (ν g hop1) z hop2 == ζ
 
-  Calm : (ν : Section) → Set
-  Calm ν = (z : C) (ζ1 ζ2 : F z) → PathsTo ν ζ1 ≃ PathsTo ν ζ2
+  CalmSections : Σ Set (λ S → S → Section)
+  CalmSections = (Section st (λ ν → (z : C) (ζ1 ζ2 : F z) → PathsTo ν ζ1 ≃ PathsTo ν ζ2)) , Item
 
   GoodAt : Set₁
-  GoodAt = _==_ {A = Σ Set (λ S → S → Section)}
-    ((Section st Calm) , Item)
-    (F c , φ c)
-
+  GoodAt = CalmSections == (F c , φ c)
 open Fix
 
 GoodMod : (G : Gr)  → Set₁
