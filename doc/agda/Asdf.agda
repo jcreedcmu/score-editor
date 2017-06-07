@@ -114,22 +114,35 @@ data Opt (X : Set) : Set where
 
 module Fix {X : Set} where
   data Mod : Set
-  Cell : Mod → X → Set
-  IdCell : (M : Mod) (x : X) → Cell M x
   ModPt : Mod → Set
-  Compat : {M : Mod} → ModPt M → X → Set
+  Compat : {M : Mod} → ModPt M → Set
+
+  Cell : Mod → Set
+  Cell M = (m : ModPt M) → Opt (Compat m)
+
+  Good : {M : Mod} (m : ModPt M) (co : Opt(Compat m)) → Set
+  IdCompat : {M : Mod} (m : ModPt M) → Compat m
+  IdGood : {M : Mod} (m : ModPt M) (c : Cell M) → Good m (c m)
 
   data Mod where
-    mnil : Mod
-    mcons : (M : Mod) (x : X) (c : Cell M x) → Mod
+    mnil : X → Mod
+    mcons : (M : Mod) (c : Cell M) → Mod
 
-  Cell M x = (m : ModPt M) → Opt (Compat m x)
+  ModPt (mnil x) = ⊥
+  ModPt (mcons M c) = Opt (ModPt M)
 
-  ModPt mnil = ⊥
-  ModPt (mcons M x c) = Opt (ModPt M)
+  Compat {mnil x} ()
+  Compat {mcons M c} None = (m : ModPt M) → Good m (c m)
+  Compat {mcons M c} (Some m) = Compat {M} m
 
-  Compat {mnil} ()
-  Compat {mcons M x1 c} None x2 = (x1 == x2) × (c == IdCell M x1)
-  Compat {mcons M x1 c} (Some mp) x2 = Compat {M} mp x2
+  Good m None = ⊤
+  Good m (Some cmp) = cmp == IdCompat m
 
-  IdCell = {!!}
+  IdCompat {mnil x} ()
+  IdCompat {mcons M c} None m = IdGood m c
+  IdCompat {mcons M c} (Some m) = IdCompat m
+
+  IdGood {M} m c = yield (c m) where
+    yield : (opt : Opt (Compat m)) → Good m opt
+    yield None = tt
+    yield (Some cmp) = {!!}
