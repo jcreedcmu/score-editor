@@ -2,7 +2,7 @@
 
 open import HoTT hiding (Bool ; true ; false ; _$_)
 
-module Asdf where
+module Yoneda where
 
 record Cat {no nm} : Set (lsucc (lmax no nm)) where
   constructor MkCat
