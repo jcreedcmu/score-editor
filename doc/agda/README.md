@@ -80,6 +80,8 @@ And the rough progression of ideas from earliest to latest is
     TwoPointEquiv.agda -- Jun 4, trying to convince myself that I understand equality
     FuncCellsHott.agda -- Jun 6, porting fiber construction to hott lib
     GlobCells.agda -- Jun 12, modelling globular cells
+	TopCellsInterleave.agda -- Jun 12, another idea about interleaving model definition with construction
+
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
