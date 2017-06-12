@@ -79,6 +79,7 @@ And the rough progression of ideas from earliest to latest is
     (I do now think most of the attempts above are incorrect at capturing the right 2-cells)
     TwoPointEquiv.agda -- Jun 4, trying to convince myself that I understand equality
     FuncCellsHott.agda -- Jun 6, porting fiber construction to hott lib
+    GlobCells.agda -- Jun 12, modelling globular cells
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
