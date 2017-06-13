@@ -13,11 +13,9 @@ record Bundle : Set₂ where
   field
     C : Set
     Bd : Set₁
-    Basic : Bd → C → Set₁
     Cell : Set₁
     Get : Cell → C
     Mod : Set → Set₁
-    Path : Bd → (Cell → Set) → Set₁
     Pathb : Bd → Set₁
     Parts : {bd : Bd} → Pathb bd → Cell → Set
     RealType : {X : Set} (bd : Bd) (M : Mod X) → Set
@@ -39,8 +37,13 @@ record CellG {Bd : Set₁} {C : Set} {Basic : Bd → C → Set₁} : Set₁ wher
     θ : C
     B : Basic bd θ
 
+First : Bundle
+First =
+  MkBundle ⊤ (Lift ⊤) (Lift ⊤) (λ _ → tt) (λ _ → Lift ⊤)
+    (λ _ → Lift ⊤) (λ _ _ → ⊤) (λ _ _ → ⊤) (λ _ _ → tt)
+
 Next : (b : Bundle) (nC : Set) (nδ : nC → Bundle.C b → 𝟚 → Set) → Bundle
-Next b nC δ = MkBundle nC nBd nBasic nCell nGet nMod nPath nPathb nParts nRealType nReal where
+Next b nC δ = MkBundle nC nBd nCell nGet nMod nPathb nParts nRealType nReal where
   open Bundle b
   nRelated : nC → (Cell → Set) → 𝟚 → Set₁
   nRelated θ αs bb = (c : Cell) → αs c → δ θ (Get c) bb
@@ -70,17 +73,3 @@ Next b nC δ = MkBundle nC nBd nBasic nCell nGet nMod nPath nPathb nParts nRealT
 
   nReal : {X : Set} {bd : nBd} (M : nMod X) (π : nPathb bd) → nRealType bd M
   nReal {X} {bd} (M , nM) π = isPath X M (λ c _ → nM c) where open PathbG π
-
-{-
--- record Lift {a ℓ} (A : Set a) : Set (a ⊔ ℓ) where
---   constructor lift
---   field lower : A
-
-
-record Gr : Set₁ where
-  constructor MkG
-  field
-    C : ℕ → Set
-    δ : {n : ℕ} → C (S n) → C n → 𝟚 → Set
-
--}
