@@ -81,6 +81,7 @@ And the rough progression of ideas from earliest to latest is
     FuncCellsHott.agda -- Jun 6, porting fiber construction to hott lib
     GlobCells.agda -- Jun 12, modelling globular cells
 	TopCellsInterleave.agda -- Jun 12, another idea about interleaving model definition with construction
+	TopKnot.agda -- Jun 13, recursive construction of same
 
 
 Somewhere in that history I had a stage just before "bundle" which was
