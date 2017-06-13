@@ -13,7 +13,6 @@ record Bundle (C : Set) : Set₂ where
   field
     Bd : Set₁
     Cell : Set₁
-    Get : Cell → C
     Mod : Set → Set₁
     Pathb : Bd → Set₁
     Parts : {bd : Bd} → Pathb bd → Cell → Set
@@ -30,18 +29,16 @@ record BdG (pBd : Set₁) (pPathb : pBd → Set₁) : Set₁ where
     bd : pBd
     α β : pPathb bd
 
-record CellG {Bd : Set₁} {C : Set} {Basic : Bd → C → Set₁} : Set₁ where
+record CellG {Bd : Set₁} {C : Set}  : Set₁ where
   field
     bd : Bd
     θ : C
-    B : Basic bd θ
 
 First : (C : Set) → Bundle C
-First C = MkBundle Bd Cell Get Mod Pathb Parts RealType Real where
+First C = MkBundle Bd Cell Mod Pathb Parts RealType Real where
   Bd : Set₁
   Bd = BdG (Lift ⊤) (λ _ → Lift ⊤)
-  Cell = CellG {Bd} {C} {λ _ _ → Lift ⊤}
-  Get = CellG.θ
+  Cell = CellG {Bd} {C}
   Mod : (X : Set) → Set₁
   Mod X = Lift (C → X)
   Pathb = PathbG {Bd} {Cell} {λ _ _ → Lift ⊤}
@@ -51,19 +48,13 @@ First C = MkBundle Bd Cell Get Mod Pathb Parts RealType Real where
   Real : {X : Set} {bd : Bd} (M : Mod X) (π : Pathb bd) → RealType bd M
   Real M π = tt
 
-Next : (C nC : Set) (b : Bundle C) (nδ : nC → C → 𝟚 → Set) → Bundle nC
-Next C nC b δ = MkBundle nBd nCell nGet nMod nPathb nParts nRealType nReal where
+Next : (C nC : Set) (b : Bundle C) → Bundle nC
+Next C nC b = MkBundle nBd nCell nMod nPathb nParts nRealType nReal where
   open Bundle b
-  nRelated : nC → (Cell → Set) → 𝟚 → Set₁
-  nRelated θ αs bb = (c : Cell) → αs c → δ θ (Get c) bb
 
   nBd = BdG Bd Pathb
 
-  nBasic : nBd → nC → Set₁
-  nBasic bd θ = nRelated θ (Parts α) dom × nRelated θ (Parts β) cod where open BdG bd
-
-  nCell = CellG {nBd} {nC} {nBasic}
-  nGet = CellG.θ
+  nCell = CellG {nBd} {nC}
 
   nEq : {X : Set} (M : Mod X) (bd : nBd) → Set
   nEq M bd = Real M α == Real M β where open BdG bd
