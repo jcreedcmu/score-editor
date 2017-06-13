@@ -36,10 +36,20 @@ record CellG {Bd : Set₁} {C : Set} {Basic : Bd → C → Set₁} : Set₁ wher
     θ : C
     B : Basic bd θ
 
-First : Bundle ⊤
-First =
-  MkBundle (Lift ⊤) (Lift ⊤) (λ _ → tt) (λ _ → Lift ⊤)
-    (λ _ → Lift ⊤) (λ _ _ → ⊤) (λ _ _ → ⊤) (λ _ _ → tt)
+First : (C : Set) → Bundle C
+First C = MkBundle Bd Cell Get Mod Pathb Parts RealType Real where
+  Bd : Set₁
+  Bd = BdG (Lift ⊤) (λ _ → Lift ⊤)
+  Cell = CellG {Bd} {C} {λ _ _ → Lift ⊤}
+  Get = CellG.θ
+  Mod : (X : Set) → Set₁
+  Mod X = Lift (C → X)
+  Pathb = PathbG {Bd} {Cell} {λ _ _ → Lift ⊤}
+  Parts = PathbG.parts
+  RealType : {X : Set} (bd : Bd) (M : Mod X) → Set
+  RealType bd M = ⊤
+  Real : {X : Set} {bd : Bd} (M : Mod X) (π : Pathb bd) → RealType bd M
+  Real M π = tt
 
 Next : (C nC : Set) (b : Bundle C) (nδ : nC → C → 𝟚 → Set) → Bundle nC
 Next C nC b δ = MkBundle nBd nCell nGet nMod nPathb nParts nRealType nReal where
