@@ -1,45 +1,98 @@
 {-# OPTIONS --without-K --rewriting #-}
 
-open import HoTT hiding (Bool ; true ; false ; _$_)
+open import HoTT hiding (Bool ; true ; false ; _$_ ; Path)
 
 module Asdf where
 
-record Gr : Set₁ where
-  constructor MkGr
+data 𝟚 : Set where
+  cod : 𝟚
+  dom : 𝟚
+
+record Ix : Set₂ where
+  constructor MkIx
+  field
+    pCell : Set₁
+    pMod : Set → Set₁
+
+record Bundle (i : Ix) : Set₂ where
+  constructor MkBundle
+  open Ix i
   field
     C : Set
-    R : C → C → Set
-    id : (c : C) → R c c
+    Related : C → (pCell → Set) → 𝟚 → Set₁
+    Bd : Set₁
+    Basic : Bd → C → Set₁
+    Cell : Set₁
+    Get : Cell → C
+    Eq : (X : Set) (M : pMod X) → Cell → Set
+    Mod : Set → Set₁
+    Path : Bd → (Cell → Set) → Set₁
+    Pathb : Bd → Set₁
+    Parts : {bd : Bd} → Pathb bd → Cell → Set
+    RealType : {X : Set} (bd : Bd) (M : Mod X) → Set
+    Real : {X : Set} {bd : Bd} (M : Mod X) (π : Pathb bd) → RealType bd M
 
-record GrM (G1 : Gr) (G2 : Gr) : Set where
-  constructor MkGrM
-  open Gr
+π : {i : Ix} → Bundle i → Ix
+π b = MkIx Cell Mod where open Bundle b
+
+record PathbG {Bd : Set₁} {Cell : Set₁} {Path : Bd → (Cell → Set) → Set₁} (bd : Bd) : Set₁ where
   field
-    Cm : C G1 → C G2
-    Rm : (c d : C G1) → R G1 c d → R G2 (Cm c) (Cm d)
-    idm : (c : C G1) → Rm c c (id G1 c) == id G2 (Cm c)
+    parts : Cell → Set
+    isPath : Path bd parts
 
-Prod : Gr → Gr → Gr
-Prod (MkGr C1 R1 id1) (MkGr C2 R2 id2) = MkGr (C1 × C2) (λ { (c1 , c2) (d1 , d2) → R1 c1 d1 × R2 c2 d2 }) (λ { (c1 , c2) → (id1 c1) , (id2 c2) })
+record BdG (pBd : Set₁) (pPathb : pBd → Set₁) : Set₁ where
+  field
+    bd : pBd
+    α β : pPathb bd
 
-data TripV : Set where
-  dom : TripV
-  cod : TripV
+record CellG {Bd : Set₁} {C : Set} {Basic : Bd → C → Set₁} : Set₁ where
+  field
+    bd : Bd
+    θ : C
+    B : Basic bd θ
 
-data TripE : TripV → TripV → Set where
-  ef : TripE dom cod
-  ecod : TripE cod cod
-  edom : TripE dom dom
+Next : {i : Ix} (b : Bundle i) (nC : Set) (nδ : nC → Bundle.C b → 𝟚 → Set) → Bundle (π b)
+Next b nC δ = MkBundle nC nRelated nBd nBasic nCell nGet nEq nMod nPath nPathb nParts nRealType nReal where
+  open Bundle b
+  nRelated : nC → (Cell → Set) → 𝟚 → Set₁
+  nRelated θ αs bb = (c : Cell) → αs c → δ θ (Get c) bb
 
-TripId : (v : TripV) → TripE v v
-TripId dom = edom
-TripId cod = ecod
+  nBd = BdG Bd Pathb
 
-Triple : Gr
-Triple = MkGr TripV TripE TripId
+  nBasic : nBd → nC → Set₁
+  nBasic bd θ = nRelated θ (Parts α) dom × nRelated θ (Parts β) cod where open BdG bd
 
-Exp : Gr → Gr → Gr
-Exp G1@(MkGr C1 R1 id1) G2@(MkGr C2 R2 id2) = MkGr C R id where
-  C = GrM G1 G2
-  R = λ M1 M2 → (c d : C1) (e : R1 c d) → R2 (GrM.Cm M1 c) (GrM.Cm M2 d)
-  id = GrM.Rm
+  nCell = CellG {nBd} {nC} {nBasic}
+  nGet = CellG.θ
+
+  nEq : (X : Set) (M : Mod X) → nCell → Set
+  nEq x M c = Real M α == Real M β where open CellG c ; open BdG bd
+
+  nMod : (X : Set) → Set₁
+  nMod X = Σ (Mod X) (λ M → (c : nCell) → nEq X M c)
+
+  nPath : (bd : nBd) (θs : nCell → Set) → Set₁
+  nPath bd θs = (X : Set) (M : Mod X) → ((c : nCell) → θs c → nEq X M c) → Real M α == Real M β where open BdG bd
+
+  nPathb = PathbG {nBd} {nCell} {nPath}
+  nParts = PathbG.parts
+
+  nRealType : {X : Set} (bd : nBd) (M : nMod X) → Set
+  nRealType bd (M , _) = Real M α == Real M β where open BdG bd
+
+  nReal : {X : Set} {bd : nBd} (M : nMod X) (π : nPathb bd) → nRealType bd M
+  nReal {X} {bd} (M , nM) π = isPath X M (λ c _ → nM c) where open PathbG π
+
+{-
+-- record Lift {a ℓ} (A : Set a) : Set (a ⊔ ℓ) where
+--   constructor lift
+--   field lower : A
+
+
+record Gr : Set₁ where
+  constructor MkG
+  field
+    C : ℕ → Set
+    δ : {n : ℕ} → C (S n) → C n → 𝟚 → Set
+
+-}
