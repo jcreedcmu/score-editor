@@ -8,32 +8,20 @@ data 𝟚 : Set where
   cod : 𝟚
   dom : 𝟚
 
-record Ix : Set₂ where
-  constructor MkIx
-  field
-    pCell : Set₁
-    pMod : Set → Set₁
-
-record Bundle (i : Ix) : Set₂ where
+record Bundle : Set₂ where
   constructor MkBundle
-  open Ix i
   field
     C : Set
-    Related : C → (pCell → Set) → 𝟚 → Set₁
     Bd : Set₁
     Basic : Bd → C → Set₁
     Cell : Set₁
     Get : Cell → C
-    Eq : (X : Set) (M : pMod X) → Cell → Set
     Mod : Set → Set₁
     Path : Bd → (Cell → Set) → Set₁
     Pathb : Bd → Set₁
     Parts : {bd : Bd} → Pathb bd → Cell → Set
     RealType : {X : Set} (bd : Bd) (M : Mod X) → Set
     Real : {X : Set} {bd : Bd} (M : Mod X) (π : Pathb bd) → RealType bd M
-
-π : {i : Ix} → Bundle i → Ix
-π b = MkIx Cell Mod where open Bundle b
 
 record PathbG {Bd : Set₁} {Cell : Set₁} {Path : Bd → (Cell → Set) → Set₁} (bd : Bd) : Set₁ where
   field
@@ -51,8 +39,8 @@ record CellG {Bd : Set₁} {C : Set} {Basic : Bd → C → Set₁} : Set₁ wher
     θ : C
     B : Basic bd θ
 
-Next : {i : Ix} (b : Bundle i) (nC : Set) (nδ : nC → Bundle.C b → 𝟚 → Set) → Bundle (π b)
-Next b nC δ = MkBundle nC nRelated nBd nBasic nCell nGet nEq nMod nPath nPathb nParts nRealType nReal where
+Next : (b : Bundle) (nC : Set) (nδ : nC → Bundle.C b → 𝟚 → Set) → Bundle
+Next b nC δ = MkBundle nC nBd nBasic nCell nGet nMod nPath nPathb nParts nRealType nReal where
   open Bundle b
   nRelated : nC → (Cell → Set) → 𝟚 → Set₁
   nRelated θ αs bb = (c : Cell) → αs c → δ θ (Get c) bb
