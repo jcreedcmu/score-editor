@@ -8,10 +8,9 @@ data 𝟚 : Set where
   cod : 𝟚
   dom : 𝟚
 
-record Bundle : Set₂ where
+record Bundle (C : Set) : Set₂ where
   constructor MkBundle
   field
-    C : Set
     Bd : Set₁
     Cell : Set₁
     Get : Cell → C
@@ -37,13 +36,13 @@ record CellG {Bd : Set₁} {C : Set} {Basic : Bd → C → Set₁} : Set₁ wher
     θ : C
     B : Basic bd θ
 
-First : Bundle
+First : Bundle ⊤
 First =
-  MkBundle ⊤ (Lift ⊤) (Lift ⊤) (λ _ → tt) (λ _ → Lift ⊤)
+  MkBundle (Lift ⊤) (Lift ⊤) (λ _ → tt) (λ _ → Lift ⊤)
     (λ _ → Lift ⊤) (λ _ _ → ⊤) (λ _ _ → ⊤) (λ _ _ → tt)
 
-Next : (b : Bundle) (nC : Set) (nδ : nC → Bundle.C b → 𝟚 → Set) → Bundle
-Next b nC δ = MkBundle nC nBd nCell nGet nMod nPathb nParts nRealType nReal where
+Next : (C nC : Set) (b : Bundle C) (nδ : nC → C → 𝟚 → Set) → Bundle nC
+Next C nC b δ = MkBundle nBd nCell nGet nMod nPathb nParts nRealType nReal where
   open Bundle b
   nRelated : nC → (Cell → Set) → 𝟚 → Set₁
   nRelated θ αs bb = (c : Cell) → αs c → δ θ (Get c) bb
@@ -56,20 +55,20 @@ Next b nC δ = MkBundle nC nBd nCell nGet nMod nPathb nParts nRealType nReal whe
   nCell = CellG {nBd} {nC} {nBasic}
   nGet = CellG.θ
 
-  nEq : (X : Set) (M : Mod X) → nCell → Set
-  nEq x M c = Real M α == Real M β where open CellG c ; open BdG bd
+  nEq : {X : Set} (M : Mod X) (bd : nBd) → Set
+  nEq M bd = Real M α == Real M β where open BdG bd
 
   nMod : (X : Set) → Set₁
-  nMod X = Σ (Mod X) (λ M → (c : nCell) → nEq X M c)
+  nMod X = Σ (Mod X) (λ M → (c : nCell) → nEq M (CellG.bd c))
 
   nPath : (bd : nBd) (θs : nCell → Set) → Set₁
-  nPath bd θs = (X : Set) (M : Mod X) → ((c : nCell) → θs c → nEq X M c) → Real M α == Real M β where open BdG bd
+  nPath bd θs = (X : Set) (M : Mod X) → ((c : nCell) → θs c → nEq M (CellG.bd c)) → nEq M bd
 
   nPathb = PathbG {nBd} {nCell} {nPath}
   nParts = PathbG.parts
 
   nRealType : {X : Set} (bd : nBd) (M : nMod X) → Set
-  nRealType bd (M , _) = Real M α == Real M β where open BdG bd
+  nRealType {X} bd (M , _) = nEq M bd
 
   nReal : {X : Set} {bd : nBd} (M : nMod X) (π : nPathb bd) → nRealType bd M
   nReal {X} {bd} (M , nM) π = isPath X M (λ c _ → nM c) where open PathbG π
