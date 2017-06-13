@@ -2,7 +2,7 @@
 
 open import HoTT hiding (Bool ; true ; false ; _$_ ; Path)
 
-module Asdf where
+module TopKnot where
 
 data 𝟚 : Set where
   cod : 𝟚
