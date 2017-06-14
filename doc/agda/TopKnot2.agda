@@ -20,16 +20,12 @@ module _Next (β : Bundle) where
 
   nGr : Set₁
   nGr = Σ Gr (λ G → (Bd G → Set))
-  pBd : nGr → Set₁
-  pBd (G , C) = Bd G
   nMod : Set → nGr → Set₁
   nMod X (G , C) = Σ (Mod X G) (λ M → (δ : Bd G) (c : C δ) → Eq G δ X M)
-  pEq : (nG : nGr) → pBd nG → (X : Set) → nMod X nG → Set
-  pEq (G , C) δ X (M , _) = Eq G δ X M
   nBd : nGr → Set₁
-  nBd nG = Σ (pBd nG) (λ δ → Pair ((X : Set) (M : nMod X nG) → pEq nG δ X M))
+  nBd nG@(G , C) = Σ (Bd G) (λ δ → Pair ((X : Set) (M : nMod X nG) → Eq (fst nG) δ X (fst M)))
   nEq : (nG : nGr) (δ : nBd nG) (X : Set) (M : nMod X nG) → Set
-  nEq nG (_ , δ) X M = fst δ X M == snd δ X M
+  nEq _ (_ , δ) X M = fst δ X M == snd δ X M
 
   Next : Bundle
   Next = MkBundle nGr nBd nMod nEq
