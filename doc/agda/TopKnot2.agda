@@ -100,3 +100,22 @@ out X (MkIMod x y p) = (lift unit , (λ _ c0 → f0 c0)) , f1 where
 
 -- fst (snd δ) X (lift unit , (λ _ → f0)) ==
 -- snd (snd δ) X (lift unit , (λ _ → f0))
+
+postulate
+
+  hum2 : {X C D : Set} (f : ((X : Set) → (C → X) → X)) (k : D → X) (g : C → D) →
+    k (f D g) == f X (k ∘ g)
+
+hum : {X C : Set} (f : ((X : Set) → (C → X) → X)) (k : C → X) → k (f C (idf C)) == f X k
+hum {C = C} f k = hum2 f k (idf C)
+
+thm : (C : Set) → ((X : Set) → (C → X) → X) ≃ C
+thm C = equiv inn outt zig zag where
+  inn : ((X : Set) → (C → X) → X) → C
+  inn f = f C (idf C)
+  outt : C → ((X : Set) → (C → X) → X)
+  outt c X f = f c
+  zig : (b : C) → inn (outt b) == b
+  zig b = idp
+  zag : (f : ((X : Set) → (C → X) → X)) → outt (inn f) == f
+  zag f = λ= (λ X → (λ= (λ k → hum f k)))
