@@ -12,7 +12,10 @@ record Bundle : Set₂ where
   field
     Gr : Set₁
     Bd : Gr → Set₁
+    Yd : Gr → Set₁
     Mod : (X : Set) → Gr → Set₁
+    Ood : Gr → Set₁
+    Zq : (G : Gr) (δ : Yd G) (M : Ood G) → Set
     Eq : (G : Gr) (δ : Bd G) (X : Set) (M : Mod X G) → Set
 
 module _Next (β : Bundle) where
@@ -23,19 +26,38 @@ module _Next (β : Bundle) where
     field
       G : Gr
       C : Bd G → Set
+      C' : Yd G → Set
+
   pBd : nGr → Set₁
   pBd nG = Bd G where open nGr nG
   nMod : Set → nGr → Set₁
   nMod X nG = Σ (Mod X G) (λ M → (δ : Bd G) (c : C δ) → Eq G δ X M) where open nGr nG
+  nOod : nGr → Set₁
+  nOod nG = Σ (Ood G) (λ M → (δ : Yd G) (c : C' δ) → Zq G δ M) where open nGr nG
+
   pEq : (nG : nGr) → pBd nG → (X : Set) → nMod X nG → Set
   pEq nG δ X (M , _) = Eq G δ X M where open nGr nG
   nBd : nGr → Set₁
   nBd nG = Σ (pBd nG) (λ δ → Pair ((X : Set) (M : nMod X nG) → pEq nG δ X M))
+
+  pYd : nGr → Set₁
+  pYd nG = Yd G where open nGr nG
+  pZq : (nG : nGr) (δ : pYd nG) (M : nOod nG) → Set
+  pZq nG δ (M , _) = Zq G δ M where open nGr nG
+
+  nYd : nGr → Set₁
+  nYd nG = Σ (pYd nG) (λ δ → Pair ((M : nOod nG) → pZq nG δ M))
+
   nEq : (nG : nGr) (δ : nBd nG) (X : Set) (M : nMod X nG) → Set
   nEq nG (_ , δ) X M = fst δ X M == snd δ X M
 
+  nZg : (nG : nGr) (δ : nYd nG) → Set₁
+  nZg nG (_ , δ) = fst δ == snd δ
+
   Next : Bundle
-  Next = MkBundle nGr nBd nMod nEq
+  Next = {!!} -- MkBundle nGr nBd nMod nZq nEq
+
+{- -- example
 
 open _Next using (Next)
 
@@ -45,7 +67,7 @@ L-1 = MkBundle (Lift ⊤) (λ _ → Lift ⊤) (λ _ _ → Lift ⊤) (λ _ _ X _ 
 L0 = Next L-1
 L1 = Next L0
 
--- example
+
 
 data 𝕍 : Set where
   v1 v2 : 𝕍
@@ -119,3 +141,4 @@ thm C = equiv inn outt zig zag where
   zig b = idp
   zag : (f : ((X : Set) → (C → X) → X)) → outt (inn f) == f
   zag f = λ= (λ X → (λ= (λ k → hum f k)))
+-}
