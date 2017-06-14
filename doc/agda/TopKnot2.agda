@@ -95,9 +95,13 @@ out X (MkIMod x y p) = (lift unit , (λ _ c0 → f0 c0)) , f1 where
 -- snd (snd δ) X (lift unit , (λ _ → f0))
 
 postulate
+  param : (X Y : Set) (_R_ : X → Y → Set)
+    (C : Set) (f : (X : Set) → (C → X) → X)
+    (gx : C → X) (gy : C → Y) (gr : (c : C) → (gx c) R (gy c)) → (f X gx) R (f Y gy)
 
-  hum2 : {X C D : Set} (f : ((X : Set) → (C → X) → X)) (k : D → X) (g : C → D) →
+hum2 : {X C D : Set} (f : ((X : Set) → (C → X) → X)) (k : D → X) (g : C → D) →
     k (f D g) == f X (k ∘ g)
+hum2 {X} {C} {D} f k g = param D X (λ x y → k x == y) C f g (k ∘ g) (λ c → idp)
 
 hum : {X C : Set} (f : ((X : Set) → (C → X) → X)) (k : C → X) → k (f C (idf C)) == f X k
 hum {C = C} f k = hum2 f k (idf C)
@@ -112,3 +116,13 @@ thm C = equiv inn outt zig zag where
   zig b = idp
   zag : (f : ((X : Set) → (C → X) → X)) → outt (inn f) == f
   zag f = λ= (λ X → (λ= (λ k → hum f k)))
+
+
+outt : {C : Set} → C → ((X : Set) → (C → X) → X)
+outt c X f = f c
+
+
+test : (X Y : Set) (_R_ : X → Y → Set)
+    (C : Set) (c : C)
+    (gx : C → X) (gy : C → Y) (gr : (c : C) → (gx c) R (gy c)) → ((outt c) X gx) R ((outt c) Y gy)
+test X Y _R_ C c gx gy gr = gr c
