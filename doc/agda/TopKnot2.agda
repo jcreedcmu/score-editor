@@ -18,17 +18,14 @@ record Bundle : Set₂ where
 module _Next (β : Bundle) where
   open Bundle β
 
-  record nGr : Set₁ where
-    constructor MkGr
-    field
-      G : Gr
-      C : Bd G → Set
+  nGr : Set₁
+  nGr = Σ Gr (λ G → (Bd G → Set))
   pBd : nGr → Set₁
-  pBd nG = Bd G where open nGr nG
+  pBd (G , C) = Bd G
   nMod : Set → nGr → Set₁
-  nMod X nG = Σ (Mod X G) (λ M → (δ : Bd G) (c : C δ) → Eq G δ X M) where open nGr nG
+  nMod X (G , C) = Σ (Mod X G) (λ M → (δ : Bd G) (c : C δ) → Eq G δ X M)
   pEq : (nG : nGr) → pBd nG → (X : Set) → nMod X nG → Set
-  pEq nG δ X (M , _) = Eq G δ X M where open nGr nG
+  pEq (G , C) δ X (M , _) = Eq G δ X M
   nBd : nGr → Set₁
   nBd nG = Σ (pBd nG) (λ δ → Pair ((X : Set) (M : nMod X nG) → pEq nG δ X M))
   nEq : (nG : nGr) (δ : nBd nG) (X : Set) (M : nMod X nG) → Set
@@ -58,7 +55,7 @@ Gr1 = Bundle.Gr L1
 Mod1 = Bundle.Mod L1
 
 GetVertType : (G : Gr0) → Set
-GetVertType G = _Next.nGr.C G (lift unit)
+GetVertType G = snd G (lift unit)
 SelfMod : (G : Gr0) → _Next.nMod L-1 (GetVertType G) G
 SelfMod G = (lift unit) , (λ δ c → c)
 GetVert1 : (G : Gr0) → Bundle.Bd L0 G → GetVertType G
@@ -67,11 +64,11 @@ GetVert2 : (G : Gr0) → Bundle.Bd L0 G → GetVertType G
 GetVert2 G δ = snd (snd δ) (GetVertType G) (SelfMod G)
 
 IG0 : Gr0
-IG0 = _Next.MkGr (lift unit) (λ _ → 𝕍)
+IG0 = (lift unit) , (λ _ → 𝕍)
 IG1 : Gr1
-IG1 = _Next.MkGr IG0 (λ δ → 𝔼 (GetVert1 IG0 δ) (GetVert2 IG0 δ))
+IG1 = IG0 , (λ δ → 𝔼 (GetVert1 IG0 δ) (GetVert2 IG0 δ))
 IBd0 = Bundle.Bd L0 IG0
-IC1 = _Next.nGr.C IG1
+IC1 = snd IG1
 IEq0 = Bundle.Eq L0 IG0
 
 record IMod (X : Set) : Set where
