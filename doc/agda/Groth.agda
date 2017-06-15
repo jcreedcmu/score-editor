@@ -33,21 +33,14 @@ trans2po : ∀ {i j} {A : Set i} {B : A → Set j} {x y : A} {p : x == y} {u : B
   → coe (ap B p) u == v → u == v [ B ↓ p ]
 trans2po {p = idp} po = po
 
-apOnDomain : {A B1 B2 : Set} (q : B1 == B2) (f : B1 → A) → coe (ap (λ B → B → A) q) f == (λ b2 → f (coe (! q) b2))
+apOnDomain : {A B1 B2 : Set} (q : B1 == B2) (f : B1 → A) → coe (ap (λ B → B → A) q) f == (λ b2 → f (coe! q b2))
 apOnDomain idp f = λ= (λ _ → idp)
 
-coelem : (X Y : Set) (f : X == Y) (d : Y) → coe (! f) d == coe! f d
-coelem X Y idp d = idp
-
-apOnDomainUa : {A B1 B2 : Set} {q : B1 ≃ B2} {f : B1 → A} → coe (ap (λ B → B → A) (ua q)) f == (λ b2 → f (<– q b2))
-apOnDomainUa {A} {B1} {B2} {q} {f} = lem1 ∙ λ= (λ d → ap f (coelem B1 B2 (ua q) d)) ∙ (λ= lem2) where
-  lem1 :  coe (ap (λ B → B → A) (ua q)) f == (λ b2 → f (coe (! (ua q)) b2))
-  lem1 = apOnDomain (ua q) f
-  lem2 : (b2 : B2) → f (coe! (ua q) b2) == f (<– q b2)
-  lem2 b2 = ap f (coe!-β q b2)
-
 polem : {A B : Set} (p : B → A) → fst == p [ (λ B → B → A) ↓ ua (flem A B p) ]
-polem p = trans2po apOnDomainUa
+polem p = trans2po apOnDomainUa where
+  apOnDomainUa : {A B1 B2 : Set} {q : B1 ≃ B2} {f : B1 → A} → coe (ap (λ B → B → A) (ua q)) f == (λ b2 → f (<– q b2))
+  apOnDomainUa {A} {B1} {B2} {q} {f} = apOnDomain (ua q) f ∙ (λ= (λ b2 → ap f (coe!-β q b2)))
+
 
 groth : (A B : Set) → (A → Set) ≃ Σ Set (λ B → B → A)
 groth A B = equiv into out zig zag where
