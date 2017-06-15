@@ -118,6 +118,41 @@ thmd X = equiv into out zig zag where
   out ((aa , bb) , pp) = ○-elim {P = X} aa bb (halem2 path pp)
   zig = {!!}
   zag = {!!}
+
+⊥UnivProp : (⊥ : Set) → Set₁
+⊥UnivProp ⊥ = (X : Set) → (⊥ → X) ≃ ⊤
+
+lem : {Z C : Set} → Z == ⊤ → (f1 f2 : Z) (a : Z → C) → a f1 == a f2
+lem idp f1 f2 a = idp
+
+lem2 : {A B : Set} → (A → B) ≃ ⊤ → (f1 f2 : A → B) (a : A) → f1 a == f2 a
+lem2 {A} {B} e f1 f2 a = lem {A → B} {B} (ua e) f1 f2 (λ f → f a)
+
+⊥UnivThm : (A1 A2 : Set) → ⊥UnivProp A1 → ⊥UnivProp A2 → A1 ≃ A2
+⊥UnivThm A1 A2 u1 u2 = equiv (<– (u1 A2) tt) (<– (u2 A1) tt) zig zag where
+  zig : (b : A2) → <– (u1 A2) unit (<– (u2 A1) unit b) == b
+  zig b = lem2 (u2 A2) (λ b → <– (u1 A2) unit (<– (u2 A1) unit b)) (idf A2) b
+  zag : (b : A1) → <– (u2 A1) unit (<– (u1 A2) unit b) == b
+  zag b = lem2 (u1 A1) (λ b → <– (u2 A1) unit (<– (u1 A2) unit b)) (idf A1) b
+
+⊤UnivProp : (U : Set) → Set₁
+⊤UnivProp U = (X : Set) → (U → X) ≃ X
+
+⊤UnivProp2 : (U : Set) → Set₁
+⊤UnivProp2 U = (X : Set) → (X → U) ≃ ⊤
+
+
+⊤UnivThm : (A1 A2 : Set) → ⊤UnivProp2 A1 → ⊤UnivProp2 A2 → A1 ≃ A2
+⊤UnivThm A1 A2 u1 u2 = equiv (<– (u2 A1) tt) (<– (u1 A2) tt) zig zag where
+  zig : (b : A2) → <– (u2 A1) unit (<– (u1 A2) unit b) == b
+  zig b = lem2 (u2 A2) (λ b → <– (u2 A1) unit (<– (u1 A2) unit b)) (idf A2) b
+  zag : (b : A1) → <– (u1 A2) unit (<– (u2 A1) unit b) == b
+  zag b = lem2 (u1 A1) (λ b → <– (u1 A2) unit (<– (u2 A1) unit b)) (idf A1) b
+
+&UnivProp2 : (U : Set) (A B : Set) (π1 : U → A) (π2 : U → B) → Set₁
+&UnivProp2 U A B π1 π2 = (X : Set) (x1 : X → A) (x2 : X → B) → Σ (X → U) (λ f → (π1 ∘ f == x1) × (π2 ∘ f == x2)) ≃ ⊤
+
+
 {-
 thm2 : (A B : Set) → ((X : Set) → (A → X) ≃ (B → X)) → A ≃ B
 thm2 A B e = equiv (<– (e B) (idf _)) (–> (e A) (idf _)) {!!} {!!}
