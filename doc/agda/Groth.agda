@@ -36,11 +36,8 @@ trans2po {p = idp} po = po
 apOnDomain : {A B1 B2 : Set} (q : B1 == B2) (f : B1 → A) → coe (ap (λ B → B → A) q) f == (λ b2 → f (coe! q b2))
 apOnDomain idp f = λ= (λ _ → idp)
 
-polem : {A B : Set} (p : B → A) → fst == p [ (λ B → B → A) ↓ ua (flem A B p) ]
-polem p = trans2po apOnDomainUa where
-  apOnDomainUa : {A B1 B2 : Set} {q : B1 ≃ B2} {f : B1 → A} → coe (ap (λ B → B → A) (ua q)) f == (λ b2 → f (<– q b2))
-  apOnDomainUa {A} {B1} {B2} {q} {f} = apOnDomain (ua q) f ∙ (λ= (λ b2 → ap f (coe!-β q b2)))
-
+apOnDomainUa : {A B1 B2 : Set} {q : B1 ≃ B2} {f : B1 → A} → coe (ap (λ B → B → A) (ua q)) f == (λ b2 → f (<– q b2))
+apOnDomainUa {A} {B1} {B2} {q} {f} = apOnDomain (ua q) f ∙ (λ= (λ b2 → ap f (coe!-β q b2)))
 
 groth : (A B : Set) → (A → Set) ≃ Σ Set (λ B → B → A)
 groth A B = equiv into out zig zag where
@@ -49,7 +46,7 @@ groth A B = equiv into out zig zag where
   out : Σ Set (λ B → B → A) → A → Set
   out (B , p) = λ a → Σ B (λ b → p b == a)
   zig : (b : Σ Set (λ B → B → A)) → into (out b) == b
-  zig (B , p) = pair= (ua (flem A B p)) (polem p)
+  zig (B , p) = pair= (ua (flem A B p)) (trans2po apOnDomainUa)
   zag2 : (p : A → Set) (a : A) → Σ (Σ A p) (λ b → fst b == a) == p a
   zag2 p a = ua (plem p a)
   zag : (p : A → Set) → out (into p) == p
