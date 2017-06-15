@@ -126,3 +126,10 @@ test : (X Y : Set) (_R_ : X → Y → Set)
     (C : Set) (c : C)
     (gx : C → X) (gy : C → Y) (gr : (c : C) → (gx c) R (gy c)) → ((outt c) X gx) R ((outt c) Y gy)
 test X Y _R_ C c gx gy gr = gr c
+
+module _ (C0 : Set) (C1 : C0 → C0 → Set) where
+  Path1 : C0 → C0 → Set₁
+  Path1 x0 y0 = ((X : Set) (M0 : C0 → X) (M1 : (x y : C0) (c : C1 x y) → M0 x == M0 y) → M0 x0 == M0 y0)
+
+  ι : (x0 y0 : C0) → Path1 x0 y0 → ((x y : C0) → C1 x y → x == y) → x0 == y0
+  ι x0 y0 π h = π C0 (idf C0) h
