@@ -1,0 +1,91 @@
+\documentclass{article}
+\input{prooftree}
+\usepackage{stmaryrd}
+\input{linear}
+\def\erule#1#2{\begin{prooftree}#1\justifies #2\end{prooftree}}
+\def\ups{{\uparrow}}
+\def\dns{{\downarrow}}
+\def\op{^\mathrm{op}}
+\def\C{{\mathbb C}}
+\def\dd{\partial}
+\def\Set{\mathrm{Set}}
+\def\rdom{\mathrm{dom}}
+\def\U{\mathcal U}
+\def\E{\mathbb E}
+\def\UU{\mathsf U}
+\def\Cat{\mathbf{Cat}}
+\def\op{\mathrm{op}}
+\def\cn{{:}}
+\def\hadj#1#2{\hskip#1#2\hskip-#1}
+\def\o{\circ}
+\begin{document}
+
+A category $\C$ {\em has a universe} if there is an object $\U \in \C$ and a
+functor $E : \C/\U \to \C$ and a natural transformation $e : E \to \rdom$
+such that every naturality square of $e$ is a pullback?
+
+We're going to try to define a contravariant functor $\UU : \C \to \Cat^\op$.
+For any object $\Gamma$ of $\C$, we define $\UU(\Gamma)$, {the category
+  of small types over $\Gamma$}. Its objects are morphisms $\Gamma \to \U$,
+and for $A, B : \Gamma \to \U$, a morphism $f : A \to B$ is
+\[\begin{diagram}
+  EA && \rTo^f && EB\\
+&\rdTo<{e_A}&&\ldTo>{e_B}\\
+&&\Gamma
+\end{diagram}\]
+For any arrow $\sigma : \Delta \to \Gamma$, we want to define a functor
+$\UU(\sigma) : \UU(\Gamma) \to \UU(\Delta)$.
+
+The object part is easy: given an object of $\UU(\Gamma)$, it's a
+morphism $A : \Gamma \to \U$, just compose it with $\sigma$ to get
+$\UU(\sigma)(A) := A \o \sigma : \Delta \to \U$. Now for the arrow
+part. Let an arrow $f : A \to B \in \UU(\Gamma)$ be given, that is,
+an arrow $f : EA \to EB$ over $\Gamma$.
+Notice we do in the slice category $\C/\U$ have a triangle
+\[\begin{diagram}
+  \Delta && \rTo^\sigma && \Gamma\\
+&\rdTo<{A \circ \sigma}&&\ldTo>{A}\\
+&&\U
+\end{diagram}\]
+and similarly for $B$. So we can define $\UU(\sigma)(f) : \UU(\Gamma) \to \UU(\Delta)$ by
+appealing to the pullback property demanded of $e$:
+\[\begin{diagram}
+EA && \rTo^f && EB\\
+&\rdTo<{e_A}&&\ldTo>{e_B}\\
+\uTo<{E\sigma}&&\Gamma&&\uTo>{E\sigma}\\
+&&\uTo>\sigma\\
+E(A \o \sigma) &\rDotsto^{\UU(\sigma)(f)}&&& \NWpbk E(B \o \sigma)\\
+&\rdTo<{e_{A\o \sigma}}&&\ldTo>{e_{B\o\sigma}}\\
+&&\Delta
+\end{diagram}\]
+
+I have a guess for what the Grothendieck construction on $\UU$ looks like.
+The objects of the total category $\E$ are the same as those of $\C / \U$.
+A morphism from $A : \Gamma \to \U$ to $B : \Delta \to \U$ is a square
+\[\begin{diagram}
+  EA & \rTo^f & EB\\
+\dTo<{e_A}&&\dTo>{e_B}\\
+\Gamma&\rTo_{\sigma}&\Delta
+\end{diagram}\]
+and the map from the total category to the base category is just taking the
+$\sigma : \Gamma \to \Delta$ part.
+
+% \U(\sigma)(f) := E\sigma
+
+%% Say $\U$ {\em has products} if for every $A , B :\Gamma \to \U$ there is an $A \times B : \Gamma \to \U$ such that $E(A \times B)$ is the pullback of $e_A : EA \to \Gamma$ and $e_B : EB \to \Gamma$.
+%% \[\begin{diagram}
+%%   E(A \times B)\hadj{-1.7em}{\SEpbk}&\rTo^{\pi_2}&EB\\
+%% \dTo<{\pi_1}&\rdTo>{e_{A \times B}}&\dTo>{e_B}\\
+%%   EA&\rTo_{e_A}&\Gamma\\
+%% \end{diagram}\]
+
+%% Say $\U$ {\em has exponentials} if for every $A , B :\Gamma \to \U$
+%% there is an $B^A : \Gamma \to \U$ such that $E(B^A)$ is something like the exponential
+%% of $EB^{EA}$ over $\Gamma$.
+
+%% \[\begin{diagram}
+%%   E(A \times B)\hadj{-1.7em}{\SEpbk}&\rTo^{\pi_2}&EB\\
+%% \dTo<{\pi_1}&\rdTo>{e_{A \times B}}&\dTo>{e_B}\\
+%%   EA&\rTo_{e_A}&\Gamma\\
+%% \end{diagram}\]
+\end{document}
