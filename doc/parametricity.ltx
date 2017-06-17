@@ -7,6 +7,7 @@
 \def\dns{{\downarrow}}
 \def\op{^\mathrm{op}}
 \def\C{{\mathbb C}}
+\def\D{{\mathbb D}}
 \def\dd{\partial}
 \def\Set{\mathrm{Set}}
 \def\rdom{\mathrm{dom}}
@@ -59,16 +60,36 @@ E(A \o \sigma) &\rDotsto^{\UU(\sigma)(f)}&&& \NWpbk E(B \o \sigma)\\
 &&\Delta
 \end{diagram}\]
 
-I have a guess for what the Grothendieck construction on $\UU$ looks like.
-The objects of the total category $\E$ are the same as those of $\C / \U$.
-A morphism from $A : \Gamma \to \U$ to $B : \Delta \to \U$ is a square
+\vskip 1em
+\hrule
+\vskip 1em
+
+Let me actually build a fibration instead. If $F, G : \D \to \C$ are
+functors and $\alpha : F \to G$, then the category $\D[\alpha]$ has as
+objects the same objects of $\D$, but as morphisms $D_1 \to D_2$ it has
+pairs of morphisms $(f, g)$ that make the following diagram commute:
+
+\[\begin{diagram}
+  FD_1 & \rTo^{f} & FD_2\\
+\dTo<{e_{D_1}}&&\dTo>{e_{D_2}}\\
+GD_1&\rTo_{g}&GD_2
+\end{diagram}\]
+There are evident functors $F[\alpha], G[\alpha] : \D[\alpha] \to \C$
+which take the `$F$ part' and the `$G$ part' of these squares, and
+$\iota : \D \to \D[\alpha]$ which uses the naturality of $\alpha$, such
+that $F[\alpha] \o \iota = F$ and $G[\alpha] \o \iota = G$.
+
+So now I say a category $\C$ has a universe if it has an object $\U$
+and a functor $E : \C / \U \to \C$ and a natural transformation $e : E
+\to \rdom$ such that $\rdom[\alpha]$ is a
+fibration.
+
 \[\begin{diagram}
   EA & \rTo^f & EB\\
 \dTo<{e_A}&&\dTo>{e_B}\\
 \Gamma&\rTo_{\sigma}&\Delta
 \end{diagram}\]
-and the map from the total category to the base category is just taking the
-$\sigma : \Gamma \to \Delta$ part.
+
 
 % \U(\sigma)(f) := E\sigma
 
