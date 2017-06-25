@@ -24,8 +24,7 @@ record Gr {n} : Set (lsucc n) where
     comp : {c d e : C} → H c d → H d e → H c e
     assoc : {b c d e : C} (f : H b c) (g : H c d) (h : H d e) → comp (comp f g) h == comp f (comp g h)
 
-
-record MyRel (R : Set) (Interp : R → Set) : Set₁ where
+record MyRel (R : Set₁) (Interp : R → Set) : Set₁ where
   constructor MkMyRel
   field
     Fact : Set
@@ -40,8 +39,17 @@ abort ()
 MyDat0 : Set₁
 MyDat0 = MyRel ⊥ abort
 
-thm : MyDat0 ≃ Set
-thm = equiv into  out (λ _ → idp) zag where
+MyDat1alt : Set₁
+MyDat1alt = MyRel MyDat0 MyRel.Fact
+
+MyDat1 : Set₁
+MyDat1 = MyRel Set (λ x → x)
+
+MyDat2 : Set₁
+MyDat2 = MyRel (MyDat0 ⊔ MyDat1) {!!}
+
+thm-about-MyDat0 : MyDat0 ≃ Set
+thm-about-MyDat0 = equiv into  out (λ _ → idp) zag where
   into : MyDat0 → Set
   into (MkMyRel f c g) = f
   out : Set → MyDat0
