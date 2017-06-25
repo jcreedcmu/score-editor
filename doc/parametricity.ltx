@@ -1,5 +1,6 @@
 \documentclass{article}
 \input{prooftree}
+\input{theorem}
 \usepackage{stmaryrd}
 \input{linear}
 \def\erule#1#2{\begin{prooftree}#1\justifies #2\end{prooftree}}
@@ -8,8 +9,9 @@
 \def\op{^\mathrm{op}}
 \def\C{{\mathbb C}}
 \def\D{{\mathbb D}}
+\def\J{{\mathbb J}}
 \def\dd{\partial}
-\def\Set{\mathrm{Set}}
+\def\Set{\mathbf{Set}}
 \def\rdom{\mathrm{dom}}
 \def\U{\mathcal U}
 \def\E{\mathbb E}
@@ -19,94 +21,115 @@
 \def\cn{{:}}
 \def\hadj#1#2{\hskip#1#2\hskip-#1}
 \def\o{\circ}
+\def\quote#1{\ulcorner#1\urcorner}
+\def\hom{\mathrm{Hom}}
 \begin{document}
 
-A category $\C$ {\em has a universe} if there is an object $\U \in \C$ and a
-functor $E : \C/\U \to \C$ and a natural transformation $e : E \to \rdom$
-such that every naturality square of $e$ is a pullback?
-
-We're going to try to define a contravariant functor $\UU : \C \to \Cat^\op$.
-For any object $\Gamma$ of $\C$, we define $\UU(\Gamma)$, {the category
-  of small types over $\Gamma$}. Its objects are morphisms $\Gamma \to \U$,
-and for $A, B : \Gamma \to \U$, a morphism $f : A \to B$ is
+For morphisms $e : E \to U \in \C$ and $f : A \to I$ in $\C$,
+we say {\em $f$ is weakly $U$-named} when there is a morphism $\quote f : I \to U$
+such that
 \[\begin{diagram}
-  EA && \rTo^f && EB\\
-&\rdTo<{e_A}&&\ldTo>{e_B}\\
-&&\Gamma
+ A\SEpbk & \rTo^{} & E \\
+\dTo<{f}&&\dTo>{e}\\
+I&\rTo_{\quote f}&U \\
 \end{diagram}\]
-For any arrow $\sigma : \Delta \to \Gamma$, we want to define a functor
-$\UU(\sigma) : \UU(\Gamma) \to \UU(\Delta)$.
+is a pullback. We say {\em $f$ is strictly $U$-named} or just {\em
+  $U$-named} when there is a {\em unique} $\quote f$ that admits a
+pullback square. Note that if a universe weakly names a morphism $f : A\to I$,
+it also weakly names any morphisms isomorphic to $f$ in $\C / I$.
 
-The object part is easy: given an object of $\UU(\Gamma)$, it's a
-morphism $A : \Gamma \to \U$, just compose it with $\sigma$ to get
-$\UU(\sigma)(A) := A \o \sigma : \Delta \to \U$. Now for the arrow
-part. Let an arrow $f : A \to B \in \UU(\Gamma)$ be given, that is,
-an arrow $f : EA \to EB$ over $\Gamma$.
-Notice we do in the slice category $\C/\U$ have a triangle
+We say $U$ is {\em univalent} if it strictly names every morphism it
+weakly names.
+
+\begin{lemma}
+If $e_1 : E_1 \to U_1$ and $e_2 : E_2 \to U_2$ are both univalent, and
+  name the same morphisms, then they're isomorphic.
+\end{lemma}
+
+\begin{proof}
+It's easy to see that $U_2$ names $e_2$ itself: the pullback square
+is
 \[\begin{diagram}
-  \Delta && \rTo^\sigma && \Gamma\\
-&\rdTo<{A \circ \sigma}&&\ldTo>{A}\\
-&&\U
+ E_2\SEpbk & \rEq^{} & E_2 \\
+\dTo<{e_2}&&\dTo>{e_2}\\
+U_2&\rEq&U_2 \\
 \end{diagram}\]
-and similarly for $B$. So we can define $\UU(\sigma)(f) : \UU(\Gamma) \to \UU(\Delta)$ by
-appealing to the pullback property demanded of $e$:
-\[\begin{diagram}
-EA && \rTo^f && EB\\
-&\rdTo<{e_A}&&\ldTo>{e_B}\\
-\uTo<{E\sigma}&&\Gamma&&\uTo>{E\sigma}\\
-&&\uTo>\sigma\\
-E(A \o \sigma) &\rDotsto^{\UU(\sigma)(f)}&&& \NWpbk E(B \o \sigma)\\
-&\rdTo<{e_{A\o \sigma}}&&\ldTo>{e_{B\o\sigma}}\\
-&&\Delta
-\end{diagram}\]
-
-\vskip 1em
-\hrule
-\vskip 1em
-
-Let me actually build a fibration instead. If $F, G : \D \to \C$ are
-functors and $\alpha : F \to G$, then the category $\D[\alpha]$ has as
-objects the same objects of $\D$, but as morphisms $D_1 \to D_2$ it has
-pairs of morphisms $(f, g)$ that make the following diagram commute:
+By univalence, $1_{U_2}$ is {\em the} unique $U_2$-name of $e_2$.
+But by assumption, there also is a canonical $U_1$-name of $e_2$ ---
+or at least, of something $e_2'$ isomorphic to $e_2$ --- call it $f$.
+% and symmetrically a $U_1$-name of $e_2$, call it $g$.
 
 \[\begin{diagram}
-  FD_1 & \rTo^{f} & FD_2\\
-\dTo<{e_{D_1}}&&\dTo>{e_{D_2}}\\
-GD_1&\rTo_{g}&GD_2
+E_1\SEpbk & \rTo &E_2\SEpbk & \rTo & E_1 \\
+\dTo<{e_1}&&\dTo~{e_2}&&\dTo>{e_1}\\
+U_1&\rTo_{g}&U_2&\rTo_{f}&U_1 \\
 \end{diagram}\]
-There are evident functors $F[\alpha], G[\alpha] : \D[\alpha] \to \C$
-which take the `$F$ part' and the `$G$ part' of these squares, and
-$\iota : \D \to \D[\alpha]$ which uses the naturality of $\alpha$, such
-that $F[\alpha] \o \iota = F$ and $G[\alpha] \o \iota = G$.
+By the pullback lemma, $g\o f$ is a $U_1$-name for $e_1$, so we must
+have $gf = 1_{U_1}$. By symmetric reasoning $gf = 1_{U_2}$, so the two
+universes are isomorphic, as required. (The composites along the top row may
+not result in the identity, but will result in an iso)
+\cqed
+\end{proof}
 
-So now I say a category $\C$ has a universe if it has an object $\U$
-and a functor $E : \C / \U \to \C$ and a natural transformation $e : E
-\to \rdom$ such that $\rdom[\alpha]$ is a
-fibration.
+Let $U$ be a univalent universe for $S$ in $\C$. Assuming $\C$ has all
+pullbacks, $S$ is closed under pullbacks. This means $[\C/I]_S$, the
+set of isomorphism classes in $\C/I$ that belong to $S$, extends to a
+functor $[\C/\dash]_S : \C^\op \to \Set$, with the morphism part of
+the functor being given by pullback.
 
+\begin{lemma}
+There is a natural isomorphism
+$$\hom(\dash, U) \mathrel{\dot{\cong}} [\C/\dash]_S$$
+\end{lemma}
+
+\begin{proof}
 \[\begin{diagram}
-  EA & \rTo^f & EB\\
-\dTo<{e_A}&&\dTo>{e_B}\\
-\Gamma&\rTo_{\sigma}&\Delta
+G\SEpbk & \rTo &H\SEpbk & \rTo & E \\
+\dTo<{g}&&\dTo~{h}&&\dTo>{e}\\
+C&\rTo_{f}&I&\rTo_{\quote h}&U \\
 \end{diagram}\]
+\[\begin{diagram}
+\quote h \in \hom(I, U) & \rEq^{\alpha_I} &[\C/I]_S \ni h\\
+\dTo<{\hom(f, U)}&&\dTo>{[\C/f]_S}\\
+\quote h \o f = \quote g \in \hom(C, U)&\rEq_{\alpha_C}&[\C/C]_S \ni g\\
+\end{diagram}\]
+\cqed
+\end{proof}
 
+\begin{theorem}
+Let $\J$ be any category, and $S$ be a set of morphisms in $\Set$. If
+there is a univalent universe for $S$, then there is a universe for $S^\J$
+in $\Set^\J$.
+\end{theorem}
 
-% \U(\sigma)(f) := E\sigma
+\begin{proof}
+Let $e : E \to U$ be a univalent universe in $\Set$ for $S$, and we will define
+$\bar e : \bar E \to \bar U$ a universe in $\Set^\J$ for $S^\J$.
+Yoneda tells us
+$$\bar U(J) \cong \hom(yJ, \bar U)$$
+and by the above lemma this is in turn required to be naturally
+isomorphic to $[\Set^\J / yJ]_{S^\J}$ in order for $\bar U$ to be a universe
+for $S^\J$. So let's pick apart what it means to be an isomorphism
+class of morphisms like $\alpha : \bar A \to yJ$ belonging to $S^\J$.
 
-%% Say $\U$ {\em has products} if for every $A , B :\Gamma \to \U$ there is an $A \times B : \Gamma \to \U$ such that $E(A \times B)$ is the pullback of $e_A : EA \to \Gamma$ and $e_B : EB \to \Gamma$.
-%% \[\begin{diagram}
-%%   E(A \times B)\hadj{-1.7em}{\SEpbk}&\rTo^{\pi_2}&EB\\
-%% \dTo<{\pi_1}&\rdTo>{e_{A \times B}}&\dTo>{e_B}\\
-%%   EA&\rTo_{e_A}&\Gamma\\
-%% \end{diagram}\]
-
-%% Say $\U$ {\em has exponentials} if for every $A , B :\Gamma \to \U$
-%% there is an $B^A : \Gamma \to \U$ such that $E(B^A)$ is something like the exponential
-%% of $EB^{EA}$ over $\Gamma$.
-
-%% \[\begin{diagram}
-%%   E(A \times B)\hadj{-1.7em}{\SEpbk}&\rTo^{\pi_2}&EB\\
-%% \dTo<{\pi_1}&\rdTo>{e_{A \times B}}&\dTo>{e_B}\\
-%%   EA&\rTo_{e_A}&\Gamma\\
-%% \end{diagram}\]
+Well, $\alpha$ is a natural transformation for a start, and every arrow
+of it is in $S$. For every $K \in \J$, you have
+to pick out a morphism $\alpha_K : \bar A(K) \to \hom(J, K)$.
+So it has a name
+$$\quote{\alpha_K} : \hom(J, K) \to U$$
+So it seems $\bar U(J)$ has to be something like the set
+$$  (K : \J) \to \hom(J, K)  \to  U  $$
+but also we need $\alpha$ to satisfy naturality. So for every $k \in \hom(K_1, K_2)$
+we have
+\[\begin{diagram}
+\bar A(K_1)&\rTo^{\alpha_{K_1}}& \hom(J, K_1)  \\
+\dTo<{\bar A(k)}&&\dTo>{\hom(J, k)}\\
+\bar A(K_2)&\rTo_{\alpha_{K_2}}&\hom(J, K_2)\\
+\end{diagram}\]
+So actually $\bar U(J)$, in order to express the content of the morphisms
+$\bar A(k)$, is more like
+$$\Big( f : (K : \J) \to \J(J, K)  \to  U \Big)  \times $$
+$$(K_1\ K_2 : \J) (j : \J(J, K_1)) (k : \J(K_1, K_2)) \to f\ K_1\ j \to f\ K_2\ (k \o j)$$
+\cqed
+\end{proof}
 \end{document}
