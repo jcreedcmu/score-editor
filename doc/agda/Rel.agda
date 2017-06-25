@@ -20,11 +20,9 @@ record Gr {n} : Set (lsucc n) where
   constructor MkGr
   field
     C : Set n -- cells
-    □ : C → Set -- "holes" in a cell, places for subcells
-    φ : (c : C) → □ c → C -- what subcell actually fills the hole?
-    t : {c : C} (s1 : □ c) (s2 : □ (φ c s1)) → Σ (□ c) (λ s → φ c s == φ (φ c s1) s2)
-    -- the property that every subhole of a subcell is also a subcell, and its filler
-    -- doesn't depend on whether you regard it as a direct or indirect subcell
+    H : C → C → Set n
+    comp : {c d e : C} → H c d → H d e → H c e
+    assoc : {b c d e : C} (f : H b c) (g : H c d) (h : H d e) → comp (comp f g) h == comp f (comp g h)
 
 record RelOver (I : Set) (f : I → Set) : Set₁ where
   field
@@ -43,19 +41,22 @@ data SGDat : Set₁ where
 data ⊥ {n} : Set n where
 
 SG : Gr
-SG = MkGr SGDat □ φ t where
+SG = MkGr SGDat H comp assoc where
    C = SGDat
-   □ : C → Set
-   □ (SGSet _) = ⊥
-   □ (SGRel I f R) = I
-   □ (SG2Rel I f J k R) = I ⊔ J
-   φ : (c : C) → □ c → C
-   φ (SGSet _) ()
-   φ (SGRel I f R) i = SGSet (f i)
-   φ (SG2Rel I f J k R) (inl i) = SGSet (f i)
-   φ (SG2Rel I f J k R) (inr j) = SGRel I0 (f ∘ η) R0 where open RelOver (k j)
-   t : {c : C} (s1 : □ c) (s2 : □ (φ c s1)) → Σ (□ c) (λ s → φ c s == φ (φ c s1) s2)
-   t {SGSet _} ()
-   t {SGRel I f R} s1 ()
-   t {SG2Rel I f J k R} (inl i) ()
-   t {SG2Rel I f J k R} (inr j) i0 = (inl (η i0)) , idp where open RelOver (k j)
+   H : C → C → Set₁
+   H (SGSet x) d = ⊥
+   H (SGRel I f R) z = Σ I (λ i → SGSet (f i) == z)
+   H (SG2Rel I f J k R) z = Σ I (λ i → SGSet (f i) == z) ⊔ Σ J thingy where
+     thingy : J → Set₁
+     thingy j = SGRel I0 (f ∘ η) R0 == z where open RelOver (k j)
+   comp : {c d e : C} → H c d → H d e → H c e
+   comp {SGSet x} {d} {e} () g
+   comp {SGRel I f R} {.(SGSet (f fst₁))} {e} (fst₁ , idp) ()
+   comp {SG2Rel I f J₁ k R} {.(SGSet (f fst₁))} {e} (inl (fst₁ , idp)) ()
+   comp {SG2Rel I f J₁ k R} {.(SGRel (RelOver.I0 (k j)) (λ x → f (RelOver.η (k j) x)) (RelOver.R0 (k j)))} {.(SGSet (f (RelOver.η (k j) i0)))} (inr (j , idp)) (i0 , idp) =
+     inl (RelOver.η (k j) i0 , idp)
+   assoc : {b c d e : C} (f : H b c) (g : H c d) (h : H d e) → comp (comp f g) h == comp f (comp g h)
+   assoc {SGSet x} {c} {d} {e} () g h
+   assoc {SGRel I f R} {.(SGSet (f fst₁))} {d} {e} (fst₁ , idp) () h
+   assoc {SG2Rel I f J₁ k R} {.(SGSet (f fst₁))} {d} {e} (inl (fst₁ , idp)) () h
+   assoc {SG2Rel I f J₁ k R} {.(SGRel (RelOver.I0 (k fst₁)) (λ x → f (RelOver.η (k fst₁) x)) (RelOver.R0 (k fst₁)))} {.(SGSet (f (RelOver.η (k fst₁) fst₂)))} {e} (inr (fst₁ , idp)) (fst₂ , idp) ()
