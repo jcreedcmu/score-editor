@@ -24,6 +24,40 @@ record Gr {n} : Set (lsucc n) where
     comp : {c d e : C} → H c d → H d e → H c e
     assoc : {b c d e : C} (f : H b c) (g : H c d) (h : H d e) → comp (comp f g) h == comp f (comp g h)
 
+
+record MyRel (R : Set) (Interp : R → Set) : Set₁ where
+  constructor MkMyRel
+  field
+    Fact : Set
+    Col : R → Set
+    GetColumn : Fact → (r : R) (c : Col r) → Interp r
+
+data ⊥ {n} : Set n where
+
+abort : ∀ {n m} {A : Set n} → ⊥ {m} → A
+abort ()
+
+MyDat0 : Set₁
+MyDat0 = MyRel ⊥ abort
+
+thm : MyDat0 ≃ Set
+thm = equiv into  out (λ _ → idp) zag where
+  into : MyDat0 → Set
+  into (MkMyRel f c g) = f
+  out : Set → MyDat0
+  out X = MkMyRel X abort (λ x y → abort y) where
+  zag : (a : MyDat0) → out (into a) == a
+  zag (MkMyRel F Col GetColumn) = lemma1 abort Col (λ x y → abort y) GetColumn (λ= (λ x → abort x)) where
+    lemma2 : (Col : ⊥ → Set) (Get1 Get2 : F → (r : ⊥) → Col r → abort r)
+      → Get1 == Get2
+      → MkMyRel F Col Get1 == MkMyRel F Col Get2
+    lemma2 Col Get1 Get2 idp = idp
+    lemma1 : (Col1 Col2 : ⊥ → Set) (Get1 : F → (r : ⊥) → Col1 r → abort r) (Get2 : F → (r : ⊥) → Col2 r → abort r)
+      → Col1 == Col2
+      → MkMyRel F Col1 Get1 == MkMyRel F Col2 Get2
+    lemma1 Col1 .Col1 Get1 Get2 idp = lemma2 Col1 Get1 Get2 (λ= (λ F → λ= (λ x → abort x)))
+
+
 record RelOver (I : Set) (f : I → Set) : Set₁ where
   field
     I0 : Set
@@ -38,7 +72,6 @@ data SGDat : Set₁ where
   SGRel : (I : Set) (f : I → Set) (R : Π I f → Set) → SGDat
   SG2Rel : (I : Set) (f : I → Set) (J : Set) (k : J → RelOver I f) (R : (vv : Π I f) → ((j : J) → inh (k j) vv) → Set) → SGDat
 
-data ⊥ {n} : Set n where
 
 SG : Gr
 SG = MkGr SGDat H comp assoc where
