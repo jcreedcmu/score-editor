@@ -54,8 +54,8 @@ $1_A$ and $f$ and $g  f$ and $h  g  f$ sit inside $hgf$ ``to the left'', i.e. to
 \end{enumerate}
 \section{Definition}
 \subsection{Minor Preliminaries}
-Say an object $C$ in a category is {\em final} if all arrows out of $C$ are split mono.
-Observe that terminal objects are final. If $S$ and $T$ are sets and $\star$ a binary operation on their
+Say an object $C$ in a category $\C$ is {\em locally terminal} if every $d : D \to C$ is terminal in $D/\C$.
+Observe that terminal objects are locally terminal. If $S$ and $T$ are sets and $\star$ a binary operation on their
 elements,
 we write $S\star T$ for $\{s \star t\st s \in S, t \in S\}$.
 \subsection{Warm-up}
@@ -79,10 +79,9 @@ $L$-morphisms (resp. $R$-morphisms) in the diagram aren't necessarily
 the same morphism, they're just both in the class $L$ (resp. $R$))
 
 \item $(L, R)$ and $(R, L)$ are orthogonal factorization systems
-\item For any $H\in \H$ there exists $H \stackrel{d}{\to} D$ (`the domain of $H$') such that
-$d$ is the terminal object of the slice category $H/L$, and $D$ is $R$-final.
-\item For any $H\in \H$ there exists $H \stackrel{d}{\to} D$ (`the codomain of $H$') such that
-$d$ is the terminal object of the slice category $H/R$, and $D$ is $L$-final.
+\item For any $H\in \H$ there exists a span $D \stackrel{L}{\longleftarrow} H \stackrel{R}{\longrightarrow} C$
+such that $D$ and $C$ (the `domain' and `codomain' of $H$) are locally terminal in $L$ and $R$.
+
 
 \end{enumerate}
 A $\tau_1$-functor is a functor that preserves the $L$ and $R$ sets, and pullbacks, and the choice of domain and codomain morphisms.
@@ -100,12 +99,12 @@ pair $(h, k)$ such that $f = hgk$. The $L$-morphisms are those of the
 form $(h, \rid)$, and the $R$-morphisms are those of the form
 $(\rid, k)$.
 It's routine to check that (1), (2), (3) are satisfied. For (4), the domain of an object
- $f : C \to D$ of $\H$ is $(f, \rid_C) : f \to \rid_C \in L$, and for (5), the codomain of $f$
+ $f : C \to D$ of $\H$ is $(f, \rid_C) : f \to \rid_C \in L$, and  the codomain of $f$
 is $(\rid_D, f) : f \to \rid_D \in R$.
 
 Let a $\tau_1$-category $\H$ be given, and construct $\C$. The objects of $\C$ are the objects
-of $\H$ that are final in both $L$ and $R$. The morphisms $C \to D$ of $\C$ are the spans
-$C \stackrel{L}\longleftarrow f \stackrel{R}\longrightarrow D$
+of $\H$ that are locally terminal in both $L$ and $R$. The morphisms $D \to C$ of $\C$ are the spans
+$D \stackrel{L}\longleftarrow f \stackrel{R}\longrightarrow C$.
 \cqed
 \end{proof}
 
@@ -124,14 +123,15 @@ This induces relations  ${\le} \subseteq K \times K$ and
 \erule{ k \mapsto k_1 \o k_2}{k_1 \le k} \qquad \erule{ k \mapsto k_1 \o k_2}{k_2 \le k}
 \]
 \[\erule{ k \mapsto k_1 \o k_2\qquad k_1'\le k_1 \qquad k_2'\le k_2}{k_1' \bot k_2'}\]
-\item an element $1\in K$ which is $\le$-maximal.
+\item An $\le$-maximum $1\in K$ and an $\le$-minimum $0\in K$.
 \item a relation $\tri(\dash, \dash, \dash)  \subseteq K \times K \times K$
 \end{enumerate}
 
 We say a category $\C$ is a $\tau$-{\em category} when:
 \begin{enumerate}
 \item For each $k \in K$, there is a set $[k]$ of morphisms of $\C$, which contains all isomorphisms and is closed under composition.
-\item If $k_1 \le k_2$, then $[k_1] \subseteq[k_2]$. The set $[1]$ is all morphisms of $\C$.
+\item If $k_1 \le k_2$, then $[k_1] \subseteq[k_2]$. The set $[1]$ is all morphisms of $\C$,
+and $[0]$ is the isomorphisms of $\C$.
 \item If $k_1 \bot k_2$, then every
 $\cdot \stackrel{k_1}{\longrightarrow} \cdot \stackrel{k_2}{\longleftarrow} \cdot$
 in $\C$ can be completed to
@@ -143,23 +143,23 @@ in $\C$ can be completed to
 and every such commutative square in $\C$ is a pullback.
 \item If $k \mapsto k_1 \o k_2$, then $([k_2], [k_1])$ is an
 orthogonal factorization system in $[k]$.
-\item If  $\tri(k_1, k_2, k_3)$, then for any $C\in \C$ there exists $C \stackrel{d}{\to} D$
-that is the terminal object of $C/([k_2] \o [k_1])$, and $D$ is $[k_3]$-final.
+\item If  $\tri(k_1, k_2, k_3)$, then for any $X\in \C$ there exists $X \stackrel{d}{\to} D \in [k_2]\circ [k_1]$
+such that $D$ is locally terminal in $[k_2] \o [k_1]$ and $[k_3] \o [k_1]$.
 \end{enumerate}
 
 \subsection{Examples}
 We can define a taxonomy, call it $\tau_1$.
 \begin{enumerate}
-\item  $K = \{1, L, R\}$.
+\item  $K = \{1, L, R, 0\}$.
 \item $1 \mapsto L\o R$ and $1 \mapsto R \o L$
-\item  $\tri(L, L, R)$ and $\tri(R, R, L)$
+\item  $\tri(0, L, R)$ and $\tri(0, R, L)$
 \end{enumerate}
 
 \noindent This leads to the same definition of $\tau_1$-category as above.
 
 \noindent Let's define another taxonomy, call it $\tau_\omega$.
 \begin{enumerate}
-\item  $K = \{L_n, R_n, E_n, G_n \st n \in \N^+\}$ with
+\item  $K = \{L_n, R_n, E_n, G_n, 0\st n \in \N^+\}$ with
 \item
   \begin{enumerate}
   \item $E_n \mapsto L_n\o R_n$
@@ -177,7 +177,80 @@ ends with $n$-cells. $G_n$ is when you're allowed to tack on cells of
 dimension $n$ or higher.
 
 \begin{conjecture}
-$\tau_\omega$-categories are something like $\omega$-categories??
+$\tau_\omega$-categories are something like $\omega$-categories
 \end{conjecture}
 
+
+\def\stackbelow#1#2{\mathrel{\mathop{#2}\limits_{#1}}}
+\def\path#1#2#3{\mathchoice
+{#1 \stackbelow{\raisebox{1pt}{$\scriptstyle #3$}}{\to} #2}
+{#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}
+{#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}
+{#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}}
+
+
+\section{Finster-Mimram $\omega$-categories}
+ We recall Finster and Mimram's definition of $\omega$-category and try to compare it with ours
+\def\pps{\prov_{\mathsf{ps}}}
+\def\pfull{\prov^*}
+\def\coh{\mathrm{coh}}
+\[ \partial_i^\pm(x : \star) = x : \star \]
+\[ \partial_i^-(\Gamma, y : A, f : \path x y A) = \cases{
+\partial_i^-(\Gamma), y : A, f : \path x y A &if $\dim(A) < i$\cr
+\partial_i^-(\Gamma) &  ow\cr
+} \]
+\[ \partial_i^+(\Gamma, y : A, f : \path x y A) = \cases{
+\mathrm{drop}(\partial_i^+(\Gamma)), y : A & if $\dim(A) = i$\cr
+\partial_i^+(\Gamma) & ow
+} \]
+\[
+\erule
+{\Gamma \pps x : \star}
+{\Gamma \pps}
+\qquad
+\erule
+{}
+{x : \star \pps x : \star}
+\]
+
+\[
+\erule
+{\Gamma \pps x : A}
+{\Gamma, y : A, f : \path x y A \pps f : \path x y A}
+\qquad
+\erule
+{\Gamma \pps f : \path x y A}
+{\Gamma \pps y : A}
+\]
+
+\[
+\erule
+{\Gamma \prov t : A \qquad FV(\Gamma) = FV(t)}
+{\Gamma \pfull t : A}
+\]
+
+\[\erule{
+\Gamma\pps\qquad
+\Gamma \prov \path t u A \qquad
+\partial^-(\Gamma) \pfull t : A\qquad
+\partial^+(\Gamma) \pfull u : A
+}
+{\Gamma \prov \coh_{\Gamma, \path t u A}:\path t u A}
+\]
+
+\[\erule{
+\Gamma\pps\qquad
+\Gamma \prov A\qquad
+FV(\Gamma) = FV(A)
+}
+{\Gamma \prov \coh_{\Gamma, A} : A}\]
+
+\begin{definition}
+An $FM$-category is a functor from the category of contexts and substitutions, to the category of sets.
+\end{definition}
+
+\section{Constructions}
+\subsection{Constructing a $\tau_\omega$ category from an $FM$-category}
+
+\subsection{Constructing an $FM$-category category from a $\tau_\omega$}
 \end{document}
