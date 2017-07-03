@@ -37,37 +37,100 @@ codLemma {S n} (rhd r) = ap rhd (codLemma r)
 unpc : Pd → List Pd
 unpc (pc x) = x
 
-data Ty : List Pd → Set
-data Tm : List Pd → Set
+data Ty0 : {n : ℕ} → List Pd → Set
+data Tm0 : {n : ℕ} → List Pd → Set
 
-data Ty where
-  ★ : ∀ {Δ} → Ty Δ
-  _⇒_ : ∀ {Δ} → Tm Δ → Tm Δ → Ty Δ
+data Ty0 where
+  ★0 : ∀ {Δ n} → Ty0 {n} Δ
+  _⇒0_ : ∀ {Δ n} → Tm0 {n} Δ → Tm0 {n} Δ → Ty0 {S n} Δ
 
-data Tm where
-  Var : ∀ {Δ n} → (r : Ref n Δ) → Tm Δ
+data Tm0 where
+  Var0 : ∀ {Δ n} → (r : Ref n Δ) → Tm0 {n} Δ
 
-RefTy : {Δ : List Pd} {n : ℕ} → Ref n Δ → Ty Δ
-RefTy {n = O} r = ★
-RefTy {n = S n} r = Var (dom r) ⇒ Var (cod r)
+RefTy : {Δ : List Pd} {n : ℕ} → Ref n Δ → Ty0 {n} Δ
+RefTy {n = O} r = ★0
+RefTy {n = S n} r = Var0 (dom r) ⇒0 Var0 (cod r)
 
-data Of {Δ : List Pd} : Tm Δ → Ty Δ → Set where
-  OfVar : {n : ℕ} (r : Ref n Δ) → Of (Var r) (RefTy r)
+data Of {n : ℕ} {Δ : List Pd} : Tm0 {n} Δ → Ty0 {n} Δ → Set where
+  OfVar : (r : Ref n Δ) → Of (Var0 r) (RefTy r)
 
-data WfTy {Δ : List Pd} : Ty Δ → Set where
-  WfTy★ : WfTy ★
-  WfTy⇒ : {C : Ty Δ} {A B : Tm Δ} → Of A C → Of B C → WfTy (A ⇒ B)
+data WfTy {Δ : List Pd} : {n : ℕ} → Ty0 {n} Δ → Set where
+  WfTy★ : WfTy {n = 0} ★0
+  WfTy⇒ : ∀ {n} → {C : Ty0 {n} Δ} {A B : Tm0 Δ} → Of A C → Of B C → WfTy (A ⇒0 B)
 
-WfTy⇒# : ∀ {Δ} → {C D : Ty Δ} {A B : Tm Δ} → Of A C → Of B D → C == D → WfTy (A ⇒ B)
+WfTy⇒# : ∀ {Δ n} → {C D : Ty0 {n} Δ} {A B : Tm0 Δ} → Of A C → Of B D → C == D → WfTy (A ⇒0 B)
 WfTy⇒#  ofA ofB idp = WfTy⇒ ofA ofB
 
 OfX : {Δ : List Pd} {n : ℕ} (r : Ref (S n) Δ) → RefTy (dom r) == RefTy (cod r)
 OfX {n = O} r = idp
-OfX {n = S n} r = ap2 (λ x y → Var x ⇒ Var y) (domLemma r) (codLemma r)
+OfX {n = S n} r = ap2 (λ x y → Var0 x ⇒0 Var0 y) (domLemma r) (codLemma r)
 
 RefWf : {Δ : List Pd} {n : ℕ} (r : Ref n Δ) → WfTy (RefTy r)
 RefWf {n = O} r = WfTy★
 RefWf {n = S n} r = WfTy⇒# (OfVar (dom r)) (OfVar (cod r)) (OfX r)
 
-OfWf : {Δ : List Pd} {M : Tm Δ} {A : Ty Δ} → Of M A → WfTy A
+OfWf : ∀ {n} → {Δ : List Pd} {M : Tm0 {n} Δ} {A : Ty0 Δ} → Of M A → WfTy A
 OfWf (OfVar r) = RefWf r
+
+{-- lemmas --}
+
+bd : ∀ {n Δ} → (r : Ref (S n) Δ) → Ref n Δ × Ref n Δ
+bd r = dom r , cod r
+
+
+
+Poconst : {A B : Set} {u v : B} {x y : A} (q : x == y) → u == v [ (λ _ → B) ↓ q ] → u == v
+Poconst idp p = p
+
+Poconst' : {A B : Set} {u v : B} {x y : A} (q : x == y) → u == v → u == v [ (λ _ → B) ↓ q ]
+Poconst' idp idp = idp
+
+OfXℓ : ∀ {n Δ} → (r s : Ref (S n) Δ) → (q : bd r == bd s) → OfX r == OfX s [ (λ δ → RefTy (fst δ) == RefTy (snd δ)) ↓ q ]
+OfXℓ {O} r s q = Poconst' q idp
+OfXℓ {S n} r s q = {!!}
+lem2 : {n  : ℕ}
+  {Δ : List Pd}
+  (rd rc sd sc  : Ref n Δ)
+  {q  : (Var0 rd ⇒0 Var0 rc) == (Var0 sd ⇒0 Var0 sc)}
+  (μr : RefTy rd == RefTy rc)
+  (μs : RefTy sd == RefTy sc)
+      →
+        (WfTy⇒# (OfVar rd) (OfVar rc) μr) ==
+        (WfTy⇒# (OfVar sd) (OfVar sc) μs) [ WfTy ↓ q ]
+lem2 μr μs = {!!}
+
+lem : {n  : ℕ}
+  {Δ : List Pd}
+  {r s  : Ref (S n) Δ}
+  {q  : (Var0 (dom r) ⇒0 Var0 (cod r)) == (Var0 (dom s) ⇒0 Var0 (cod s))}
+  (μr : RefTy (dom r) == RefTy (cod r))
+  (μs : RefTy (dom s) == RefTy (cod s))
+      →
+        (WfTy⇒# (OfVar (dom r)) (OfVar (cod r)) μr) ==
+        (WfTy⇒# (OfVar (dom s)) (OfVar (cod s)) μs) [ WfTy ↓ q ]
+lem {r = r} {s} μr μs = lem2 (dom r) (cod r) (dom s) (cod s) μr μs
+
+OfWfEq : ∀ {n Δ A B C D} → (x : Of {n} {Δ} A C) (y : Of B D) → (q : C == D) → OfWf x == OfWf y [ WfTy ↓ q ]
+OfWfEq {O} (OfVar r) (OfVar s) idp = idp
+OfWfEq {S n} (OfVar r) (OfVar s) q = lem (OfX r) (OfX s)
+
+{--- build up intrinsic terms now ---}
+
+data Ty : {n : ℕ} → List Pd → Set
+data Tm : {n : ℕ} → (Δ : List Pd) → Ty {n} Δ → Set
+ExtractTy : {n : ℕ} {Δ : List Pd} {τ : Ty0 {n} Δ} → WfTy τ → Ty {n} Δ
+ExtractTm : {n : ℕ} {Δ : List Pd} {τ : Ty0 {n} Δ} {t : Tm0 Δ} (of : Of t τ) (wf : WfTy τ) (z : OfWf of == wf) →  Tm Δ (ExtractTy wf)
+
+data Ty where
+  ★ : ∀ {Δ} → Ty {0} Δ
+  _⇒_ : ∀ {Δ n C} → Tm {n} Δ C → Tm {n} Δ C → Ty {S n} Δ
+
+_#_⇒_ : ∀ {Δ n C D} → C == D → Tm {n} Δ C → Tm {n} Δ D → Ty {S n} Δ
+_#_⇒_ idp = _⇒_
+
+data Tm where
+  Var : ∀ {Δ n} → (r : Ref n Δ) → Tm Δ (ExtractTy (RefWf r))
+
+ExtractTm (OfVar r) wf idp = Var r
+ExtractTy WfTy★ = ★
+ExtractTy (WfTy⇒ x y) = ExtractTm x (OfWf x) idp ⇒ ExtractTm y (OfWf x) (OfWfEq y x idp)
