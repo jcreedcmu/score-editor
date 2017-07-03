@@ -84,7 +84,6 @@ And the rough progression of ideas from earliest to latest is
 	TopKnot.agda -- Jun 13, recursive construction of same
 	TopKnot2.agda -- Jun 14, massive simplification of same idea
 	Rel.agda -- Jun 24, thinking about relational structures
-	FinsterMimram.agda -- Jul 3, thinking about omega-cats
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
@@ -92,3 +91,9 @@ some messy mutually recursive functions. I think it was in
 
 Oh, nope, it was back in `IntCells.agda`. The first bundling commit was
 befa16adb.
+
+## Omega-categories
+
+Just trying to code up "A Type-Theoretical Definition of Weak ω-Categories"
+
+	FinsterMimram.agda -- Jul 3, thinking about omega-cats
