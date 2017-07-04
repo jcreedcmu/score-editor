@@ -74,45 +74,82 @@ OfWf (OfVar r) = RefWf r
 
 {-- lemmas --}
 
-bd : ∀ {n Δ} → (r : Ref (S n) Δ) → Ref n Δ × Ref n Δ
-bd r = dom r , cod r
+-- bd : ∀ {n Δ} → (r : Ref (S n) Δ) → Ref n Δ × Ref n Δ
+-- bd r = dom r , cod r
+
+-- Poconst : {A B : Set} {u v : B} {x y : A} (q : x == y) → u == v [ (λ _ → B) ↓ q ] → u == v
+-- Poconst idp p = p
+
+-- Poconst' : {A B : Set} {u v : B} {x y : A} (q : x == y) → u == v → u == v [ (λ _ → B) ↓ q ]
+-- Poconst' idp idp = idp
+
+-- OfXℓ : ∀ {n Δ} → (r s : Ref (S n) Δ) → (q : bd r == bd s) → OfX r == OfX s [ (λ δ → RefTy (fst δ) == RefTy (snd δ)) ↓ q ]
+-- OfXℓ {O} r s q = Poconst' q idp
+-- OfXℓ {S n} r s q = {!!}
+-- lem2 : {n  : ℕ}
+--   {Δ : List Pd}
+--   (rd rc sd sc  : Ref n Δ)
+--   {q  : (Var0 rd ⇒0 Var0 rc) == (Var0 sd ⇒0 Var0 sc)}
+--   (μr : RefTy rd == RefTy rc)
+--   (μs : RefTy sd == RefTy sc)
+--       →
+--         (WfTy⇒# (OfVar rd) (OfVar rc) μr) ==
+--         (WfTy⇒# (OfVar sd) (OfVar sc) μs) [ WfTy ↓ q ]
+-- lem2 μr μs = {!!}
+
+-- lem : {n  : ℕ}
+--   {Δ : List Pd}
+--   {r s  : Ref (S n) Δ}
+--   {q  : (Var0 (dom r) ⇒0 Var0 (cod r)) == (Var0 (dom s) ⇒0 Var0 (cod s))}
+--   (μr : RefTy (dom r) == RefTy (cod r))
+--   (μs : RefTy (dom s) == RefTy (cod s))
+--       →
+--         (WfTy⇒# (OfVar (dom r)) (OfVar (cod r)) μr) ==
+--         (WfTy⇒# (OfVar (dom s)) (OfVar (cod s)) μs) [ WfTy ↓ q ]
+-- lem {r = r} {s} μr μs = lem2 (dom r) (cod r) (dom s) (cod s) μr μs
+
+-- OfWfEq : ∀ {n Δ A B C D} → (x : Of {n} {Δ} A C) (y : Of B D) → (q : C == D) → OfWf x == OfWf y [ WfTy ↓ q ]
+-- OfWfEq {O} (OfVar r) (OfVar s) idp = idp
+-- OfWfEq {S n} (OfVar r) (OfVar s) q = lem (OfX r) (OfX s)
+
+Porefl' : {A : Set} {B : A → Set} {a a' : A} {u : B a} {u' : B a'} → ((a : A) (x y : B a) → x == y) →  (q : a == a') → u == u' [ B ↓ q ]
+Porefl' {a = a} {u = u} {u'} contr idp = contr a u u'
+
+-- OfEq0 : ∀ {n Δ} → (A : Tm0 {n} Δ) (B1 B2 : Ty0 Δ) (of1 : Of A B1) (of2 : Of A B2) → B1 == B2
+-- OfEq0 {O} .(Var0 r) .★0 .★0 (OfVar r) (OfVar .r) = idp
+-- OfEq0 {S n} .(Var0 r) .(Var0 (dom r) ⇒0 Var0 (cod r)) .(Var0 (dom r) ⇒0 Var0 (cod r)) (OfVar r) (OfVar .r) = idp
 
 
 
-Poconst : {A B : Set} {u v : B} {x y : A} (q : x == y) → u == v [ (λ _ → B) ↓ q ] → u == v
-Poconst idp p = p
 
-Poconst' : {A B : Set} {u v : B} {x y : A} (q : x == y) → u == v → u == v [ (λ _ → B) ↓ q ]
-Poconst' idp idp = idp
+-- OfEq2 : ∀ {n Δ} → (A : Tm0 {n} Δ) (B1 B2 : Ty0 Δ) (of1 : Of A B1) (of2 : Of A B2) → of1 == of2 [ Of A ↓ OfEq0 A B1 B2 of1 of2 ]
+-- OfEq2 {O} .(Var0 r) .★0 .★0 (OfVar r) (OfVar .r) = idp
+-- OfEq2 {S n} .(Var0 r) .(Var0 (dom r) ⇒0 Var0 (cod r)) .(Var0 (dom r) ⇒0 Var0 (cod r)) (OfVar r) (OfVar .r) = idp
 
-OfXℓ : ∀ {n Δ} → (r s : Ref (S n) Δ) → (q : bd r == bd s) → OfX r == OfX s [ (λ δ → RefTy (fst δ) == RefTy (snd δ)) ↓ q ]
-OfXℓ {O} r s q = Poconst' q idp
-OfXℓ {S n} r s q = {!!}
-lem2 : {n  : ℕ}
-  {Δ : List Pd}
-  (rd rc sd sc  : Ref n Δ)
-  {q  : (Var0 rd ⇒0 Var0 rc) == (Var0 sd ⇒0 Var0 sc)}
-  (μr : RefTy rd == RefTy rc)
-  (μs : RefTy sd == RefTy sc)
-      →
-        (WfTy⇒# (OfVar rd) (OfVar rc) μr) ==
-        (WfTy⇒# (OfVar sd) (OfVar sc) μs) [ WfTy ↓ q ]
-lem2 μr μs = {!!}
+OfEq2a : ∀ {n Δ} → (A : Tm0 {n} Δ) (B : Ty0 Δ) (of1 : Of A B) (of2 : Of A B) → of1 == of2
+OfEq2a = {!!}
 
-lem : {n  : ℕ}
-  {Δ : List Pd}
-  {r s  : Ref (S n) Δ}
-  {q  : (Var0 (dom r) ⇒0 Var0 (cod r)) == (Var0 (dom s) ⇒0 Var0 (cod s))}
-  (μr : RefTy (dom r) == RefTy (cod r))
-  (μs : RefTy (dom s) == RefTy (cod s))
-      →
-        (WfTy⇒# (OfVar (dom r)) (OfVar (cod r)) μr) ==
-        (WfTy⇒# (OfVar (dom s)) (OfVar (cod s)) μs) [ WfTy ↓ q ]
-lem {r = r} {s} μr μs = lem2 (dom r) (cod r) (dom s) (cod s) μr μs
+WfTy⇒Σ : ∀ {n Δ} → {A B : Tm0 Δ} → Σ (Ty0 {n} Δ) (λ C → Of A C × Of B C) → WfTy (A ⇒0 B)
+WfTy⇒Σ (C , (ofA , ofB)) = WfTy⇒ ofA ofB
 
-OfWfEq : ∀ {n Δ A B C D} → (x : Of {n} {Δ} A C) (y : Of B D) → (q : C == D) → OfWf x == OfWf y [ WfTy ↓ q ]
-OfWfEq {O} (OfVar r) (OfVar s) idp = idp
-OfWfEq {S n} (OfVar r) (OfVar s) q = lem (OfX r) (OfX s)
+
+OfEqΣ : ∀ {n Δ} → (t : Tm0 {n} Δ) (of1 of2 : Σ (Ty0 Δ) (Of t)) → of1 == of2
+OfEqΣ {O} .(Var0 r) (.★0 , OfVar r) (.★0 , OfVar .r) = idp
+OfEqΣ {S n} .(Var0 r) (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar r) (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar .r) = idp
+
+
+WfLem3 : ∀ {n Δ A B} → (p1 p2 : Σ (Ty0 {n} Δ) (λ C → Of A C × Of B C)) → p1 == p2
+WfLem3 {O} (.★0 , OfVar r₁ , OfVar r) (.★0 , OfVar .r₁ , OfVar .r) = idp
+WfLem3 {S n} (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar r , ofB1) (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar .r , ofB2) =
+  ap (λ z → (Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar r , z) (OfEq2a _ (Var0 (dom r) ⇒0 Var0 (cod r)) ofB1 ofB2)
+
+{- WfLem3 (C1 , ofA1 , ofB1) (C2 , ofA2 , ofB2) = foo where
+  foo : mash (C1 , ofA1) (C1 , ofB1) idp == mash (C2 , ofA2) (C2 , ofB2) idp
+  foo = mashLem (C1 , ofA1) (C1 , ofB1) idp (C2 , ofA2) (C2 , ofB2) idp -}
+
+WfEq2 : ∀ {n Δ C} → (wf1 wf2 : WfTy {Δ} {n} C) → wf1 == wf2
+WfEq2 {O} {Δ} WfTy★ WfTy★ = idp
+WfEq2 {S n} {Δ} (WfTy⇒ {C = C1} {A} {B} a1 b1) (WfTy⇒ {C = C2} a2 b2) = ap WfTy⇒Σ (WfLem3 (C1 , (a1 , b1)) (C2 , (a2 , b2)))
 
 {--- build up intrinsic terms now ---}
 
@@ -133,4 +170,4 @@ data Tm where
 
 ExtractTm (OfVar r) wf idp = Var r
 ExtractTy WfTy★ = ★
-ExtractTy (WfTy⇒ x y) = ExtractTm x (OfWf x) idp ⇒ ExtractTm y (OfWf x) (OfWfEq y x idp)
+ExtractTy (WfTy⇒ x y) = ExtractTm x (OfWf x) idp ⇒ ExtractTm y (OfWf x) (WfEq2 (OfWf y) (OfWf x))
