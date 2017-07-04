@@ -56,10 +56,10 @@ data Of {n : ℕ} {Δ : List Pd} : Tm0 {n} Δ → Ty0 {n} Δ → Set where
 
 data WfTy {Δ : List Pd} : {n : ℕ} → Ty0 {n} Δ → Set where
   WfTy★ : WfTy {n = 0} ★0
-  WfTy⇒ : ∀ {n} → {C : Ty0 {n} Δ} {A B : Tm0 Δ} → Of A C → Of B C → WfTy (A ⇒0 B)
+  WfTy⇒# : ∀ {n} → {C D : Ty0 {n} Δ} {A B : Tm0 Δ} → Of A C → Of B D → C == D → WfTy (A ⇒0 B)
 
-WfTy⇒# : ∀ {Δ n} → {C D : Ty0 {n} Δ} {A B : Tm0 Δ} → Of A C → Of B D → C == D → WfTy (A ⇒0 B)
-WfTy⇒#  ofA ofB idp = WfTy⇒ ofA ofB
+WfTy⇒ : ∀ {Δ n} → {C : Ty0 {n} Δ} {A B : Tm0 Δ} → Of A C → Of B C → WfTy (A ⇒0 B)
+WfTy⇒ ofA ofB = WfTy⇒# ofA ofB idp
 
 OfX : {Δ : List Pd} {n : ℕ} (r : Ref (S n) Δ) → RefTy (dom r) == RefTy (cod r)
 OfX {n = O} r = idp
@@ -71,47 +71,6 @@ RefWf {n = S n} r = WfTy⇒# (OfVar (dom r)) (OfVar (cod r)) (OfX r)
 
 OfWf : ∀ {n} → {Δ : List Pd} {M : Tm0 {n} Δ} {A : Ty0 Δ} → Of M A → WfTy A
 OfWf (OfVar r) = RefWf r
-
--- OfWfEq : ∀ {n Δ A B C D} → (x : Of {n} {Δ} A C) (y : Of B D) → (q : C == D) → OfWf x == OfWf y [ WfTy ↓ q ]
--- OfWfEq {O} (OfVar r) (OfVar s) idp = idp
--- OfWfEq {S n} (OfVar r) (OfVar s) q = lem (OfX r) (OfX s)
-
-Porefl' : {A : Set} {B : A → Set} {a a' : A} {u : B a} {u' : B a'} → ((a : A) (x y : B a) → x == y) →  (q : a == a') → u == u' [ B ↓ q ]
-Porefl' {a = a} {u = u} {u'} contr idp = contr a u u'
-
-OfEq0 : ∀ {n Δ} → (A : Tm0 {n} Δ) (B1 B2 : Ty0 Δ) (of1 : Of A B1) (of2 : Of A B2) → B1 == B2
-OfEq0 {O} .(Var0 r) .★0 .★0 (OfVar r) (OfVar .r) = idp
-OfEq0 {S n} .(Var0 r) .(Var0 (dom r) ⇒0 Var0 (cod r)) .(Var0 (dom r) ⇒0 Var0 (cod r)) (OfVar r) (OfVar .r) = idp
-
-OfEq2 : ∀ {n Δ} → (A : Tm0 {n} Δ) (B1 B2 : Ty0 Δ) (of1 : Of A B1) (of2 : Of A B2) → of1 == of2 [ Of A ↓ OfEq0 A B1 B2 of1 of2 ]
-OfEq2 {O} .(Var0 r) .★0 .★0 (OfVar r) (OfVar .r) = idp
-OfEq2 {S n} .(Var0 r) .(Var0 (dom r) ⇒0 Var0 (cod r)) .(Var0 (dom r) ⇒0 Var0 (cod r)) (OfVar r) (OfVar .r) = idp
-
-WfTy⇒Σ : ∀ {n Δ} → {A B : Tm0 Δ} → Σ (Ty0 {n} Δ) (λ C → Of A C × Of B C) → WfTy (A ⇒0 B)
-WfTy⇒Σ (C , (ofA , ofB)) = WfTy⇒ ofA ofB
-
-
-OfEqΣ : ∀ {n Δ} → (t : Tm0 {n} Δ) (of1 of2 : Σ (Ty0 Δ) (Of t)) → of1 == of2
-OfEqΣ {O} .(Var0 r) (.★0 , OfVar r) (.★0 , OfVar .r) = idp
-OfEqΣ {S n} .(Var0 r) (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar r) (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar .r) = idp
-
-OfEq2b : ∀ {n Δ} → (A : Tm0 {n} Δ) (B : Ty0 Δ) (of1 : Of A B) (of2 : Of A B) → of1 == of2
-OfEq2b {n} {Δ} A B of1 of2 = {!!} where
-
-
-WfLem3 : ∀ {n Δ A B} → (p1 p2 : Σ (Ty0 {n} Δ) (λ C → Of A C × Of B C)) → p1 == p2
-WfLem3 {O} (.★0 , OfVar r₁ , OfVar r) (.★0 , OfVar .r₁ , OfVar .r) = idp
-WfLem3 {S n} (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar r , ofB1) (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar .r , ofB2) =
-  ap (λ z → (Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar r , z) (OfEq2b _ (Var0 (dom r) ⇒0 Var0 (cod r)) ofB1 ofB2)
---  ap (λ z → (Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar r , z) (OfEq2a _ (Var0 (dom r) ⇒0 Var0 (cod r)) (Var0 (dom r) ⇒0 Var0 (cod r)) ofB1 ofB2 idp)
-
-{- WfLem3 (C1 , ofA1 , ofB1) (C2 , ofA2 , ofB2) = foo where
-  foo : mash (C1 , ofA1) (C1 , ofB1) idp == mash (C2 , ofA2) (C2 , ofB2) idp
-  foo = mashLem (C1 , ofA1) (C1 , ofB1) idp (C2 , ofA2) (C2 , ofB2) idp -}
-
-WfEq2 : ∀ {n Δ C} → (wf1 wf2 : WfTy {Δ} {n} C) → wf1 == wf2
-WfEq2 {O} {Δ} WfTy★ WfTy★ = idp
-WfEq2 {S n} {Δ} (WfTy⇒ {C = C1} {A} {B} a1 b1) (WfTy⇒ {C = C2} a2 b2) = ap WfTy⇒Σ (WfLem3 (C1 , (a1 , b1)) (C2 , (a2 , b2)))
 
 {--- build up intrinsic terms now ---}
 
@@ -130,30 +89,55 @@ _#_⇒_ idp = _⇒_
 data Tm where
   Var : ∀ {Δ n} → (r : Ref n Δ) → Tm Δ (ExtractTy (RefWf r))
 
+REq : (n : ℕ) → ∀ {Δ} → (r1 r2 : Ref n Δ) (rta rtb : Var0 r1 == Var0 r2) → rta == rtb
+REq .0 r0 r0 idp idp = idp
+REq .0 r0 (rtl r2) () rtb
+REq .0 (rtl r1) r0 rta ()
+REq n (rtl r1) (rtl r2) rta rtb = {!!}
+REq .(S _) (rtl r1) (rhd r2) rta rtb = {!!}
+REq .(S _) (rhd r1) (rtl r2) rta rtb = {!!}
+REq .(S _) (rhd r1) (rhd r2) rta rtb = {!!}
+
+TmEq : ∀ {n Δ} → (t1 t2 : Tm0 {n} Δ) (rta rtb : t1 == t2) → rta == rtb
+TmEq (Var0 r1) (Var0 r2) rta rtb = REq _ _ _ rta rtb
+
+TyEqDecomp : ∀ {n Δ} → {a b c d : Tm0 {n} Δ} → (a ⇒0 b) == (c ⇒0 d) → (a == c) × (b == d)
+TyEqDecomp idp = idp , idp
+
+TyEqRecomp : ∀ {n Δ} → {a b c d : Tm0 {n} Δ} →  (a == c) × (b == d) → (a ⇒0 b) == (c ⇒0 d)
+TyEqRecomp (idp , idp) = idp
+
+TyEqInv : ∀ {n Δ} → {a b c d : Tm0 {n} Δ} (p : (a ⇒0 b) == (c ⇒0 d)) → TyEqRecomp (TyEqDecomp p) == p
+TyEqInv idp = idp
+
+TyEqDecompInj : ∀ {n Δ} → {a b c d : Tm0 {n} Δ} (p q : (a ⇒0 b) == (c ⇒0 d)) → TyEqDecomp p == TyEqDecomp q → p == q
+TyEqDecompInj p q s = ! (TyEqInv p) ∙ ap TyEqRecomp s ∙ TyEqInv q
+
+TtEq : ∀ {n Δ} → (t1 t2 : Ty0 {n} Δ) (rta rtb : t1 == t2) → rta == rtb
+TtEq {n} ★0 ★0 idp idp = idp
+TtEq {.(S _)} ★0 (x ⇒0 x₁) () rtb
+TtEq {.(S _)} (x ⇒0 x₁) ★0 rta ()
+TtEq {.(S _)} (a ⇒0 b) (c ⇒0 d) rta rtb = TyEqDecompInj rta rtb (pair×= z1 z2)  where
+  decompa : (a == c) × (b == d)
+  decompa = TyEqDecomp rta
+  decompb : (a == c) × (b == d)
+  decompb = TyEqDecomp rtb
+  z1 : fst decompa == fst decompb
+  z1 = TmEq a c (fst decompa) (fst decompb)
+  z2 : snd decompa == snd decompb
+  z2 = TmEq b d (snd decompa) (snd decompb)
+
+RefWfLem2 : ∀ {Δ n} → (A B : Ty0 {n} Δ) (p : A == B) (wfA : WfTy A) (wfB : WfTy B) → wfA == wfB [ WfTy ↓ p ]
+RefWfLem2 .★0 .★0 idp WfTy★ WfTy★ = idp
+RefWfLem2 .(Var0 r1 ⇒0 Var0 r2) .(Var0 r1 ⇒0 Var0 r2) idp (WfTy⇒# (OfVar .r1) (OfVar .r2) rt1) (WfTy⇒# (OfVar r1) (OfVar r2) rt2) =
+  ap (WfTy⇒# (OfVar r1) (OfVar r2)) (TtEq (RefTy r1) (RefTy r2) rt1 rt2)
+
+RefWfLem : ∀ {Δ n} → (r1 r2 : Ref n Δ) (p : RefTy r1 == RefTy r2) → RefWf r1 == RefWf r2 [ WfTy ↓ p ]
+RefWfLem r1 r2 p = RefWfLem2 (RefTy r1) (RefTy r2) p (RefWf r1) (RefWf r2)
+
+OfLem : ∀ {Δ n A B C D} → (oa : Of {n} {Δ} A C) (ob : Of B D) (p : C == D) → OfWf oa == OfWf ob [ WfTy ↓ p ]
+OfLem {n = n} (OfVar r1) (OfVar r2) p = RefWfLem r1 r2 p
+
 ExtractTm (OfVar r) wf idp = Var r
 ExtractTy WfTy★ = ★
-ExtractTy (WfTy⇒ x y) = ExtractTm x (OfWf x) idp ⇒ ExtractTm y (OfWf x) (WfEq2 (OfWf y) (OfWf x))
-
-{-
-
-
-OfDecomp : ∀ {n Δ t A} → Of {n} {Δ} t A → Ref n Δ
-OfDecomp (OfVar r) = r
-
-OfDecompℓ : ∀ {n Δ t1 t2 A1 A2} (of1 : Of {n} {Δ} t1 A1) (of2 : Of t2 A2) → t1 == t2 → OfDecomp of1 == OfDecomp of2
-OfDecompℓ (OfVar r) (OfVar .r) idp = idp
-
-OfWhat : ∀ {n Δ t A} (of1 of2 : Of {n} {Δ} t A) (q : OfDecomp of1 == OfDecomp of2) → OfVar (OfDecomp of1) == OfVar (OfDecomp of2) [ (λ z → Of (Var0 z) (RefTy z)) ↓ q ]
-OfWhat (OfVar r) of2 q = {!!}
-
-
-Var0η : ∀ {n Δ t A} (of : Of {n} {Δ} t A) → t == Var0 (OfDecomp of)
-Var0η (OfVar r) = idp
-
-RefTyη : ∀ {n Δ t A} (of : Of {n} {Δ} t A) → A == RefTy (OfDecomp of)
-RefTyη (OfVar r) = idp
-
-Ofη : ∀ {n Δ t A} → Of {n} {Δ} t A → Set
-Ofη of = OfVar (OfDecomp of) == coe (ap2 Of (Var0η of) (RefTyη of)) of
-
--}
+ExtractTy (WfTy⇒# x y idp) = ExtractTm x (OfWf x) idp ⇒ ExtractTm y (OfWf x) (OfLem y x idp)
