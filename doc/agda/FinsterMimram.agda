@@ -95,9 +95,8 @@ OfEqΣ : ∀ {n Δ} → (t : Tm0 {n} Δ) (of1 of2 : Σ (Ty0 Δ) (Of t)) → of1 
 OfEqΣ {O} .(Var0 r) (.★0 , OfVar r) (.★0 , OfVar .r) = idp
 OfEqΣ {S n} .(Var0 r) (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar r) (.(Var0 (dom r) ⇒0 Var0 (cod r)) , OfVar .r) = idp
 
-postulate
-  OfEq2b : ∀ {n Δ} → (A : Tm0 {n} Δ) (B : Ty0 Δ) (of1 : Of A B) (of2 : Of A B) → of1 == of2
--- OfEq2b {n} {Δ} A B of1 of2 = {!!} where
+OfEq2b : ∀ {n Δ} → (A : Tm0 {n} Δ) (B : Ty0 Δ) (of1 : Of A B) (of2 : Of A B) → of1 == of2
+OfEq2b {n} {Δ} A B of1 of2 = {!!} where
 
 
 WfLem3 : ∀ {n Δ A B} → (p1 p2 : Σ (Ty0 {n} Δ) (λ C → Of A C × Of B C)) → p1 == p2
