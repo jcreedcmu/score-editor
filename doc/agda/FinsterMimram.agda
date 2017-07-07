@@ -36,13 +36,33 @@ codLemma {S n} (rhd r) = ap rhd (codLemma r)
 
 data Ty : {n : ℕ} → List Pd → Set
 data Tm : {n : ℕ} → List Pd → Set
+data Subst : List Pd → List Pd → Set
+subConcat : ∀ {Γ Δ Ξ} → Subst Δ Γ → Subst Γ Ξ → Subst Δ Ξ
+subTy : ∀ {Γ Δ n} → Subst Δ Γ → (A : Ty {n} Γ) → Ty {n} Δ
+subTm : ∀ {Γ Δ n} → Subst Δ Γ → (A : Tm {n} Γ) → Tm {n} Δ
+subRef : ∀ {Γ Δ n} → Subst Δ Γ → (A : Ref n Γ) → Tm {n} Δ
 
 data Ty where
   ★ : ∀ {Δ n} → Ty {n} Δ
-  _⇒_ : ∀ {Δ n} → Tm {n} Δ → Tm {n} Δ → Ty {S n} Δ
+  _⇒_ : ∀ {Δ n} (t u : Tm {n} Δ) → Ty {S n} Δ
 
 data Tm where
   Var : ∀ {Δ n} → (r : Ref n Δ) → Tm {n} Δ
+  Coh : ∀ {Γ Δ n} → (A : Ty {n} Γ) → (σ : Subst Δ Γ) → Tm {n} Δ
+
+data Subst where
+  ids : ∀ {Γ} → Subst Γ Γ
+  conss : ∀ {Γ Δ n} (σ : Subst Δ Γ) {A : Ty {n} Γ} → Tm {n} Δ  → Subst Δ (A :: Γ)
+
+subRef = {!!}
+
+subConcat σ τ = {!!}
+
+subTm σ (Var r) = subRef σ r
+subTm σ (Coh A τ) = Coh A (subConcat σ τ)
+
+subTy σ ★ = ★
+subTy σ (t ⇒ u) = subTm σ t ⇒ subTm σ u
 
 RefTy : {Δ : List Pd} {n : ℕ} → Ref n Δ → Ty {n} Δ
 RefTy {n = O} r = ★

@@ -13,7 +13,7 @@
 \def\rsn{\ \mathsf{sn}}
 \def\rx{\mapsto}
 \def\wat{{@}}
-\def\sem#1{[\![#1]\!]}
+\def\sem#1{[\hspace{0.01em}\![#1]\hspace{0.01em}\!]}
 \def\cn{{:}}
 \def\rtype{\mathrm{type}}
 \def\rdom{\mathrm{dom}}
@@ -193,6 +193,7 @@ $\tau_\omega$-categories are something like $\omega$-categories
  We recall Finster and Mimram's definition of $\omega$-category and try to compare it with ours
 \def\pps{\prov_{\mathsf{ps}}}
 \def\pfull{\prov^*}
+\def\provr{\prov\hspace{0.07em}\!\!\!\prov}
 \def\coh{\mathrm{coh}}
 \[ \partial_i^\pm(x : \star) = x : \star \]
 \[ \partial_i^-(\Gamma, y : A, f : \path x y A) = \cases{
@@ -203,6 +204,9 @@ $\tau_\omega$-categories are something like $\omega$-categories
 \mathrm{drop}(\partial_i^+(\Gamma)), y : A & if $\dim(A) = i$\cr
 \partial_i^+(\Gamma) & ow
 } \]
+I'm not totally convinced these definitions above are right for $i \ge \dim(\Gamma)$, (particularly $\partial^+$ seems to drop everything)
+but I think we only need them at $i = \dim(\Gamma) - 1$.
+
 \[
 \erule
 {\Gamma \pps x : \star}
@@ -224,26 +228,31 @@ $\tau_\omega$-categories are something like $\omega$-categories
 \]
 
 \[
+\erule{}{\Gamma, x : A \prov x : A}
+\qquad
 \erule
 {\Gamma \prov t : A \qquad FV(\Gamma) = FV(t)}
 {\Gamma \pfull t : A}
 \]
 
 \[\erule{
-\Gamma\pps\qquad
-\Gamma \prov \path t u A \qquad
 \partial^-(\Gamma) \pfull t : A\qquad
 \partial^+(\Gamma) \pfull u : A
 }
-{\Gamma \prov \coh_{\Gamma, \path t u A}:\path t u A}
-\]
-
-\[\erule{
-\Gamma\pps\qquad
-\Gamma \prov A\qquad
+{\Gamma \provr \path t u A}
+\qquad
+\erule{
 FV(\Gamma) = FV(A)
 }
-{\Gamma \prov \coh_{\Gamma, A} : A}\]
+{\Gamma \provr  A}\]
+
+
+\[\erule{
+\Gamma \pps \qquad \Gamma \prov A\qquad
+\Gamma \provr A\qquad
+\Delta \prov \sigma  \Gamma
+}
+{\Gamma \prov \coh_{\Gamma, A}[\sigma] : \sigma A}\]
 
 \begin{definition}
 An $FM$-category is a functor from the category of contexts and substitutions, to the category of sets.
@@ -251,6 +260,53 @@ An $FM$-category is a functor from the category of contexts and substitutions, t
 
 \section{Constructions}
 \subsection{Constructing a $\tau_\omega$ category from an $FM$-category}
+We assume a $FM$-category is given, as a function $\sem \dash$ that takes contexts
+to sets, types to sets over their context, and terms to sections of their type.
+We construct $\C$, a $\tau_\omega$-category.
+\subsection{Objects}
+Define the globular $n$-context $\Gamma_n$ by
+$$\tau_0 = \star \qquad \tau_{n+1} = x_n \to y_n$$
+$$\Delta_0 = \cdot \qquad \Delta_{n+1} = \Delta_n, x_{n+1} : \tau_{n+1}, y_{n+1} : \tau_{n+1} $$
+$$\Gamma_n = \Delta_n, z: \tau_n$$
+$$\Gamma_0 = \sem{z : \star }$$
+so that, e.g.
+$$\Gamma_n = (x_0, y_0 : \star), (x_1, y_1 : x_0 \to y_0), \ldots, z : x_{n-1} \to y_{n-1} $$
 
+The objects of $\C$ are elements of $\bigcup_n \sem{\Gamma_n}$. Call an element of $\sem{\Gamma_n}$ an {\em $n$-object}.
+The $\tau_\omega$-category structure of $\C$ doesn't directly know about this distinction, but we'll use the term to describe the construction.
+
+\subsection{Morphisms}
+Given a globular context $\Gamma_n$, we want to define variations on it with various extensions,
+$\Gamma_n[L_m], \Gamma_n[R_m], \Gamma_n[E_m]$ with $m \le n$. For example,
+
+\[\Gamma_2[L_1] = (x_0, y_0 : \star), (x_1, y_1 : x_0 \to y_0), z : x_1\to y_1, \ell_0 : \star, \ell_1 : y_0 \to \ell_0\]
+
+Hm, no, these won't always be pasting diagrams right off the bat,
+since we'll be doing compositions of higher-dimensional cells whose
+boundaries are themselves compositions of lower-dimensional cells.
+
+\subsubsection{Composition}
+
+Define
+$$\Gamma^1_\o = x : \star, y : \star, f : x \to y, z : \star, g : y \to z \qquad A^1_\o = x \to z$$
+Define $g \circ_1 f$ to be $\coh_{\Gamma^1_\o,A^1_\o}$.
+
+\subsubsection{Classified morphisms}
+
+An $E_1$-morphism from $f$ to $g$ is a pair $(\ell, r)$ of $1$-objects such that $f = \ell\o g\o r$ for a suitable ternary composition.
+Such a composition makes sense when $f$ and $g$ are both $n$-objects with 1-boundaries that line up with $\ell, r$.
+
+
+
+An $E_n$-morphism from $f$ to $g$ is a sequence
+\[(\ell_1, r_1), \ldots, (\ell_n, r_n)\]
+ such that $\ell_i, r_i$ are $i$-objects, and $f = \ell_n\o (\cdots (\ell_1 \o g \o r_1 ) \cdots )\o r_n$ for a suitable iterated ternary composition.
+Such a composition makes sense when $f$ and $g$ are both $m$-objects ($n\le m$) with boundaries that line up with $\ell_i, r_i$.
+
+An $L_n$-morphism is an $E_n$ morphism for which $r_n$ is an identity cell.
+
+A $R_n$-morphism is an $E_n$ morphism for which $\ell_n$ is an identity cell.
+
+A $G_n$-morphism is an $E_m$ morphism for any $m \ge n$.
 \subsection{Constructing an $FM$-category category from a $\tau_\omega$}
 \end{document}
