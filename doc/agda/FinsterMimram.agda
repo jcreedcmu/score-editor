@@ -73,10 +73,7 @@ data Of {n : ℕ} {Δ : List Pd} : Tm {n} Δ → Ty {n} Δ → Set where
 
 data WfTy {Δ : List Pd} : {n : ℕ} → Ty {n} Δ → Set where
   WfTy★ : WfTy {n = 0} ★
-  WfTy⇒ : ∀ {n} {C D : Ty {n} Δ} {A B : Tm Δ} → Of A C → Of B C → WfTy (A ⇒ B)
-
-WfTy⇒# : {Δ : List Pd} {n : ℕ} {C D : Ty {n} Δ} {A B : Tm Δ} → Of A C → Of B D → C == D → WfTy (A ⇒ B)
-WfTy⇒# {C = C} p q idp = WfTy⇒ {C = C} {C} p q
+  WfTy⇒# : ∀ {n} {C D : Ty {n} Δ} {A B : Tm Δ} → Of A C → Of B D → C == D → WfTy (A ⇒ B)
 
 OfX : {Δ : List Pd} {n : ℕ} (r : Ref (S n) Δ) → RefTy (dom r) == RefTy (cod r)
 OfX {n = O} r = idp
@@ -89,12 +86,13 @@ RefWf {n = S n} r = WfTy⇒# (OfVar (dom r)) (OfVar (cod r)) (OfX r)
 OfWf : ∀ {n} → {Δ : List Pd} {M : Tm {n} Δ} {A : Ty Δ} → Of M A → WfTy A
 OfWf (OfVar r) = RefWf r
 
-postulate
-  OfWfIrrel : ∀ {Δ n} → {C : Ty {n} Δ} {t u : Tm Δ} (ofu : Of u C) (oft : Of t C)  → OfWf oft == OfWf ofu
 
 postulate
   _~>_ : ∀ {n} {A : Set n} → A → A → Set
 
+postulate
+--  OfWfIrrel : ∀ {Δ n} → {C : Ty {n} Δ} {t u : Tm Δ} (ofu : Of u C) (oft : Of t C)  → OfWf oft == OfWf ofu
+  OfWfIrrelTrans : ∀ {Δ n} (interp : (A : Ty {n} Δ) → WfTy A → Set) {C D : Ty {n} Δ} (q : D == C) {t u : Tm Δ} (oft : Of t C) (ofu : Of u D) → interp C (OfWf oft) → interp D (OfWf ofu)
 
 data Subst : (Δ : List Pd) (A : Set) → Set₁
 getSubHead : {Δ : List Pd} {A : Set} → Subst Δ A → A
@@ -103,15 +101,32 @@ interpTm : (Δ : List Pd) (A : Set) (σ : Subst Δ A) {n : ℕ} {τ : Ty {n} Δ}
 sub : {Δ : List Pd} {A : Set} (σ : Subst Δ A) {n : ℕ} (r : Ref n Δ) → interpTy Δ A σ (RefTy r) (RefWf r)
 
 
+
 interpTy Δ A σ ★ q = A
-interpTy Δ A σ (t ⇒ u) (WfTy⇒ oft ofu) = interpTm Δ A σ t oft ~> transport (interpTy Δ A σ _) (OfWfIrrel oft ofu) (interpTm Δ A σ u ofu)
+interpTy Δ A σ (t ⇒ u) (WfTy⇒# oft ofu q) = interpTm Δ A σ t oft ~> OfWfIrrelTrans (interpTy Δ A σ) q ofu oft (interpTm Δ A σ u ofu)
+-- transport (interpTy Δ A σ _) (OfWfIrrel oft ofu) (interpTm Δ A σ u ofu)
+
+
 interpTm Δ A σ {n} {.(RefTy r)} .(Var r) (OfVar r) = sub σ r
 data Subst where
   snil :  {A : Set} (a : A) → Subst nil A
-  scons :  {Δh Δtl : List Pd} {A : Set} {a : A} (σtl : Subst Δtl A) (σh : Subst Δh (a ~> getSubHead σtl)) → Subst (pc Δh :: Δtl) A
+  scons :  {Δhd Δtl : List Pd} {A : Set} {a : A} (σtl : Subst Δtl A) (σhd : Subst Δhd (a ~> getSubHead σtl)) → Subst (pc Δhd :: Δtl) A
 
 getSubHead (snil a) = a
 getSubHead (scons {a = a} σtl σh) = a
-sub σ r0 = getSubHead σ
-sub (scons σ σ₁) (rtl r) = {!!}
-sub (scons σtl σhd) (rhd r) = {!!}
+sub σ {O} r0 = getSubHead σ
+sub (scons σtl σhd) {O} (rtl r) = sub σtl {0} r
+sub (scons σtl σhd) {S n} (rtl r) = {!sub σtl r!}
+sub (scons σtl σhd) {S n} (rhd r) = {!sub σhd r!}
+
+
+-- need:
+-- sub (scons σtl σhd) (dom (rtl r)) ~>
+-- OfWfIrrelTrans (interpTy (pc .Δhd :: .Δtl) .A (scons σtl σhd))
+-- (OfX (rtl r)) (OfVar (cod (rtl r))) (OfVar (dom (rtl r)))
+-- (sub (scons σtl σhd) (cod (rtl r)))
+
+-- have:
+-- sub σtl (dom r) ~>
+-- OfWfIrrelTrans (interpTy .Δtl .A σtl) (OfX r) (OfVar (cod r))
+-- (OfVar (dom r)) (sub σtl (cod r))
