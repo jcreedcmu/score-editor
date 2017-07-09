@@ -36,11 +36,11 @@ codLemma {S n} (rhd r) = ap rhd (codLemma r)
 
 data Ty : {n : ℕ} → List Pd → Set
 data Tm : {n : ℕ} → List Pd → Set
-data Subst : List Pd → List Pd → Set
-subConcat : ∀ {Γ Δ Ξ} → Subst Δ Γ → Subst Γ Ξ → Subst Δ Ξ
-subTy : ∀ {Γ Δ n} → Subst Δ Γ → (A : Ty {n} Γ) → Ty {n} Δ
-subTm : ∀ {Γ Δ n} → Subst Δ Γ → (A : Tm {n} Γ) → Tm {n} Δ
-subRef : ∀ {Γ Δ n} → Subst Δ Γ → (A : Ref n Γ) → Tm {n} Δ
+-- data Subst : List Pd → List Pd → Set
+-- subConcat : ∀ {Γ Δ Ξ} → Subst Δ Γ → Subst Γ Ξ → Subst Δ Ξ
+-- subTy : ∀ {Γ Δ n} → Subst Δ Γ → (A : Ty {n} Γ) → Ty {n} Δ
+-- subTm : ∀ {Γ Δ n} → Subst Δ Γ → (A : Tm {n} Γ) → Tm {n} Δ
+-- subRef : ∀ {Γ Δ n} → Subst Δ Γ → (A : Ref n Γ) → Tm {n} Δ
 
 data Ty where
   ★ : ∀ {Δ n} → Ty {n} Δ
@@ -48,21 +48,21 @@ data Ty where
 
 data Tm where
   Var : ∀ {Δ n} → (r : Ref n Δ) → Tm {n} Δ
-  Coh : ∀ {Γ Δ n} → (A : Ty {n} Γ) → (σ : Subst Δ Γ) → Tm {n} Δ
+--  Coh : ∀ {Γ Δ n} → (A : Ty {n} Γ) → (σ : Subst Δ Γ) → Tm {n} Δ
 
-data Subst where
-  ids : ∀ {Γ} → Subst Γ Γ
-  conss : ∀ {Γ Δ n} (σ : Subst Δ Γ) {A : Ty {n} Γ} → Tm {n} Δ  → Subst Δ (A :: Γ)
+-- data Subst where
+--   ids : ∀ {Γ} → Subst Γ Γ
+--   conss : ∀ {Γ Δ n} (σ : Subst Δ Γ) {A : Ty {n} Γ} → Tm {n} Δ  → Subst Δ (A :: Γ)
 
-subRef = {!!}
+-- subRef = {!!}
 
-subConcat σ τ = {!!}
+-- subConcat σ τ = {!!}
 
-subTm σ (Var r) = subRef σ r
-subTm σ (Coh A τ) = Coh A (subConcat σ τ)
+-- subTm σ (Var r) = subRef σ r
+-- subTm σ (Coh A τ) = Coh A (subConcat σ τ)
 
-subTy σ ★ = ★
-subTy σ (t ⇒ u) = subTm σ t ⇒ subTm σ u
+-- subTy σ ★ = ★
+-- subTy σ (t ⇒ u) = subTm σ t ⇒ subTm σ u
 
 RefTy : {Δ : List Pd} {n : ℕ} → Ref n Δ → Ty {n} Δ
 RefTy {n = O} r = ★
@@ -73,7 +73,10 @@ data Of {n : ℕ} {Δ : List Pd} : Tm {n} Δ → Ty {n} Δ → Set where
 
 data WfTy {Δ : List Pd} : {n : ℕ} → Ty {n} Δ → Set where
   WfTy★ : WfTy {n = 0} ★
-  WfTy⇒# : ∀ {n} → {C D : Ty {n} Δ} {A B : Tm Δ} → Of A C → Of B D → C == D → WfTy (A ⇒ B)
+  WfTy⇒ : ∀ {n} {C D : Ty {n} Δ} {A B : Tm Δ} → Of A C → Of B C → WfTy (A ⇒ B)
+
+WfTy⇒# : {Δ : List Pd} {n : ℕ} {C D : Ty {n} Δ} {A B : Tm Δ} → Of A C → Of B D → C == D → WfTy (A ⇒ B)
+WfTy⇒# {C = C} p q idp = WfTy⇒ {C = C} {C} p q
 
 OfX : {Δ : List Pd} {n : ℕ} (r : Ref (S n) Δ) → RefTy (dom r) == RefTy (cod r)
 OfX {n = O} r = idp
@@ -85,3 +88,30 @@ RefWf {n = S n} r = WfTy⇒# (OfVar (dom r)) (OfVar (cod r)) (OfX r)
 
 OfWf : ∀ {n} → {Δ : List Pd} {M : Tm {n} Δ} {A : Ty Δ} → Of M A → WfTy A
 OfWf (OfVar r) = RefWf r
+
+postulate
+  OfWfIrrel : ∀ {Δ n} → {C : Ty {n} Δ} {t u : Tm Δ} (ofu : Of u C) (oft : Of t C)  → OfWf oft == OfWf ofu
+
+postulate
+  _~>_ : ∀ {n} {A : Set n} → A → A → Set
+
+
+data Subst : (Δ : List Pd) (A : Set) → Set₁
+getSubHead : {Δ : List Pd} {A : Set} → Subst Δ A → A
+interpTy : (Δ : List Pd) (A : Set) (σ : Subst Δ A) {n : ℕ} (τ : Ty {n} Δ) (wf : WfTy τ) → Set
+interpTm : (Δ : List Pd) (A : Set) (σ : Subst Δ A) {n : ℕ} {τ : Ty {n} Δ} (t : Tm {n} Δ) (of : Of t τ) → interpTy Δ A σ τ (OfWf of)
+sub : {Δ : List Pd} {A : Set} (σ : Subst Δ A) {n : ℕ} (r : Ref n Δ) → interpTy Δ A σ (RefTy r) (RefWf r)
+
+
+interpTy Δ A σ ★ q = A
+interpTy Δ A σ (t ⇒ u) (WfTy⇒ oft ofu) = interpTm Δ A σ t oft ~> transport (interpTy Δ A σ _) (OfWfIrrel oft ofu) (interpTm Δ A σ u ofu)
+interpTm Δ A σ {n} {.(RefTy r)} .(Var r) (OfVar r) = sub σ r
+data Subst where
+  snil :  {A : Set} (a : A) → Subst nil A
+  scons :  {Δh Δtl : List Pd} {A : Set} {a : A} (σtl : Subst Δtl A) (σh : Subst Δh (a ~> getSubHead σtl)) → Subst (pc Δh :: Δtl) A
+
+getSubHead (snil a) = a
+getSubHead (scons {a = a} σtl σh) = a
+sub σ r0 = getSubHead σ
+sub (scons σ σ₁) (rtl r) = {!!}
+sub (scons σtl σhd) (rhd r) = {!!}
