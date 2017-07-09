@@ -8,6 +8,7 @@
 \def\lamp{\binampersand}
 \def\bpush{\mathbf{push}}
 \newarrow {Equiv} =====
+\def\ot{\leftarrow}
 \def\ups#1{#1^G}
 \def\dns#1{#1^B}
 \def\rsn{\ \mathsf{sn}}
@@ -32,174 +33,35 @@
 {#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}
 {#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}
 {#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}}
-
+\def\pps{\prov_{\mathsf{ps}}}
+\def\pfull{\prov^*}
+\def\provr{\prov\hspace{0.07em}\!\!\!\prov}
+\def\coh{\mathrm{coh}}
+\def\binj{\mathbf{inj}}
 \title{Notes on defining category-like structures}
 \author{Jason Reed}
 \begin{document}
 
 \maketitle
-%% \section{Motivation}
-
-%% I am interested in attempting to simplify existing definitions of
-%% (weak) higher-dimensional categories, ideally in such a way that gives some
-%% feeling for {\em why} various associativities, coherences, etc. are
-%% the way they are.
-
-%% The definition I sketch below leans on only $1$-categorical concepts,
-%% interpreting the structure of a 1-category $\C$ as  encoding the structure of a higher-dimensional
-%% category, call it $\H$. The key ideas are:
-%% \begin{enumerate}
-%% \item An object of $\C$ encodes a cell of $\H$ arbitrary dimension.
-%% \item A morphism of $\C$ encodes a way that one cell of $\H$ `sits inside' another cell, e.g. recording that $C$
-%% is situated at the beginning of $f : C \to D$, or that $f$
-%% sits inside a composite $g \circ f$.
-%% \item We will be concerned with special classes of $\C$-morphisms, which encode special kinds of `sitting inside'. These
-%% allow us to require properties of $\C$ that correspond to composition operations in $\H$. For example,
-%% if $f : A \to B$ and $g : B \to C$ and $h : C \to D$ are morphisms in $\H$, then
-%% $1_A$ and $f$ and $g  f$ and $h  g  f$ sit inside $hgf$ ``to the left'', i.e. towards the domain of $hgf$,
-%%  and $1_D$ and $h$ and $hg$ and $hgf$ sit inside $hgf$ ``to the right'', i.e. towards its codomain.
-%% \end{enumerate}
-%% \section{Definition}
-%% \subsection{Minor Preliminaries}
-%% Say an object $C$ in a category $\C$ is {\em locally terminal} if every $d : D \to C$ is terminal in $D/\C$.
-%% Observe that terminal objects are locally terminal. If $S$ and $T$ are sets and $\star$ a binary operation on their
-%% elements,
-%% we write $S\star T$ for $\{s \star t\st s \in S, t \in S\}$.
-%% \subsection{Warm-up}
-%% In this subsection we're going define a category with extra structure that turns out to be equivalent to the definition of a category,
-%% as a prelude to the more general definition of higher-dimensional structure.
-
-%% A {\em $\tau_1$-category} is a category $\H$ such that also
-%% \begin{enumerate}
-%% \item There are sets $L, R$ of morphisms of $\H$, which contain all isomorphisms and are closed under composition.
-%% We also write simply $L$ and $R$ for the subcategories induces by these sets of morphisms, taking all the objects of $\H$.
-%% \item Every
-%% $\cdot \stackrel{L}{\longrightarrow} \cdot \stackrel{R}{\longleftarrow} \cdot$
-%% in $\H$ can be completed to
-%%   \[\begin{diagram}
-%%   \cdot&\rTo^{L}&\cdot\\
-%%   \dTo<{R}&&\dTo>{R}\\
-%%   \cdot&\rTo_{L}&\cdot
-%%   \end{diagram}\]
-%% and every such commutative square in $\H$ is a pullback. (The two
-%% $L$-morphisms (resp. $R$-morphisms) in the diagram aren't necessarily
-%% the same morphism, they're just both in the class $L$ (resp. $R$))
-
-%% \item $(L, R)$ and $(R, L)$ are orthogonal factorization systems
-%% \item For any $H\in \H$ there exists a span $D \stackrel{L}{\longleftarrow} H \stackrel{R}{\longrightarrow} C$
-%% such that $D$ and $C$ (the `domain' and `codomain' of $H$) are locally terminal in $L$ and $R$.
-
-
-%% \end{enumerate}
-%% A $\tau_1$-functor is a functor that preserves the $L$ and $R$ sets, and pullbacks, and the choice of domain and codomain morphisms.
-%% \begin{theorem}
-%% The category of (small) categories and the category of (small) $\tau_1$-categories are equivalent.
-%% \end{theorem}
-
-%% \begin{proof}
-%% We show how to construct categories from $\tau_1$-categories and vice-versa, and
-%% leave it to the reader to verify that they constitute an equivalence.
-
-%% Let a category $\C$ be given, and we construct $\H$. The objects of
-%% $\H$ are the morphisms of $\C$, and a morphism $f \to g$ (`$g$ sits inside $f$') in $\H$ is a
-%% pair $(h, k)$ such that $f = hgk$. The $L$-morphisms are those of the
-%% form $(h, \rid)$, and the $R$-morphisms are those of the form
-%% $(\rid, k)$.
-%% It's routine to check that (1), (2), (3) are satisfied. For (4), the domain of an object
-%%  $f : C \to D$ of $\H$ is $(f, \rid_C) : f \to \rid_C \in L$, and  the codomain of $f$
-%% is $(\rid_D, f) : f \to \rid_D \in R$.
-
-%% Let a $\tau_1$-category $\H$ be given, and construct $\C$. The objects of $\C$ are the objects
-%% of $\H$ that are locally terminal in both $L$ and $R$. The morphisms $D \to C$ of $\C$ are the spans
-%% $D \stackrel{L}\longleftarrow f \stackrel{R}\longrightarrow C$.
-%% \cqed
-%% \end{proof}
-
-%% \subsection{Taxonomies}
-%% Now let's generalize the pair of sets $L$, $R$ used in the above construction.
-
-%% A {\em taxonomy} $\tau$ is
-%% \begin{enumerate}
-%% \item a set $K$ of {\em morphism class labels}
-%% \item a ternary relation $\dash \mapsto \dash \o \dash \subseteq K \times K \times K$.
-%% This induces relations  ${\le} \subseteq K \times K$ and
-%%  $\bot \subseteq K \times K$ defined by the following rules:
-%% \[
-%%  \erule{}{k \le k} \qquad \erule{k_1 \le k_2 \qquad k_2 \le k_3}{k_1 \le k_3}
-%% \qquad
-%% \erule{ k \mapsto k_1 \o k_2}{k_1 \le k} \qquad \erule{ k \mapsto k_1 \o k_2}{k_2 \le k}
-%% \]
-%% \[\erule{ k \mapsto k_1 \o k_2\qquad k_1'\le k_1 \qquad k_2'\le k_2}{k_1' \bot k_2'}\]
-%% \item An $\le$-maximum $1\in K$ and an $\le$-minimum $0\in K$.
-%% \item a relation $\tri(\dash, \dash, \dash)  \subseteq K \times K \times K$
-%% \end{enumerate}
-
-%% We say a category $\C$ is a $\tau$-{\em category} when:
-%% \begin{enumerate}
-%% \item For each $k \in K$, there is a set $[k]$ of morphisms of $\C$, which contains all isomorphisms and is closed under composition.
-%% \item If $k_1 \le k_2$, then $[k_1] \subseteq[k_2]$. The set $[1]$ is all morphisms of $\C$,
-%% and $[0]$ is the isomorphisms of $\C$.
-%% \item If $k_1 \bot k_2$, then every
-%% $\cdot \stackrel{k_1}{\longrightarrow} \cdot \stackrel{k_2}{\longleftarrow} \cdot$
-%% in $\C$ can be completed to
-%%   \[\begin{diagram}
-%%   \cdot&\rTo^{k_1}&\cdot\\
-%%   \dTo<{k_2}&&\dTo>{k_2}\\
-%%   \cdot&\rTo_{k_1}&\cdot
-%%   \end{diagram}\]
-%% and every such commutative square in $\C$ is a pullback.
-%% \item If $k \mapsto k_1 \o k_2$, then $([k_2], [k_1])$ is an
-%% orthogonal factorization system in $[k]$.
-%% \item If  $\tri(k_1, k_2, k_3)$, then for any $X\in \C$ there exists $X \stackrel{d}{\to} D \in [k_2]\circ [k_1]$
-%% such that $D$ is locally terminal in $[k_2] \o [k_1]$ and $[k_3] \o [k_1]$.
-%% \end{enumerate}
-
-%% \subsection{Examples}
-%% We can define a taxonomy, call it $\tau_1$.
-%% \begin{enumerate}
-%% \item  $K = \{1, L, R, 0\}$.
-%% \item $1 \mapsto L\o R$ and $1 \mapsto R \o L$
-%% \item  $\tri(0, L, R)$ and $\tri(0, R, L)$
-%% \end{enumerate}
-
-%% \noindent This leads to the same definition of $\tau_1$-category as above.
-
-%% \noindent Let's define another taxonomy, call it $\tau_\omega$.
-%% \begin{enumerate}
-%% \item  $K = \{L_n, R_n, E_n, G_n, 0\st n \in \N^+\}$ with
-%% \item
-%%   \begin{enumerate}
-%%   \item $E_n \mapsto L_n\o R_n$
-%%   \item $E_n \mapsto R_n \o L_n$
-%%   \item $G_{n} \mapsto E_n \o G_{n+1}$
-%%   \end{enumerate}
-%%  (note that $G_1$ is the required $\le$-maximum element)
-%% \item  $\tri(G_{n+1}, L_n, R_n)$ and $\tri(G_{n+1}, R_n, L_n)$
-%% \end{enumerate}
-
-%% The intuition here is that $L_n$ and $R_n$ are for when one
-%% cell sits inside another solely by composition on the `left' or `right'
-%% side by an $n$-cell. $E_n$ is when you're allowed to compose on both
-%% ends with $n$-cells. $G_n$ is when you're allowed to tack on cells of
-%% dimension $n$ or higher.
-
-%% \begin{conjecture}
-%% $\tau_\omega$-categories are something like $\omega$-categories
-%% \end{conjecture}
 
 \section{Finster-Mimram $\omega$-categories}
- We recall Finster and Mimram's definition of $\omega$-category.
-\def\pps{\prov_{\mathsf{ps}}}
-\def\pfull{\prov^*}
-\def\provr{\prov\hspace{0.07em}\!\!\!\prov}
-\def\coh{\mathrm{coh}}
+ We recall Finster and Mimram's definition of $\omega$-category, and add some more logical types on top.
+
+\def\produce{$::=$}
+\[ \begin{tabular}{r@{ }ccl}
+Base Terms&$t, u$&\produce&$x \celse \coh_{\Gamma, \tau}[\sigma]$\\
+Base Types&$\tau$&\produce&$\star\celse x \to y$\\
+Types&$A$&\produce&$\tau \celse \Pi x \cn \tau . A\celse \Sigma x \cn \tau . A\celse A \imp A \celse A + A\celse A \times A\celse \top \celse \bot$\\
+Terms&$M$&\produce&$t\celse \lambda x . M \celse M\ N \celse (M, M) \celse \pi_i M \celse$\\
+&&&$ \binj_i M \celse (\bcase M \bof x \to M \celse x \to M) \celse () \celse \babort M$
+ \end{tabular}\]
 \[ \partial_i^\pm(x : \star) = x : \star \]
-\[ \partial_i^-(\Gamma, y : A, f : \path x y A) = \cases{
-\partial_i^-(\Gamma), y : A, f : \path x y A &if $\dim(A) < i$\cr
+\[ \partial_i^-(\Gamma, y : \tau, f : \path x y \tau) = \cases{
+\partial_i^-(\Gamma), y : \tau, f : \path x y \tau &if $\dim(\tau) < i$\cr
 \partial_i^-(\Gamma) &  ow\cr
 } \]
-\[ \partial_i^+(\Gamma, y : A, f : \path x y A) = \cases{
-\mathrm{drop}(\partial_i^+(\Gamma)), y : A & if $\dim(A) = i$\cr
+\[ \partial_i^+(\Gamma, y : \tau, f : \path x y \tau) = \cases{
+\mathrm{drop}(\partial_i^+(\Gamma)), y : \tau & if $\dim(\tau) = i$\cr
 \partial_i^+(\Gamma) & ow
 } \]
 I'm not totally convinced these definitions above are right for $i \ge \dim(\Gamma)$, (particularly $\partial^+$ seems to drop everything)
@@ -217,45 +79,206 @@ but I think we only need them at $i \le \dim(\Gamma) - 1$.
 
 \[
 \erule
-{\Gamma \pps x : A}
-{\Gamma, y : A, f : \path x y A \pps f : \path x y A}
+{\Gamma \pps x : \tau}
+{\Gamma, y : \tau, f : \path x y \tau \pps f : \path x y \tau}
 \qquad
 \erule
-{\Gamma \pps f : \path x y A}
-{\Gamma \pps y : A}
+{\Gamma \pps f : \path x y \tau}
+{\Gamma \pps y : \tau}
 \]
 
 \[
-\erule{}{\Gamma, x : A \prov x : A}
+\erule{}{\Gamma, x : \tau \prov x : \tau}
 \qquad
 \erule
-{\Gamma \prov t : A \qquad FV(\Gamma) = FV(t)}
-{\Gamma \pfull t : A}
+{\Gamma \prov t : \tau \qquad FV(\Gamma) = FV(t)}
+{\Gamma \pfull t : \tau}
 \]
 
 \[\erule{
-\partial^-(\Gamma) \pfull t : A\qquad
-\partial^+(\Gamma) \pfull u : A
+\partial^-(\Gamma) \pfull t : \tau\qquad
+\partial^+(\Gamma) \pfull u : \tau
 }
-{\Gamma \provr \path t u A}
+{\Gamma \provr \path t u \tau}
 \qquad
 \erule{
-FV(\Gamma) = FV(A)
+FV(\Gamma) = FV(\tau)
 }
-{\Gamma \provr  A}\]
+{\Gamma \provr  \tau}\]
 
 
 \[\erule{
-\Gamma \pps \qquad \Gamma \prov A\qquad
-\Gamma \provr A\qquad
+\Gamma \pps \qquad \Gamma \prov \tau\qquad
+\Gamma \provr \tau\qquad
 \Delta \prov \sigma  \Gamma
 }
-{\Gamma \prov \coh_{\Gamma, A}[\sigma] : \sigma A}\]
+{\Gamma \prov \coh_{\Gamma, \tau}[\sigma] : \sigma \tau}\]
 
 \begin{definition}
 An $FM$-category is a functor from the cwf of contexts, substitutions,
 types, and terms, to the cwf of sets and families.
 \end{definition}
+
+\section{Similarity and Transport}
+
+\subsection{Similarity}
+
+\[
+\erule
+{
+{\Gamma \prov f : t \to u \atop \Gamma \prov g : u \to t}\qquad
+{\Gamma \prov g \circ f \sim_{t \to t} 1_t   \atop \Gamma \prov f \circ g \sim_{u \to u} 1_u }}
+{\Gamma \prov t \sim_\tau u}
+\]
+
+\[
+\erule
+{
+{\Gamma \prov f : A \imp B \atop \Gamma \prov g : B \imp A}\qquad
+{\Gamma \prov g \circ f \sim_{A \imp A} 1_A   \atop \Gamma \prov f \circ g \sim_{B \imp B} 1_B }}
+{\Gamma \prov A \sim_\rtype B}
+\]
+
+\[
+\erule
+{\Gamma, x : \tau, y : \tau, p : x \sim_\tau y \prov Q : [M\ x]^p_B \sim_{[y/x]B} N\ y}
+{\Gamma \prov \lambda x y p . Q : M \sim_{\Pi x \cn \tau . B} N}
+\]
+
+\[
+\erule
+{\Gamma, x : A, y : A, p : x \sim_A y \prov Q : M\ x \sim_{B} N\ y}
+{\Gamma \prov \lambda x y p . Q : M \sim_{A \imp B} N}
+\]
+
+\[
+\erule
+{{\Gamma \prov p : \pi_1M \sim_{\tau} \pi_1 N
+\atop
+\Gamma  \prov Q : [\pi_2 M]^p_B \sim_{[\pi_1 N /x]B} \pi_2 N}}
+{\Gamma \prov (p, Q) : M \sim_{\Sigma x \cn \tau . B} N}
+\]
+
+\[
+\erule
+{{\Gamma \prov Q_1 : \pi_1M \sim_{A} \pi_1 N
+\atop
+\Gamma  \prov Q_2 : \pi_2 M \sim_{B} \pi_2 N}}
+{\Gamma \prov (Q_1, Q_2) : M \sim_{A \times B} N}
+\]
+
+\[\erule
+{\Delta \prov \sigma : \Gamma \qquad \Delta \prov M : \sigma A}
+{\Delta \prov \sigma [M/x] : \Gamma, x : A}
+\]
+
+\[\erule
+{\Delta \prov p : \sigma \sim_\Gamma \sigma' \qquad \Delta \prov Q : [M]^p_A \sim_{\sigma' A} M'  }
+{\Delta \prov (p, Q) : (\sigma[M/x]) \sim_{\Gamma, x : A} (\sigma'[M'/x])}
+\]
+
+\subsection{Transport}
+The type contract of transport is: If $\Gamma, x : A \prov B : \rtype$
+and $\Gamma \prov M : [M_1/x]B$ and
+$\Gamma \prov p : M_1 \sim_{A} M_2$, then $\Gamma \prov [M]^p_B : [M_2/x]B$.
+This comes out of a more general substitution principle, that
+
+\[
+\erule
+{\Gamma \prov A : \rtype \qquad \Delta \prov \sigma \sim_{\Gamma} \sigma'}
+{\Delta \prov \sigma A \sim_{\rtype} \sigma' A}
+\]
+and
+\[
+\erule
+{\Gamma \prov M : A \qquad \Delta \prov p : (\sigma \sim_{\Gamma} \sigma')}
+{\Delta \prov [\sigma M]^p_A \sim_{\sigma' A} \sigma' M}
+\]
+
+\subsection{Reflexivity of $\sim$}
+Shouldn't be too hard, but we have to show how to unroll all the coinduction at base types and
+fill it up with identities, which compose to identities.
+\subsection{Substitution on Base Types}
+
+It seems reasonable to suspect that most of the proof is comparatively
+routine, proceeding like logical relations proofs over dependent types
+usually go.
+
+The most interesting bit is probably substitution into base types,
+which is where we exercise the definition of similarity.
+
+\begin{lemma}\
+  \begin{enumerate}
+  \item \[
+    \erule
+        {\Gamma \prov \tau : \rtype \qquad \Delta \prov \sigma \sim_{\Gamma} \sigma'}
+        {\Delta \prov \sigma \tau \sim_{\rtype} \sigma' \tau}
+        \]
+      \item \[
+        \erule
+            {\Gamma \prov t : \tau \qquad \Delta \prov p : (\sigma \sim_{\Gamma} \sigma')}
+            {\Delta \prov [\sigma t]^p_\tau \sim_{\sigma' \tau} \sigma' t}
+            \]
+  \end{enumerate}
+\end{lemma}
+\begin{proof}\
+  \begin{enumerate}
+\item[1.] (with $\tau = \star$)
+Here we have to show $\star \sim_\rtype \star$, which follows from reflexivity of $\sim$.
+\item[1.] (with $\tau = t \to u$)
+Here we have $\Gamma \prov t \to u : \rtype$ and $\Delta \prov \sigma \sim_{\Gamma} \sigma'$
+and need to show
+$\Delta \prov \sigma t \to \sigma u \sim_{\rtype} \sigma' t \to \sigma' u$
+which we do via
+\[
+\erule
+{
+{\Gamma \prov f : (\sigma t \to \sigma u) \imp (\sigma' t \to \sigma' u) \atop \Gamma \prov g : (\sigma' t \to \sigma' u) \imp (\sigma t \to \sigma u)}\qquad
+{\Gamma \prov g \circ f \sim 1_{\sigma t \to \sigma u}   \atop \Gamma \prov f \circ g \sim 1_{\sigma' t \to \sigma' u} }}
+{\Gamma \prov (\sigma t \to \sigma u) \sim_\rtype (\sigma' t \to \sigma' u)}
+\]
+
+Now because $\Gamma \prov t, u : \tau$ for some $\tau$, we know that
+there is an equivalence $\Delta \prov p_t : \sigma t \sim \sigma' t$
+ and $\Delta \prov p_u : \sigma u \sim \sigma' u$. So we can
+pull out of that $p_t^\to : \sigma t \to \sigma' t$ and
+$p_t^\ot : \sigma' t \to \sigma t$, and analogously for $u$. Define $f, g$ as
+$$\Gamma \prov \lambda x \cn (\sigma t \to \sigma u) . (p_u^\to \o x \o p_t^\ot)$$
+$$\Gamma \prov \lambda x \cn (\sigma' t \to \sigma' u) . (p_u^\ot \o x \o p_t^\to)$$
+and we now need to show that
+$$\Gamma \prov \lambda x \cn (\sigma t \to \sigma u) . (p_u^\ot \o (p_u^\to \o x \o p_t^\ot) \o p_t^\to) \sim 1$$
+$$\Gamma \prov \lambda x \cn (\sigma' t \to \sigma' u) . (p_u^\to \o (p_u^\ot \o x \o p_t^\to) \o p_t^\ot) \sim 1$$
+
+
+\item[2.] (where $t = x$)
+Here we know $\Gamma = \Gamma_0, x : \tau, \Gamma_1$. Therefore the derivation
+$\Delta \prov p : (\sigma \sim_{\Gamma} \sigma')$ that we have contains a proof of
+
+
+\[\erule
+{\Delta \prov p_0 : \sigma_0 \sim_{\Gamma_0} \sigma_0' \qquad \Delta \prov Q : [M]^{p_0}_\tau \sim_{\sigma' \tau} M'  }
+{\Delta \prov (p_0, Q) : (\sigma[M/x]) \sim_{\Gamma_0, x : \tau} (\sigma'[M'/x])}
+\]
+
+Our proof obligation is
+$\Delta \prov [\sigma(x)]^p_\tau \sim_{\sigma' \tau} \sigma' (x)$ so we really just need to convince ourselves
+that transport has a kind of weakening principle such that $ [\sigma(x)]^p_\tau  =  [\sigma(x)]^{p_0}_\tau $.
+
+
+\item[2.] (where $t = \coh_{\Omega, \tau}[\theta]$)
+We need to show
+\[
+        \erule
+            {\Gamma \prov  \coh_{\Omega, \tau}[\theta] : \theta \tau \qquad \Delta \prov p : (\sigma \sim_{\Gamma} \sigma')}
+            {\Delta \prov [ \coh_{\Omega, \tau}[\sigma \o \theta]]^p_{\theta\tau} \sim_{\sigma' \theta \tau} \coh_{\Omega, \tau}[\sigma' \o \theta]}
+            \]
+Probably we can show that $\Delta \prov p \circ \theta : (\sigma \o \theta) \sim_{\Omega} (\sigma' \o \theta)$,
+which by some lemma about coherences would give us
+\[{\Delta \prov [ \coh_{\Omega, \tau}[\sigma \o \theta]]^{p \circ \theta}_{\tau} \sim_{\sigma' \theta \tau} \coh_{\Omega, \tau}[\sigma' \o \theta]}\]
+so we would need that $[t]^{p\circ \theta}_\tau \sim_{\sigma' \theta \tau} [t]^p_{\theta \tau}$.
+  \end{enumerate}
+\cqed
+\end{proof}
 
 \section{Other definitions}
 
