@@ -48,11 +48,11 @@ getSubHead (snil a) = a
 getSubHead (scons {a = a} σtl σh) = a
 
 subRefTy : {n : ℕ} {Δ : List Pd} {A : Set} (σ : Subst Δ A) (r : Ref n Δ) → Set
-subRefTm : {n : ℕ} {Δ : List Pd} {A : Set} (σ : Subst Δ A) (r : Ref n Δ) → subRefTy σ r
-
 subRefTy {A = A} σ r0 = A
 subRefTy (scons σtl σhd) (rtl r) = subRefTy σtl r
 subRefTy (scons σtl σhd) (rhd r) = subRefTy σhd r
+
+subRefTm : {n : ℕ} {Δ : List Pd} {A : Set} (σ : Subst Δ A) (r : Ref n Δ) → subRefTy σ r
 subRefTm σ r0 = getSubHead σ
 subRefTm (scons σtl σhd) (rtl r) = subRefTm σtl r
 subRefTm (scons σtl σhd) (rhd r) = subRefTm σhd r
