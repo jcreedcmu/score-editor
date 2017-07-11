@@ -36,11 +36,6 @@ codLemma {S n} (rhd r) = ap rhd (codLemma r)
 
 data Ty : {n : ℕ} → List Pd → Set
 data Tm : {n : ℕ} → List Pd → Set
--- data Subst : List Pd → List Pd → Set
--- subConcat : ∀ {Γ Δ Ξ} → Subst Δ Γ → Subst Γ Ξ → Subst Δ Ξ
--- subTy : ∀ {Γ Δ n} → Subst Δ Γ → (A : Ty {n} Γ) → Ty {n} Δ
--- subTm : ∀ {Γ Δ n} → Subst Δ Γ → (A : Tm {n} Γ) → Tm {n} Δ
--- subRef : ∀ {Γ Δ n} → Subst Δ Γ → (A : Ref n Γ) → Tm {n} Δ
 
 data Ty where
   ★ : ∀ {Δ n} → Ty {n} Δ
@@ -48,21 +43,6 @@ data Ty where
 
 data Tm where
   Var : ∀ {Δ n} → (r : Ref n Δ) → Tm {n} Δ
---  Coh : ∀ {Γ Δ n} → (A : Ty {n} Γ) → (σ : Subst Δ Γ) → Tm {n} Δ
-
--- data Subst where
---   ids : ∀ {Γ} → Subst Γ Γ
---   conss : ∀ {Γ Δ n} (σ : Subst Δ Γ) {A : Ty {n} Γ} → Tm {n} Δ  → Subst Δ (A :: Γ)
-
--- subRef = {!!}
-
--- subConcat σ τ = {!!}
-
--- subTm σ (Var r) = subRef σ r
--- subTm σ (Coh A τ) = Coh A (subConcat σ τ)
-
--- subTy σ ★ = ★
--- subTy σ (t ⇒ u) = subTm σ t ⇒ subTm σ u
 
 RefTy : {Δ : List Pd} {n : ℕ} → Ref n Δ → Ty {n} Δ
 RefTy {n = O} r = ★
@@ -74,6 +54,34 @@ data Of {n : ℕ} {Δ : List Pd} : Tm {n} Δ → Ty {n} Δ → Set where
 data WfTy {Δ : List Pd} : {n : ℕ} → Ty {n} Δ → Set where
   WfTy★ : WfTy {n = 0} ★
   WfTy⇒# : ∀ {n} {C D : Ty {n} Δ} {A B : Tm Δ} → Of A C → Of B D → C == D → WfTy (A ⇒ B)
+
+
+RefTySynth : ∀ {Δ n} (r : Ref n Δ) → (of1 of2 : Of (Var r) (RefTy r)) → of1 == of2
+RefTySynth r of1 of2 = {!!}
+
+Typed : ∀ {Δ n} → (A : Ty {n} Δ) → Set
+Typed {Δ} {n} A = Σ (Tm {n} Δ) (λ t → Of t A)
+
+Typedπ₁Inj : ∀ {Δ n} → (A : Ty {n} Δ) (t u : Typed A) → fst t == fst u → t == u
+Typedπ₁Inj A (fst₁ , snd₁) (.fst₁ , snd₂) idp = {!!}
+
+OfSynthV : ∀ {Δ n} {A : Ty {n} Δ} → Typed A == Σ (Ref n Δ) (λ r → Of (Var r) (RefTy r))
+OfSynthV = {!!}
+
+
+OfSynth : ∀ {Δ n} {A : Ty {n} Δ} (t : Tm {n} Δ) → (of1 of2 : Of t A) → of1 == of2
+OfSynth {A = .(RefTy r)} (Var r) (OfVar .r) of2 = OfUniq where
+  OfUniq : OfVar r == of2
+  OfUniq = {!!}
+
+
+Wf⇒Same : ∀ {Δ n} {t u : Tm {n} Δ} {C1 C2 : Ty {n} Δ} (of1 : Of t C1) (of2 : Of u C1) (of3 : Of t C2) (of4 : Of u C2) → C1 == C2
+Wf⇒Same = {!!}
+
+
+WfSame : ∀ {Δ n} {A : Ty {n} Δ} (p q : WfTy A) → p == q
+WfSame WfTy★ WfTy★ = idp
+WfSame (WfTy⇒# of1 of2 idp) (WfTy⇒# of3 of4 idp) = {!!}
 
 OfX : {Δ : List Pd} {n : ℕ} (r : Ref (S n) Δ) → RefTy (dom r) == RefTy (cod r)
 OfX {n = O} r = idp
@@ -101,33 +109,14 @@ getSubHead (snil a) = a
 getSubHead (scons {a = a} σtl σh) = a
 
 
-postulate
---  OfWfIrrel : ∀ {Δ n} → {C : Ty {n} Δ} {t u : Tm Δ} (ofu : Of u C) (oft : Of t C)  → OfWf oft == OfWf ofu
-  OfWfIrrelTrans : ∀ {Δ n} (interp : (A : Ty {n} Δ) → WfTy A → Set) {C D : Ty {n} Δ} (q : D == C) {t u : Tm Δ} (oft : Of t C) (ofu : Of u D) → interp C (OfWf oft) → interp D (OfWf ofu)
-
-interpTy : (Δ : List Pd) (A : Set) (σ : Subst Δ A) {n : ℕ} (τ : Ty {n} Δ) (wf : WfTy τ) → Set
-interpTm : (Δ : List Pd) (A : Set) (σ : Subst Δ A) {n : ℕ} {τ : Ty {n} Δ} (t : Tm {n} Δ) (of : Of t τ) → interpTy Δ A σ τ (OfWf of)
-sub : {Δ : List Pd} {A : Set} (σ : Subst Δ A) {n : ℕ} (r : Ref n Δ) → interpTy Δ A σ (RefTy r) (RefWf r)
-
-interpTy Δ A σ ★ q = A
-interpTy Δ A σ (t ⇒ u) (WfTy⇒# oft ofu q) = interpTm Δ A σ t oft ~> OfWfIrrelTrans (interpTy Δ A σ) q ofu oft (interpTm Δ A σ u ofu)
--- transport (interpTy Δ A σ _) (OfWfIrrel oft ofu) (interpTm Δ A σ u ofu)
+interpTy : {Δ : List Pd} {n : ℕ} (X : Set) (σ : Subst Δ X)  (τ : Ty {n} Δ) (Y : Set) → Set₁
+interpTm : {Δ : List Pd} {n : ℕ} (X : Set) (σ : Subst Δ X) (t : Tm {n} Δ) (Y : Set) (y : Y) → Set
+interpRef : {Δ : List Pd} {n : ℕ} (X : Set) (σ : Subst Δ X) (r : Ref n Δ) (Y : Set) (y : Y) → Set
 
 
-interpTm Δ A σ {n} {.(RefTy r)} .(Var r) (OfVar r) = sub σ r
-sub σ {O} r0 = getSubHead σ
-sub (scons σtl σhd) {O} (rtl r) = sub σtl {0} r
-sub (scons σtl σhd) {S n} (rtl r) = {!sub σtl r!}
-sub (scons σtl σhd) {S n} (rhd r) = {!sub σhd r!}
-
-
--- need:
--- sub (scons σtl σhd) (dom (rtl r)) ~>
--- OfWfIrrelTrans (interpTy (pc .Δhd :: .Δtl) .A (scons σtl σhd))
--- (OfX (rtl r)) (OfVar (cod (rtl r))) (OfVar (dom (rtl r)))
--- (sub (scons σtl σhd) (cod (rtl r)))
-
--- have:
--- sub σtl (dom r) ~>
--- OfWfIrrelTrans (interpTy .Δtl .A σtl) (OfX r) (OfVar (cod r))
--- (OfVar (dom r)) (sub σtl (cod r))
+interpTy X σ ★ Y = X == Y
+interpTy X σ (t ⇒ u) Y = Σ Set (λ C → Σ C (λ t0 → Σ C (λ u0 → interpTm X σ t C t0 × interpTm X σ u C u0 × Y == (t0 ~> u0))))
+interpTm X σ (Var r) Y y = interpRef X σ r Y y
+interpRef X σ r0 Y y =  Σ (Y ≃ X) (λ f → –> f y == getSubHead σ)
+interpRef X (scons σtl σhd) (rtl r) Y y = interpRef X σtl r Y y
+interpRef X (scons {a = a} σtl σhd) (rhd r) Y y = interpRef (a ~> getSubHead σtl) σhd r Y y
