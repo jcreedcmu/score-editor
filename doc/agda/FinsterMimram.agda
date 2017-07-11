@@ -66,20 +66,6 @@ RefWf {n = S n} r = WfTy⇒# (OfVar (dom r)) (OfVar (cod r)) (OfX r)
 OfWf : ∀ {n} → {Δ : List Pd} {M : Tm {n} Δ} {A : Ty Δ} → Of M A → WfTy A
 OfWf (OfVar r) = RefWf r
 
-postulate
-  _~>_ : ∀ {n} {A : Set n} → A → A → Set
-
-data Subst : (Δ : List Pd) (A : Set) → Set₁
-getSubHead : {Δ : List Pd} {A : Set} → Subst Δ A → A
-
-
-data Subst where
-  snil :  {A : Set} (a : A) → Subst nil A
-  scons :  {Δhd Δtl : List Pd} {A : Set} {a : A} (σtl : Subst Δtl A) (σhd : Subst Δhd (a ~> getSubHead σtl)) → Subst (pc Δhd :: Δtl) A
-
-getSubHead (snil a) = a
-getSubHead (scons {a = a} σtl σh) = a
-
 
 record interp (Δ : List Pd) (X : Set) : Set₁ where
   field

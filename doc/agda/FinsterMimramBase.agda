@@ -32,3 +32,17 @@ codLemma {0} (rtl r) = ap rtl (codLemma r)
 codLemma {S n} (rtl r) = ap rtl (codLemma r)
 codLemma {O} (rhd r) = idp
 codLemma {S n} (rhd r) = ap rhd (codLemma r)
+
+postulate
+  _~>_ : ∀ {n} {A : Set n} → A → A → Set
+
+data Subst : (Δ : List Pd) (A : Set) → Set₁
+getSubHead : {Δ : List Pd} {A : Set} → Subst Δ A → A
+
+
+data Subst where
+  snil :  {A : Set} (a : A) → Subst nil A
+  scons :  {Δhd Δtl : List Pd} {A : Set} {a : A} (σtl : Subst Δtl A) (σhd : Subst Δhd (a ~> getSubHead σtl)) → Subst (pc Δhd :: Δtl) A
+
+getSubHead (snil a) = a
+getSubHead (scons {a = a} σtl σh) = a
