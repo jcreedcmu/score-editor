@@ -3,36 +3,8 @@
 module FinsterMimram where
 
 open import HoTT
+open import FinsterMimramBase
 
-data Pd : Set where
-  pc : List Pd → Pd
-
-data Ref : ℕ → List Pd → Set where
-  r0 : {Δ : List Pd} →  Ref 0 Δ
-  rtl : {n : ℕ} {Δ : Pd} {Δs : List Pd} → Ref n Δs → Ref n (Δ :: Δs)
-  rhd : {n : ℕ} {Δs1 Δs2 : List Pd} → Ref n Δs1 → Ref (S n) ((pc Δs1) :: Δs2)
-
-dom : {n : ℕ} {Δ : List Pd} → Ref (S n) Δ → Ref n Δ
-dom {0} (rhd _) = r0
-dom {S n} (rhd m) = rhd (dom m)
-dom {n} (rtl m) = rtl (dom m)
-
-cod : {n : ℕ} {Δ : List Pd} → Ref (S n) Δ → Ref n Δ
-cod {0} (rhd _) = rtl r0
-cod {S n} (rhd m) = rhd (cod m)
-cod {n} (rtl m) = rtl (cod m)
-
-domLemma : {n : ℕ} {Δ : List Pd} (r : Ref (S (S n)) Δ) → dom (dom r) == dom (cod r)
-domLemma {0} (rtl r) = ap rtl (domLemma r)
-domLemma {S n} (rtl r) = ap rtl (domLemma r)
-domLemma {O} (rhd r) = idp
-domLemma {S n} (rhd r) = ap rhd (domLemma r)
-
-codLemma : {n : ℕ} {Δ : List Pd} (r : Ref (S (S n)) Δ) → cod (dom r) == cod (cod r)
-codLemma {0} (rtl r) = ap rtl (codLemma r)
-codLemma {S n} (rtl r) = ap rtl (codLemma r)
-codLemma {O} (rhd r) = idp
-codLemma {S n} (rhd r) = ap rhd (codLemma r)
 
 data Ty : {n : ℕ} → List Pd → Set
 data Tm : {n : ℕ} → List Pd → Set
@@ -109,10 +81,14 @@ getSubHead (snil a) = a
 getSubHead (scons {a = a} σtl σh) = a
 
 
+record interp (Δ : List Pd) (X : Set) : Set₁ where
+  field
+    ity : ∀ {n} → Ty {n} Δ → Set
+    itm : ∀ {n} → (t : Tm {n} Δ) (τ : Ty {n} Δ) → Of t τ → ity τ
+
 interpTy : {Δ : List Pd} {n : ℕ} (X : Set) (σ : Subst Δ X)  (τ : Ty {n} Δ) (Y : Set) → Set₁
 interpTm : {Δ : List Pd} {n : ℕ} (X : Set) (σ : Subst Δ X) (t : Tm {n} Δ) (Y : Set) (y : Y) → Set
 interpRef : {Δ : List Pd} {n : ℕ} (X : Set) (σ : Subst Δ X) (r : Ref n Δ) (Y : Set) (y : Y) → Set
-
 
 interpTy X σ ★ Y = X == Y
 interpTy X σ (t ⇒ u) Y = Σ Set (λ C → Σ C (λ t0 → Σ C (λ u0 → interpTm X σ t C t0 × interpTm X σ u C u0 × Y == (t0 ~> u0))))
