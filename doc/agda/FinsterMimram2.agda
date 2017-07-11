@@ -43,11 +43,16 @@ RefTy {n = S n} {Δ} r = f= (Var (dom r)) (Var (cod r)) (sameTy r)
 sameTy {Δ} {O} r = idp
 sameTy {Δ} {S n} r = dbd r
 
+ap2const : ∀ {n} {K : Set n} {V1 V2 : Set} (k : K) {v1a v1b : V1} {v2a v2b : V2} (p : v1a == v1b) (q : v2a == v2b) →  (ap2 (λ _ _ → k) p q) == idp
+ap2const k idp idp = idp
+
 hard : {Δ : List Pd} {n : ℕ} (r : Ref (S (S n)) Δ) →
      coe
      (ap2 (λ r1 r2 → RefTy r1 == RefTy r2) (domLemma r) (codLemma r))
      (sameTy (dom r))
      == sameTy (cod r)
-hard = {!!}
+hard {Δ} {O} r = ap (λ z → coe z idp) (ap2const (★ == ★) (domLemma r) (codLemma r))
+hard {.(_ :: _)} {S n} (rtl r) = {!!}
+hard {.(pc _ :: _)} {S n} (rhd r) = {!!}
 
 dbd {Δ} {n} r = gdbd {Δ} {n} (dom (dom r)) (cod (dom r)) (dom (cod r)) (cod (cod r)) (domLemma r) (codLemma r) (sameTy (dom r)) (sameTy (cod r)) (hard r)
