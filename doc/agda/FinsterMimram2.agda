@@ -78,9 +78,23 @@ tyThm τ1 τ2 = ua (equiv (tyEnc τ1 τ2) (tyDec τ1 τ2) (tyEncDec τ1 τ2) (ty
   tyDecEnc ★ .★ idp = idp
   tyDecEnc (f= of1 of2 idp) .(f= of1 of2 idp) idp = idp
 
+-- tyThm2 :  ∀ {n Δ} (τ : Ty n Δ) → (tyCov τ τ) == ⊤
+-- tyThm2 ★ = idp
+-- tyThm2 (f= of1 of2 idp) = ua (equiv into out zig zag) where
+--   into = λ _ → tt
+--   out = λ x → MkBundle idp idp idp idp idp
+--   zig : (b : ⊤) → into (out b) == b
+--   zig tt = idp
+--   zag : (b : bundle of1 of2 of1 of2) → out (into b) == b
+--   zag (MkBundle et eu eτ e13 e24) = {!!}
+
+tyThm2 :  ∀ {n Δ} (τ : Ty n Δ) (p : τ == τ) → p == idp
+tyThm2 ★ p = {!!}
+tyThm2 (f= of1 of2 x) p = {!!}
 
 allTypeEqsEq :  ∀ {n Δ} {τ1 τ2 : Ty n Δ} (p q : τ1 == τ2) → p == q
-allTypeEqsEq = {!!}
+allTypeEqsEq p q = {!!}
+
 
 RefTy {n = O} r = ★
 RefTy {n = S n} {Δ} r = f= (VarOf (dom r)) (VarOf (cod r)) (sameTy r)
