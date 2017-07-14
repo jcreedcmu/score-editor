@@ -17,6 +17,8 @@
 \def\sem#1{[\hspace{0.01em}\![#1]\hspace{0.01em}\!]}
 \def\cn{{:}}
 \def\rtype{\mathrm{type}}
+\def\rbase{\mathrm{base}}
+\def\rsum{\mathrm{sum}}
 \def\rdom{\mathrm{dom}}
 \def\rset{\mathbf{Set}}
 \def\rcat{\mathbf{Cat}}
@@ -38,16 +40,90 @@
 \def\provr{\prov\hspace{0.07em}\!\!\!\prov}
 \def\coh{\mathrm{coh}}
 \def\binj{\mathbf{inj}}
+\def\produce{$::=$}
+
 \title{Notes on defining category-like structures}
 \author{Jason Reed}
 \begin{document}
 
 \maketitle
 
+\[ \begin{tabular}{r@{ }ccl}
+Base Types&$\tau$&\produce&$\star \celse t \to u$\\
+Base Terms&$t$&\produce&$x\celse f \cdot S$\\
+Spines&$S$&\produce&$() \celse (t ; S)$\\
+Product Types&$A$&\produce&$\tau \celse \Pi x \cn \tau.A $\\
+Sum Types&$Q$&\produce&$\top \celse \Sigma f \cn A.Q $\\
+ \end{tabular}\]
+
+\[
+\erule
+{}
+{\Gamma \prov \star : \rbase}
+\qquad
+\erule
+{\Gamma \prov t : \tau \qquad \Gamma \prov u : \tau}
+{\Gamma \prov t \to u : \rbase}
+\]
+
+\[
+\erule
+{x : \tau \in \Gamma}
+{\Gamma \prov x : \tau}
+\qquad
+\erule
+{f : A \in \Gamma \qquad \Gamma \prov S : A > \tau}
+{\Gamma \prov f \cdot S : \tau}
+\]
+
+\[
+\erule
+{}
+{\Gamma \prov (): \tau > \tau}
+\qquad
+\erule
+{\Gamma \prov t : \tau \qquad \Gamma \prov S: [t/x]^\tau A > \tau}
+{\Gamma \prov (t;S): \Pi x\cn\tau . A > \tau}
+\]
+
+\[
+\erule
+{\Gamma \prov \tau: \rbase}
+{\Gamma \prov \tau: \rtype}
+\qquad
+\erule
+{\Gamma \prov \tau : \rbase \qquad \Gamma, x : \tau \prov A : \rtype}
+{\Gamma \prov\Pi x\cn\tau . A : \rtype}
+\]
+
+\[
+\erule
+{}
+{\Gamma \prov \top: \rsum}
+\qquad
+\erule
+{ \Gamma \prov A : \rtype \qquad \Gamma, f : A \prov Q : \rsum}
+{\Gamma \prov\Sigma f\cn A . Q : \rsum}
+\]
+
+Composition
+\[ \Sigma \o : (\Pi x \cn \star .\Pi y \cn \star .\Pi z \cn \star .
+\Pi f \cn (x \to y) .\Pi g \cn (y \to z) . x \to z).\top
+\]
+Associator
+\[ \Sigma \o : (\Pi x \cn \star .\Pi y \cn \star .\Pi z \cn \star .
+\Pi f \cn (x \to y) .\Pi g \cn (y \to z) . x \to z).
+\]
+\[ \Sigma a : (\Pi x \cn \star .\Pi y \cn \star .\Pi z \cn \star .\Pi w \cn \star .
+\Pi f \cn (x \to y) .\Pi g \cn (y \to z).\Pi h \cn (z \to w) .
+\]
+\[\o\ x\ z\ w\ (\o\ x\ y\ z\ f\ g)\ h \to \o\ x\ y\ w\ f\ (\o\ y\ z\ w\ g\ h)
+).\top\]
+\end{document}
 \section{Finster-Mimram $\omega$-categories}
  We recall Finster and Mimram's definition of $\omega$-category, and add some more logical types on top.
 
-\def\produce{$::=$}
+
 \[ \begin{tabular}{r@{ }ccl}
 Base Terms&$t, u$&\produce&$x \celse \coh_{\Gamma, \tau}[\sigma]$\\
 Base Types&$\tau$&\produce&$\star\celse x \to y$\\
