@@ -57,3 +57,10 @@ subst : ∀ {Γ Δ A} → Subst Δ Γ → Tm Γ A →  Tm Δ A
 subst σ (Var x) = substvar σ x
 subst σ (App M N) = App (subst σ M) (subst σ N)
 subst σ (Lam M) = Lam (subst (scons (shift σ) (Var f0)) M)
+
+idσ : (Γ : Ctx) → Subst Γ Γ
+idσ cnil = snil
+idσ (ccons Γ A) = scons (shift (idσ Γ)) (Var f0)
+
+1subst : ∀ {Γ A B} → Tm Γ B → Tm (ccons Γ B) A →  Tm Γ A
+1subst {Γ} {A} {B} t u = subst (scons (idσ Γ) t) u where
