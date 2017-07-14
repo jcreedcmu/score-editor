@@ -53,10 +53,7 @@ shift : ∀ {Γ Δ A} → Subst Δ Γ → Subst (ccons Δ A) Γ
 shift snil = snil
 shift (scons σ t) = scons (shift σ) (apply (rshift rid) t)
 
-1shift : ∀ {Γ Δ A} → Subst Δ Γ → Subst (ccons Δ A) (ccons Γ A)
-1shift σ = scons (shift σ) (Var f0)
-
 subst : ∀ {Γ Δ A} → Subst Δ Γ → Tm Γ A →  Tm Δ A
 subst σ (Var x) = substvar σ x
 subst σ (App M N) = App (subst σ M) (subst σ N)
-subst σ (Lam M) = Lam (subst (1shift σ) M)
+subst σ (Lam M) = Lam (subst (scons (shift σ) (Var f0)) M)
