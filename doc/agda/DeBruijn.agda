@@ -17,7 +17,6 @@ data Ctx where
 shiftTy : ∀ {Γ} {X : Ty Γ} → Ty Γ → Ty (Γ # X)
 data Reshift : Ctx → Ctx → Set -- reified shift operator
 data ReshiftNi : Ctx → Ctx → Set -- reified shift operator, not the identity
-data ReshiftId : Ctx → Set -- reified shift operator, is essentially the identity
 data ∋ : (Γ : Ctx) → Ty Γ → Set
 applyTy : ∀ {Γ Δ} → Reshift Δ Γ → Ty Γ → Ty Δ
 applyTyNi : ∀ {Γ Δ} → ReshiftNi Δ Γ → Ty Γ → Ty Δ
@@ -45,20 +44,16 @@ data Tm where
   Lam : ∀ {Γ A B} → Tm (Γ # A) (shiftTy B) → Tm Γ (A ⇒ B)
 
 data Reshift where
-  rid : ∀ {Γ} → ReshiftId Γ → Reshift Γ Γ
+  rid : ∀ {Γ} → Reshift Γ Γ
   rni : ∀ {Δ Γ} → ReshiftNi Δ Γ → Reshift Δ Γ
-
-data ReshiftId where
-  ri0 : ∀ {Γ} → ReshiftId Γ
-  ridelay : ∀ {Γ A} (ρ : ReshiftId Γ) → ReshiftId (Γ # A)
 
 data ReshiftNi where
   rshift : ∀ {Γ Δ A} → Reshift Δ Γ → ReshiftNi (Δ # A) Γ
   rdelay : ∀ {Γ Δ A} (ρ : ReshiftNi Δ Γ) → ReshiftNi (Δ # (applyTyNi ρ A)) (Γ # A)
 
-shiftTy A = applyTy (rni (rshift (rid ri0))) A
+shiftTy A = applyTy (rni (rshift rid)) A
 
-applyTy (rid ι) t = t
+applyTy rid t = t
 applyTy (rni ρ) t = applyTyNi ρ t
 applyTyNi ρ o = o
 applyTyNi ρ (t ⇒ u) = applyTyNi ρ t ⇒ applyTyNi ρ u
@@ -70,11 +65,11 @@ applyTyNi ρ (pi A B) = pi (applyTyNi ρ A) (applyTyNi (rdelay ρ) B)
 pi= : ∀ {Γ} {t1 t2 : Ty Γ} {u1 : Ty (Γ # t1)} {u2 : Ty (Γ # t2)} (p : t1 == t2) → (u1 == u2 [ (λ z → Ty (Γ # z)) ↓ p ]) → (pi t1 u1) == (pi t2 u2)
 pi= idp idp = idp
 
-doDelay (rid x) = rid (ridelay x)
+doDelay rid = rid
 doDelay (rni x) = rni (rdelay x)
 
-ReComp ρ (rid _) = ρ
-ReComp (rid _) ρ = ρ
+ReComp ρ rid = ρ
+ReComp rid ρ = ρ
 ReComp (rni (rshift x)) (rni (rshift y)) = {!!}
 ReComp (rni (rdelay x)) (rni (rshift y)) = {!!}
 ReComp (rni (rshift x)) (rni (rdelay y)) = {!!}
@@ -89,13 +84,13 @@ postulate
   appThm2 : {Γ Δ : Ctx} {ρ : Reshift Δ Γ} {A : Ty Γ} {X : Ty Δ} → shiftTy {X = X} (applyTy ρ A) == applyTy (rni (rshift ρ)) A
   appThm1Ni : {Γ Δ : Ctx} {ρ  : ReshiftNi Δ Γ} ({A} {B} : Ty Γ) →  applyTyNi (rdelay {A = A} ρ) (shiftTy B) == shiftTy (applyTyNi ρ B)
 
-applyTm (rid ι) t = t
+applyTm rid t = t
 applyTm (rni ρ) t = applyTmNi ρ t
 
 applyTmNi ρ (Var x) = Var (applyVarNi ρ x)
 applyTmNi ρ (App M N) = App (applyTmNi ρ M) (applyTmNi ρ N) -- App (applyTm ρ M) (applyTm ρ N)
 applyTmNi {Γ} {Δ} ρ (Lam {A = A} {B} M) = Lam (transport (Tm (Δ # applyTyNi ρ A)) (appThm1Ni) (applyTmNi (rdelay ρ) M))
-applyVar (rid ι) n = n
+applyVar rid n = n
 applyVar (rni ρ) n = applyVarNi ρ n
 applyVarNi (rshift ρ) n = transport (∋ _) appThm2 (fS (applyVar ρ n))
 applyVarNi (rdelay ρ) f0 = transport (∋ _) (! appThm1Ni) f0
