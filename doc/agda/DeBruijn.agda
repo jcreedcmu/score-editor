@@ -24,6 +24,7 @@ applyVar : ∀ {Γ Δ A} (ρ : Reshift Δ Γ) → A ∈ Γ → (applyTy ρ A) �
 data Ty where
   o : {Γ : Ctx} → Ty Γ
   _⇒_ : {Γ : Ctx} → Ty Γ → Ty Γ → Ty Γ
+  pi : {Γ : Ctx} (A : Ty Γ) (B : Ty (Γ # A)) → Ty Γ
 
 data ∋ where
   f0 : ∀ {Γ A} → ∋ (Γ # A) (shiftTy A)
@@ -45,21 +46,28 @@ shiftTy A = applyTy (rshift rid) A
 
 applyTy ρ o = o
 applyTy ρ (t ⇒ u) = applyTy ρ t ⇒ applyTy ρ u
+applyTy ρ (pi A B) = pi (applyTy ρ A) (applyTy (rdelay ρ) B)
 
 ⇒= : ∀ {Γ} {t1 t2 u1 u2 : Ty Γ} → (t1 == t2) → (u1 == u2) → (t1 ⇒ u1) == (t2 ⇒ u2)
 ⇒= idp idp = idp
 
+pi= : ∀ {Γ} {t1 t2 : Ty Γ} {u1 : Ty (Γ # t1)} {u2 : Ty (Γ # t2)} (p : t1 == t2) → (u1 == u2 [ (λ z → Ty (Γ # z)) ↓ p ]) → (pi t1 u1) == (pi t2 u2)
+pi= idp idp = idp
+
 appThm1 : {Γ Δ : Ctx} {ρ  : Reshift Δ Γ} ({A} {B} : Ty Γ) →  applyTy (rdelay {A = A} ρ) (shiftTy B) == shiftTy (applyTy ρ B)
 appThm1 {B = o} = idp
 appThm1 {B = B1 ⇒ B2} = ⇒= (appThm1 {B = B1}) (appThm1 {B = B2})
+appThm1 {B = pi A B0} = pi= (appThm1 {B = A}) {!!}
 
 appThm2 : {Γ : Ctx} {A : Ty Γ} → A == applyTy rid A
 appThm2 {A = o} = idp
 appThm2 {A = A1 ⇒ A2} = ⇒= (appThm2 {A = A1}) (appThm2 {A = A2})
+appThm2 {A = pi A0 B0} = pi= (appThm2 {A = A0}) {!!}
 
 appThm3 : {Γ Δ : Ctx} {ρ : Reshift Δ Γ} {A : Ty Γ} {X : Ty Δ} → shiftTy {X = X} (applyTy ρ A) == applyTy (rshift ρ) A
 appThm3 {A = o} = idp
 appThm3 {A = A1 ⇒ A3} = ⇒= (appThm3 {A = A1}) (appThm3 {A = A3})
+appThm3 {A = pi A0 B0} = pi= (appThm3 {A = A0}) {!!}
 
 applyTm ρ (Var x) = Var (applyVar ρ x)
 applyTm ρ (App M N) = App (applyTm ρ M) (applyTm ρ N)
