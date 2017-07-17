@@ -68,8 +68,11 @@ rdelay ρ = rcons (rcomp (rni rshift) (rni ρ)) f0
 pi= : ∀ {Γ} {t1 t2 : Ty Γ} {u1 : Ty (Γ # t1)} {u2 : Ty (Γ # t2)} (p : t1 == t2) → (u1 == u2 [ (λ z → Ty (Γ # z)) ↓ p ]) → (pi t1 u1) == (pi t2 u2)
 pi= idp idp = idp
 
-appThm2Ni : {Γ Δ : Ctx} {ρ  : Reshift Δ Γ} ({A} {B} : Ty Γ) {v : (applyTy ρ A) ∈ Δ} →  applyTyNi (rcons ρ v) (shiftTy B) == applyTy ρ B
-appThm2Ni = {!!}
+athm : {Γ Δ : Ctx} {ρ  : Reshift Δ Γ} ({A} {B} : Ty Γ) {v : (applyTy ρ A) ∈ Δ} →  applyTyNi (rcons ρ v) (shiftTy B) == applyTy ρ B
+athm {B = o} = {!!}
+athm {B = B ⇒ B₁} = {!!}
+athm {B = pi B B₁} = {!!}
+
 
 applyTm rid t = t
 applyTm (rni ρ) t = applyTmNi ρ t
@@ -77,13 +80,13 @@ applyTm (rcomp σ ρ) t = applyTm σ (applyTm ρ t)
 
 applyTmNi ρ (Var x) = Var (applyVarNi ρ x)
 applyTmNi ρ (App M N) = App (applyTmNi ρ M) (applyTmNi ρ N) -- App (applyTm ρ M) (applyTm ρ N)
-applyTmNi {Γ} {Δ} ρ (Lam {A = A} {B} M) = Lam (transport (Tm (Δ # applyTyNi ρ A)) appThm2Ni (applyTmNi (rdelay ρ) M))
+applyTmNi {Γ} {Δ} ρ (Lam {A = A} {B} M) = Lam (transport (Tm (Δ # applyTyNi ρ A)) athm (applyTmNi (rdelay ρ) M))
 applyVar rid n = n
 applyVar (rni ρ) n = applyVarNi ρ n
 applyVar (rcomp σ ρ) n = applyVar σ (applyVar ρ n)
 applyVarNi rshift n = fS n
-applyVarNi (rcons ρ v) f0 = transport (∋ _) (! appThm2Ni) v
-applyVarNi (rcons ρ v) (fS n) = transport (∋ _) (! appThm2Ni) (applyVar ρ n)
+applyVarNi (rcons ρ v) f0 = transport (∋ _) (! athm) v
+applyVarNi (rcons ρ v) (fS n) = transport (∋ _) (! athm) (applyVar ρ n)
 
 
 
