@@ -65,19 +65,25 @@ And the rough progression of ideas from earliest to latest is
     IntCells.agda -- May 8, attempt to describe with module homomorphisms
     ChainCells.agda -- May 21, ternary, but with whole chain at once, then bundles
     InvolutionCells.agda -- May 21, bool instead of ternary, bundle attempt, difficult
-	 ChainInvolutionCells.agda -- May 22, bool instead of ternary, chain instead of bundle
-	 BoolCells.agda -- May 22, attempting to have just sets and relations without involution
-	 SetCells.agda -- May 22, a categorified version of BoolCells
-	 FuncCells.agda -- May 22, a version of SetCells that is less relational and more functional
-	 FuncCells2.agda -- May 23, a more concrete version with chosen 2-fibers
-	 FuncCells2Examples.agda -- May 23, some constructions of chains
-	 FuncCells3.agda -- May 24, can *compute* fibers given base graph!
-	 TopCells.agda -- May 28, topological realization of cells, maybe?
-	 TopCellsPf.agda -- May 29, prove that it works for representing S1
-	 TopCellsFix.agda -- May 30, trying to fix the (spatial!) gaps in TopCells.agda
-	 TopCellsProgressive.agda -- May 31, I think I like this pretty well
+    ChainInvolutionCells.agda -- May 22, bool instead of ternary, chain instead of bundle
+    BoolCells.agda -- May 22, attempting to have just sets and relations without involution
+    SetCells.agda -- May 22, a categorified version of BoolCells
+    FuncCells.agda -- May 22, a version of SetCells that is less relational and more functional
+    FuncCells2.agda -- May 23, a more concrete version with chosen 2-fibers
+    FuncCells2Examples.agda -- May 23, some constructions of chains
+    FuncCells3.agda -- May 24, can *compute* fibers given base graph!
+    TopCells.agda -- May 28, topological realization of cells, maybe?
+    TopCellsPf.agda -- May 29, prove that it works for representing S1
+    TopCellsFix.agda -- May 30, trying to fix the (spatial!) gaps in TopCells.agda
+    TopCellsProgressive.agda -- May 31, I think I like this pretty well
     (I do now think most of the attempts above are incorrect at capturing the right 2-cells)
-	 TwoPointEquiv.agda -- Jun 4, trying to convince myself that I understand equality
+    TwoPointEquiv.agda -- Jun 4, trying to convince myself that I understand equality
+    FuncCellsHott.agda -- Jun 6, porting fiber construction to hott lib
+    GlobCells.agda -- Jun 12, modelling globular cells
+	TopCellsInterleave.agda -- Jun 12, another idea about interleaving model definition with construction
+	TopKnot.agda -- Jun 13, recursive construction of same
+	TopKnot2.agda -- Jun 14, massive simplification of same idea
+	Rel.agda -- Jun 24, thinking about relational structures
 
 Somewhere in that history I had a stage just before "bundle" which was
 some messy mutually recursive functions. I think it was in
@@ -85,3 +91,9 @@ some messy mutually recursive functions. I think it was in
 
 Oh, nope, it was back in `IntCells.agda`. The first bundling commit was
 befa16adb.
+
+## Omega-categories
+
+Just trying to code up "A Type-Theoretical Definition of Weak ω-Categories"
+
+	FinsterMimram.agda -- Jul 3, thinking about omega-cats

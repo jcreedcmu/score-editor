@@ -1,0 +1,483 @@
+\documentclass{article}
+\input{theorem}
+\input{prooftree}
+\usepackage{stmaryrd}
+\input{linear}
+\def\erule#1#2{\begin{prooftree}#1\justifies #2\end{prooftree}}
+\def\lpar{\bindnasrepma}
+\def\lamp{\binampersand}
+\def\bpush{\mathbf{push}}
+\newarrow {Equiv} =====
+\def\ot{\leftarrow}
+\def\ups#1{#1^G}
+\def\dns#1{#1^B}
+\def\rsn{\ \mathsf{sn}}
+\def\rx{\mapsto}
+\def\wat{{@}}
+\def\sem#1{[\hspace{0.01em}\![#1]\hspace{0.01em}\!]}
+\def\cn{{:}}
+\def\rtype{\mathrm{type}}
+\def\rbase{\mathrm{base}}
+\def\rsum{\mathrm{sum}}
+\def\rdom{\mathrm{dom}}
+\def\rset{\mathbf{Set}}
+\def\rcat{\mathbf{Cat}}
+\def\rflat{\mathbf{Flat}}
+\def\rid{\mathrm{id}}
+\def\C{\mathbf{C}}
+\def\F{\mathbf{F}}
+\def\H{\mathbf{H}}
+\def\tri{\triangleright}
+\def\o{\circ}
+\def\stackbelow#1#2{\mathrel{\mathop{#2}\limits_{#1}}}
+\def\path#1#2#3{\mathchoice
+{#1 \stackbelow{\raisebox{1pt}{$\scriptstyle #3$}}{\to} #2}
+{#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}
+{#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}
+{#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}}
+\def\pps{\prov_{\mathsf{ps}}}
+\def\pfull{\prov^*}
+\def\provr{\prov\hspace{0.07em}\!\!\!\prov}
+\def\coh{\mathrm{coh}}
+\def\binj{\mathbf{inj}}
+\def\produce{$::=$}
+
+\title{Notes on defining category-like structures}
+\author{Jason Reed}
+\begin{document}
+
+\maketitle
+
+\[ \begin{tabular}{r@{ }ccl}
+Base Types&$\tau$&\produce&$\star \celse t \to u$\\
+Base Terms&$t$&\produce&$x\celse f \cdot S$\\
+Spines&$S$&\produce&$() \celse (t ; S)$\\
+Product Types&$A$&\produce&$\tau \celse \Pi x \cn \tau.A $\\
+Sum Types&$Q$&\produce&$\top \celse \Sigma f \cn A.Q $\\
+ \end{tabular}\]
+
+\[
+\erule
+{}
+{\Gamma \prov \star : \rbase}
+\qquad
+\erule
+{\Gamma \prov t : \tau \qquad \Gamma \prov u : \tau}
+{\Gamma \prov t \to u : \rbase}
+\]
+
+\[
+\erule
+{x : \tau \in \Gamma}
+{\Gamma \prov x : \tau}
+\qquad
+\erule
+{f : A \in \Gamma \qquad \Gamma \prov S : A > \tau}
+{\Gamma \prov f \cdot S : \tau}
+\]
+
+\[
+\erule
+{}
+{\Gamma \prov (): \tau > \tau}
+\qquad
+\erule
+{\Gamma \prov t : \tau \qquad \Gamma \prov S: [t/x]^\tau A > \tau}
+{\Gamma \prov (t;S): \Pi x\cn\tau . A > \tau}
+\]
+
+\[
+\erule
+{\Gamma \prov \tau: \rbase}
+{\Gamma \prov \tau: \rtype}
+\qquad
+\erule
+{\Gamma \prov \tau : \rbase \qquad \Gamma, x : \tau \prov A : \rtype}
+{\Gamma \prov\Pi x\cn\tau . A : \rtype}
+\]
+
+\[
+\erule
+{}
+{\Gamma \prov \top: \rsum}
+\qquad
+\erule
+{ \Gamma \prov A : \rtype \qquad \Gamma, f : A \prov Q : \rsum}
+{\Gamma \prov\Sigma f\cn A . Q : \rsum}
+\]
+
+Composition
+\[ \Sigma \o : (\Pi x \cn \star .\Pi y \cn \star .\Pi z \cn \star .
+\Pi f \cn (x \to y) .\Pi g \cn (y \to z) . x \to z).\top
+\]
+Associator
+\[ \Sigma \o : (\Pi x \cn \star .\Pi y \cn \star .\Pi z \cn \star .
+\Pi f \cn (x \to y) .\Pi g \cn (y \to z) . x \to z).
+\]
+\[ \Sigma a : (\Pi x \cn \star .\Pi y \cn \star .\Pi z \cn \star .\Pi w \cn \star .
+\Pi f \cn (x \to y) .\Pi g \cn (y \to z).\Pi h \cn (z \to w) .
+\]
+\[\o\ x\ z\ w\ (\o\ x\ y\ z\ f\ g)\ h \to \o\ x\ y\ w\ f\ (\o\ y\ z\ w\ g\ h)
+).\top\]
+\end{document}
+\section{Finster-Mimram $\omega$-categories}
+ We recall Finster and Mimram's definition of $\omega$-category, and add some more logical types on top.
+
+
+\[ \begin{tabular}{r@{ }ccl}
+Base Terms&$t, u$&\produce&$x \celse \coh_{\Gamma, \tau}[\sigma]$\\
+Base Types&$\tau$&\produce&$\star\celse x \to y$\\
+Types&$A$&\produce&$\tau \celse \Pi x \cn \tau . A\celse \Sigma x \cn \tau . A\celse A \imp A \celse A + A\celse A \times A\celse \top \celse \bot$\\
+Terms&$M$&\produce&$t\celse \lambda x . M \celse M\ N \celse (M, M) \celse \pi_i M \celse$\\
+&&&$ \binj_i M \celse (\bcase M \bof x \to M \celse x \to M) \celse () \celse \babort M$
+ \end{tabular}\]
+\[ \partial_i^\pm(x : \star) = x : \star \]
+\[ \partial_i^-(\Gamma, y : \tau, f : \path x y \tau) = \cases{
+\partial_i^-(\Gamma), y : \tau, f : \path x y \tau &if $\dim(\tau) < i$\cr
+\partial_i^-(\Gamma) &  ow\cr
+} \]
+\[ \partial_i^+(\Gamma, y : \tau, f : \path x y \tau) = \cases{
+\mathrm{drop}(\partial_i^+(\Gamma)), y : \tau & if $\dim(\tau) = i$\cr
+\partial_i^+(\Gamma) & ow
+} \]
+I'm not totally convinced these definitions above are right for $i \ge \dim(\Gamma)$, (particularly $\partial^+$ seems to drop everything)
+but I think we only need them at $i \le \dim(\Gamma) - 1$.
+
+\[
+\erule
+{\Gamma \pps x : \star}
+{\Gamma \pps}
+\qquad
+\erule
+{}
+{x : \star \pps x : \star}
+\]
+
+\[
+\erule
+{\Gamma \pps x : \tau}
+{\Gamma, y : \tau, f : \path x y \tau \pps f : \path x y \tau}
+\qquad
+\erule
+{\Gamma \pps f : \path x y \tau}
+{\Gamma \pps y : \tau}
+\]
+
+\[
+\erule{}{\Gamma, x : \tau \prov x : \tau}
+\qquad
+\erule
+{\Gamma \prov t : \tau \qquad FV(\Gamma) = FV(t)}
+{\Gamma \pfull t : \tau}
+\]
+
+\[\erule{
+\partial^-(\Gamma) \pfull t : \tau\qquad
+\partial^+(\Gamma) \pfull u : \tau
+}
+{\Gamma \provr \path t u \tau}
+\qquad
+\erule{
+FV(\Gamma) = FV(\tau)
+}
+{\Gamma \provr  \tau}\]
+
+
+\[\erule{
+\Gamma \pps \qquad \Gamma \prov \tau\qquad
+\Gamma \provr \tau\qquad
+\Delta \prov \sigma  \Gamma
+}
+{\Gamma \prov \coh_{\Gamma, \tau}[\sigma] : \sigma \tau}\]
+
+\begin{definition}
+An $FM$-category is a functor from the cwf of contexts, substitutions,
+types, and terms, to the cwf of sets and families.
+\end{definition}
+
+\section{Similarity and Transport}
+
+\subsection{Similarity}
+
+\[
+\erule
+{
+{\Gamma \prov f : t \to u \atop \Gamma \prov g : u \to t}\qquad
+{\Gamma \prov g \circ f \sim_{t \to t} 1_t   \atop \Gamma \prov f \circ g \sim_{u \to u} 1_u }}
+{\Gamma \prov t \sim_\tau u}
+\]
+
+\[
+\erule
+{
+{\Gamma \prov f : A \imp B \atop \Gamma \prov g : B \imp A}\qquad
+{\Gamma \prov g \circ f \sim_{A \imp A} 1_A   \atop \Gamma \prov f \circ g \sim_{B \imp B} 1_B }}
+{\Gamma \prov A \sim_\rtype B}
+\]
+
+\[
+\erule
+{\Gamma, x : \tau, y : \tau, p : x \sim_\tau y \prov Q : [M\ x]^p_B \sim_{[y/x]B} N\ y}
+{\Gamma \prov \lambda x y p . Q : M \sim_{\Pi x \cn \tau . B} N}
+\]
+
+\[
+\erule
+{\Gamma, x : A, y : A, p : x \sim_A y \prov Q : M\ x \sim_{B} N\ y}
+{\Gamma \prov \lambda x y p . Q : M \sim_{A \imp B} N}
+\]
+
+\[
+\erule
+{{\Gamma \prov p : \pi_1M \sim_{\tau} \pi_1 N
+\atop
+\Gamma  \prov Q : [\pi_2 M]^p_B \sim_{[\pi_1 N /x]B} \pi_2 N}}
+{\Gamma \prov (p, Q) : M \sim_{\Sigma x \cn \tau . B} N}
+\]
+
+\[
+\erule
+{{\Gamma \prov Q_1 : \pi_1M \sim_{A} \pi_1 N
+\atop
+\Gamma  \prov Q_2 : \pi_2 M \sim_{B} \pi_2 N}}
+{\Gamma \prov (Q_1, Q_2) : M \sim_{A \times B} N}
+\]
+
+\[\erule
+{\Delta \prov \sigma : \Gamma \qquad \Delta \prov M : \sigma A}
+{\Delta \prov \sigma [M/x] : \Gamma, x : A}
+\]
+
+\[\erule
+{\Delta \prov p : \sigma \sim_\Gamma \sigma' \qquad \Delta \prov Q : [M]^p_A \sim_{\sigma' A} M'  }
+{\Delta \prov (p, Q) : (\sigma[M/x]) \sim_{\Gamma, x : A} (\sigma'[M'/x])}
+\]
+
+\subsection{Transport}
+The type contract of transport is: If $\Gamma, x : A \prov B : \rtype$
+and $\Gamma \prov M : [M_1/x]B$ and
+$\Gamma \prov p : M_1 \sim_{A} M_2$, then $\Gamma \prov [M]^p_B : [M_2/x]B$.
+This comes out of a more general substitution principle, that
+
+\[
+\erule
+{\Gamma \prov A : \rtype \qquad \Delta \prov \sigma \sim_{\Gamma} \sigma'}
+{\Delta \prov \sigma A \sim_{\rtype} \sigma' A}
+\]
+and
+\[
+\erule
+{\Gamma \prov M : A \qquad \Delta \prov p : (\sigma \sim_{\Gamma} \sigma')}
+{\Delta \prov [\sigma M]^p_A \sim_{\sigma' A} \sigma' M}
+\]
+
+\subsection{Reflexivity of $\sim$}
+Shouldn't be too hard, but we have to show how to unroll all the coinduction at base types and
+fill it up with identities, which compose to identities.
+\subsection{Substitution on Base Types}
+
+It seems reasonable to suspect that most of the proof is comparatively
+routine, proceeding like logical relations proofs over dependent types
+usually go.
+
+The most interesting bit is probably substitution into base types,
+which is where we exercise the definition of similarity.
+
+\begin{lemma}\
+  \begin{enumerate}
+  \item \[
+    \erule
+        {\Gamma \prov \tau : \rtype \qquad \Delta \prov \sigma \sim_{\Gamma} \sigma'}
+        {\Delta \prov \sigma \tau \sim_{\rtype} \sigma' \tau}
+        \]
+      \item \[
+        \erule
+            {\Gamma \prov t : \tau \qquad \Delta \prov p : (\sigma \sim_{\Gamma} \sigma')}
+            {\Delta \prov [\sigma t]^p_\tau \sim_{\sigma' \tau} \sigma' t}
+            \]
+  \end{enumerate}
+\end{lemma}
+\begin{proof}\
+  \begin{enumerate}
+\item[1.] (with $\tau = \star$)
+Here we have to show $\star \sim_\rtype \star$, which follows from reflexivity of $\sim$.
+\item[1.] (with $\tau = t \to u$)
+Here we have $\Gamma \prov t \to u : \rtype$ and $\Delta \prov \sigma \sim_{\Gamma} \sigma'$
+and need to show
+$\Delta \prov \sigma t \to \sigma u \sim_{\rtype} \sigma' t \to \sigma' u$
+which we do via
+\[
+\erule
+{
+{\Gamma \prov f : (\sigma t \to \sigma u) \imp (\sigma' t \to \sigma' u) \atop \Gamma \prov g : (\sigma' t \to \sigma' u) \imp (\sigma t \to \sigma u)}\qquad
+{\Gamma \prov g \circ f \sim 1_{\sigma t \to \sigma u}   \atop \Gamma \prov f \circ g \sim 1_{\sigma' t \to \sigma' u} }}
+{\Gamma \prov (\sigma t \to \sigma u) \sim_\rtype (\sigma' t \to \sigma' u)}
+\]
+
+Now because $\Gamma \prov t, u : \tau$ for some $\tau$, we know that
+there is an equivalence $\Delta \prov p_t : \sigma t \sim \sigma' t$
+ and $\Delta \prov p_u : \sigma u \sim \sigma' u$. So we can
+pull out of that $p_t^\to : \sigma t \to \sigma' t$ and
+$p_t^\ot : \sigma' t \to \sigma t$, and analogously for $u$. Define $f, g$ as
+$$\Gamma \prov \lambda x \cn (\sigma t \to \sigma u) . (p_u^\to \o x \o p_t^\ot)$$
+$$\Gamma \prov \lambda x \cn (\sigma' t \to \sigma' u) . (p_u^\ot \o x \o p_t^\to)$$
+and we now need to show that
+$$\Gamma \prov \lambda x \cn (\sigma t \to \sigma u) . (p_u^\ot \o (p_u^\to \o x \o p_t^\ot) \o p_t^\to) \sim 1$$
+$$\Gamma \prov \lambda x \cn (\sigma' t \to \sigma' u) . (p_u^\to \o (p_u^\ot \o x \o p_t^\to) \o p_t^\ot) \sim 1$$
+
+
+\item[2.] (where $t = x$)
+Here we know $\Gamma = \Gamma_0, x : \tau, \Gamma_1$. Therefore the derivation
+$\Delta \prov p : (\sigma \sim_{\Gamma} \sigma')$ that we have contains a proof of
+
+
+\[\erule
+{\Delta \prov p_0 : \sigma_0 \sim_{\Gamma_0} \sigma_0' \qquad \Delta \prov Q : [M]^{p_0}_\tau \sim_{\sigma' \tau} M'  }
+{\Delta \prov (p_0, Q) : (\sigma[M/x]) \sim_{\Gamma_0, x : \tau} (\sigma'[M'/x])}
+\]
+
+Our proof obligation is
+$\Delta \prov [\sigma(x)]^p_\tau \sim_{\sigma' \tau} \sigma' (x)$ so we really just need to convince ourselves
+that transport has a kind of weakening principle such that $ [\sigma(x)]^p_\tau  =  [\sigma(x)]^{p_0}_\tau $.
+
+
+\item[2.] (where $t = \coh_{\Omega, \tau}[\theta]$)
+We need to show
+\[
+        \erule
+            {\Gamma \prov  \coh_{\Omega, \tau}[\theta] : \theta \tau \qquad \Delta \prov p : (\sigma \sim_{\Gamma} \sigma')}
+            {\Delta \prov [ \coh_{\Omega, \tau}[\sigma \o \theta]]^p_{\theta\tau} \sim_{\sigma' \theta \tau} \coh_{\Omega, \tau}[\sigma' \o \theta]}
+            \]
+Probably we can show that $\Delta \prov p \circ \theta : (\sigma \o \theta) \sim_{\Omega} (\sigma' \o \theta)$,
+which by some lemma about coherences would give us
+\[{\Delta \prov [ \coh_{\Omega, \tau}[\sigma \o \theta]]^{p \circ \theta}_{\tau} \sim_{\sigma' \theta \tau} \coh_{\Omega, \tau}[\sigma' \o \theta]}\]
+so we would need that $[t]^{p\circ \theta}_\tau \sim_{\sigma' \theta \tau} [t]^p_{\theta \tau}$.
+  \end{enumerate}
+\cqed
+\end{proof}
+
+\section{Other definitions}
+
+We assume a $FM$-category is given, as a function $\sem \dash$ that takes contexts
+to sets, types to sets over their context, and terms to sections of their type over their context.
+
+Define the globular $n$-context $\Gamma_n$ by
+$$\tau_0 = \star \qquad \tau_{n+1} = x_n \to y_n$$
+$$\Delta_0 = \cdot \qquad \Delta_{n+1} = \Delta_n, x_{n+1} : \tau_{n+1}, y_{n+1} : \tau_{n+1} $$
+$$\Gamma_n = \Delta_n, z: \tau_n$$
+so that, less formally but more clearly,
+$$\Gamma_n = (x_0\ y_0 : \star), (x_1\ y_1 : x_0 \to y_0), \ldots, z : (x_{n-1} \to y_{n-1}) $$
+Then the $n$-cells $\C_n$ of the $FM$-category are elements of $\sem{\Gamma_n}$.
+
+It's easy to define coherence cells that correspond to vertical composition of $n$-cells, which we write $\o_n$,
+and $\sem\dash$ maps these to operations on the $\Gamma_n$. Also to define the coherence cells that correspond to
+finding an identity cell of an $n$-cell $C$, which we write as $1^n_C$.
+
+Let  $C, D \in \C_n$ be given with the same type. Let $2^*$ be the type of lists of bits.
+\def\plod{\prod\limits}
+\begin{definition}(Coinductive)
+$C \cong D$ iff there
+exist $f : C \to_{n+1} D$ and $g : D \to_{n+1} C$ such that $g
+\o_{n+1} f \cong 1^n_{C}$ and $f \o_{n+1} g \cong 1^n_{D}$.
+\end{definition}
+
+\begin{definition}(Unwrapped)
+$C \cong D$ iff there exist functions $f, g : \plod_{b : 2^*} C_{n+|b|+1}$ such that for all $b\in 2^*$
+we have
+\[ f(b) : c(b) \to d(b) \qquad g(b) : d(b) \to c(b) \]
+when we recursively define $c, d : \plod_{b : 2^*} C_{n+|b|}$ by
+\[ c(\cdot) = C \qquad d(\cdot) = D \]
+\[ c(b, 0) = g(b) \o_{n+|b|+1} f(b) \qquad \qquad d(b, 0) = f(b) \o_{n+|b|+1} g(b) \]
+\[ c(b, 1) = 1^{n+|b|}_{c(b)} \qquad \qquad d(b, 1) = 1^{n+|b|}_{d(b)} \]
+noting that these definitions make sense because inductively
+$c(b, \_) : c(b) \to c(b)$ and $d(b, \_) : d(b) \to d(b)$.
+\end{definition}
+
+Let's say we add some rules for dependent types to the theory of an $FM$-category.
+\[
+\erule
+{\Gamma, x : A \prov M : B}
+{\Gamma \prov \lambda x . M : \Pi x \cn A . B}
+\qquad
+\erule
+{\Gamma \prov M : \Pi x \cn A . B\qquad \Gamma \prov N : A}
+{\Gamma \prov M\ N : [N/x]B}
+\]
+\[
+\erule
+{\Gamma\prov M : A \qquad \Gamma \prov N : [M/x]B}
+{\Gamma \prov (M, N) : \Sigma x \cn A . B}
+\qquad
+\erule
+{\Gamma \prov M : \Sigma x \cn A . B}
+{\Gamma \prov \pi_1 M : A}
+\qquad
+\erule
+{\Gamma \prov M : \Sigma x \cn A . B}
+{\Gamma \prov \pi_2 M : [\pi_1 M / x]B}
+\]
+
+\begin{conjecture}
+If $\Gamma, x : A\prov  C : \rtype$
+is a syntactic predicate on $x$, (where I guess $C$ is allowed to use full dependent types but $\Gamma$ is not)
+and we have $\gamma \in \sem \Gamma$
+and $t, u \in \sem {\Gamma \prov A}$ are semantic terms and $t \cong u$,
+then $\sem{\Gamma \prov C[t/x]}$ is inhabited iff
+$\sem{\Gamma \prov C[u/x]}$ is.
+
+\subsection{Examples}
+
+Let's say $C$ and $D$ are objects which are putatively equivalent.
+
+If for a fixed object $E$ there exists a morphism $C \to E$
+
+\end{conjecture}
+
+
+
+
+\end{document}
+\section{Constructions}
+\subsection{Constructing a $\tau_\omega$ category from an $FM$-category}
+We construct $\C$, a $\tau_\omega$-category.
+\subsection{Objects}
+
+The objects of $\C$ are elements of $\bigcup_n \sem{\Gamma_n}$. Call an element of $\sem{\Gamma_n}$ an {\em $n$-object}.
+The $\tau_\omega$-category structure of $\C$ doesn't directly know about this distinction, but we'll use the term to describe the construction.
+
+\subsection{Morphisms}
+Given a globular context $\Gamma_n$, we want to define variations on it with various extensions,
+$\Gamma_n[L_m], \Gamma_n[R_m], \Gamma_n[E_m]$ with $m \le n$. For example,
+
+\[\Gamma_2[L_1] = (x_0, y_0 : \star), (x_1, y_1 : x_0 \to y_0), z : x_1\to y_1, \ell_0 : \star, \ell_1 : y_0 \to \ell_0\]
+
+Hm, no, these won't always be pasting diagrams right off the bat,
+since we'll be doing compositions of higher-dimensional cells whose
+boundaries are themselves compositions of lower-dimensional cells.
+
+\subsubsection{Composition}
+
+Define
+$$\Gamma^1_\o = x : \star, y : \star, f : x \to y, z : \star, g : y \to z \qquad A^1_\o = x \to z$$
+Define $g \circ_1 f$ to be $\coh_{\Gamma^1_\o,A^1_\o}$.
+
+\subsubsection{Classified morphisms}
+
+An $E_1$-morphism from $f$ to $g$ is a pair $(\ell, r)$ of $1$-objects such that $f = \ell\o g\o r$ for a suitable ternary composition.
+Such a composition makes sense when $f$ and $g$ are both $n$-objects with 1-boundaries that line up with $\ell, r$.
+
+
+
+An $E_n$-morphism from $f$ to $g$ is a sequence
+\[(\ell_1, r_1), \ldots, (\ell_n, r_n)\]
+ such that $\ell_i, r_i$ are $i$-objects, and $f = \ell_n\o (\cdots (\ell_1 \o g \o r_1 ) \cdots )\o r_n$ for a suitable iterated ternary composition.
+Such a composition makes sense when $f$ and $g$ are both $m$-objects ($n\le m$) with boundaries that line up with $\ell_i, r_i$.
+
+An $L_n$-morphism is an $E_n$ morphism for which $r_n$ is an identity cell.
+
+A $R_n$-morphism is an $E_n$ morphism for which $\ell_n$ is an identity cell.
+
+A $G_n$-morphism is an $E_m$ morphism for any $m \ge n$.
+\subsection{Constructing an $FM$-category category from a $\tau_\omega$}
+
+\end{document}

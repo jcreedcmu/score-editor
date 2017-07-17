@@ -1,0 +1,312 @@
+\documentclass{article}
+\input{theorem}
+\input{prooftree}
+\usepackage{stmaryrd}
+\input{linear}
+\def\erule#1#2{\begin{prooftree}#1\justifies #2\end{prooftree}}
+\def\lpar{\bindnasrepma}
+\def\lamp{\binampersand}
+\def\bpush{\mathbf{push}}
+\newarrow {Equiv} =====
+\def\ups#1{#1^G}
+\def\dns#1{#1^B}
+\def\rsn{\ \mathsf{sn}}
+\def\rx{\mapsto}
+\def\wat{{@}}
+\def\sem#1{[\hspace{0.01em}\![#1]\hspace{0.01em}\!]}
+\def\cn{{:}}
+\def\rtype{\mathrm{type}}
+\def\rdom{\mathrm{dom}}
+\def\rset{\mathbf{Set}}
+\def\rcat{\mathbf{Cat}}
+\def\rflat{\mathbf{Flat}}
+\def\rid{\mathrm{id}}
+\def\C{\mathbf{C}}
+\def\F{\mathbf{F}}
+\def\H{\mathbf{H}}
+\def\tri{\triangleright}
+\def\o{\circ}
+\title{Notes on defining category-like structures}
+\author{Jason Reed}
+\begin{document}
+
+\maketitle
+\section{Motivation}
+
+I am interested in attempting to simplify existing definitions of
+(weak) higher-dimensional categories, ideally in such a way that gives some
+feeling for {\em why} various associativities, coherences, etc. are
+the way they are.
+
+The definition I sketch below leans on only $1$-categorical concepts,
+interpreting the structure of a 1-category $\C$ as  encoding the structure of a higher-dimensional
+category, call it $\H$. The key ideas are:
+\begin{enumerate}
+\item An object of $\C$ encodes a cell of $\H$ arbitrary dimension.
+\item A morphism of $\C$ encodes a way that one cell of $\H$ `sits inside' another cell, e.g. recording that $C$
+is situated at the beginning of $f : C \to D$, or that $f$
+sits inside a composite $g \circ f$.
+\item We will be concerned with special classes of $\C$-morphisms, which encode special kinds of `sitting inside'. These
+allow us to require properties of $\C$ that correspond to composition operations in $\H$. For example,
+if $f : A \to B$ and $g : B \to C$ and $h : C \to D$ are morphisms in $\H$, then
+$1_A$ and $f$ and $g  f$ and $h  g  f$ sit inside $hgf$ ``to the left'', i.e. towards the domain of $hgf$,
+ and $1_D$ and $h$ and $hg$ and $hgf$ sit inside $hgf$ ``to the right'', i.e. towards its codomain.
+\end{enumerate}
+\section{Definition}
+\subsection{Minor Preliminaries}
+Say an object $C$ in a category $\C$ is {\em locally terminal} if every $d : D \to C$ is terminal in $D/\C$.
+Observe that terminal objects are locally terminal. If $S$ and $T$ are sets and $\star$ a binary operation on their
+elements,
+we write $S\star T$ for $\{s \star t\st s \in S, t \in S\}$.
+\subsection{Warm-up}
+In this subsection we're going define a category with extra structure that turns out to be equivalent to the definition of a category,
+as a prelude to the more general definition of higher-dimensional structure.
+
+A {\em $\tau_1$-category} is a category $\H$ such that also
+\begin{enumerate}
+\item There are sets $L, R$ of morphisms of $\H$, which contain all isomorphisms and are closed under composition.
+We also write simply $L$ and $R$ for the subcategories induces by these sets of morphisms, taking all the objects of $\H$.
+\item Every
+$\cdot \stackrel{L}{\longrightarrow} \cdot \stackrel{R}{\longleftarrow} \cdot$
+in $\H$ can be completed to
+  \[\begin{diagram}
+  \cdot&\rTo^{L}&\cdot\\
+  \dTo<{R}&&\dTo>{R}\\
+  \cdot&\rTo_{L}&\cdot
+  \end{diagram}\]
+and every such commutative square in $\H$ is a pullback. (The two
+$L$-morphisms (resp. $R$-morphisms) in the diagram aren't necessarily
+the same morphism, they're just both in the class $L$ (resp. $R$))
+
+\item $(L, R)$ and $(R, L)$ are orthogonal factorization systems
+\item For any $H\in \H$ there exists a span $D \stackrel{L}{\longleftarrow} H \stackrel{R}{\longrightarrow} C$
+such that $D$ and $C$ (the `domain' and `codomain' of $H$) are locally terminal in $L$ and $R$.
+
+
+\end{enumerate}
+A $\tau_1$-functor is a functor that preserves the $L$ and $R$ sets, and pullbacks, and the choice of domain and codomain morphisms.
+\begin{theorem}
+The category of (small) categories and the category of (small) $\tau_1$-categories are equivalent.
+\end{theorem}
+
+\begin{proof}
+We show how to construct categories from $\tau_1$-categories and vice-versa, and
+leave it to the reader to verify that they constitute an equivalence.
+
+Let a category $\C$ be given, and we construct $\H$. The objects of
+$\H$ are the morphisms of $\C$, and a morphism $f \to g$ (`$g$ sits inside $f$') in $\H$ is a
+pair $(h, k)$ such that $f = hgk$. The $L$-morphisms are those of the
+form $(h, \rid)$, and the $R$-morphisms are those of the form
+$(\rid, k)$.
+It's routine to check that (1), (2), (3) are satisfied. For (4), the domain of an object
+ $f : C \to D$ of $\H$ is $(f, \rid_C) : f \to \rid_C \in L$, and  the codomain of $f$
+is $(\rid_D, f) : f \to \rid_D \in R$.
+
+Let a $\tau_1$-category $\H$ be given, and construct $\C$. The objects of $\C$ are the objects
+of $\H$ that are locally terminal in both $L$ and $R$. The morphisms $D \to C$ of $\C$ are the spans
+$D \stackrel{L}\longleftarrow f \stackrel{R}\longrightarrow C$.
+\cqed
+\end{proof}
+
+\subsection{Taxonomies}
+Now let's generalize the pair of sets $L$, $R$ used in the above construction.
+
+A {\em taxonomy} $\tau$ is
+\begin{enumerate}
+\item a set $K$ of {\em morphism class labels}
+\item a ternary relation $\dash \mapsto \dash \o \dash \subseteq K \times K \times K$.
+This induces relations  ${\le} \subseteq K \times K$ and
+ $\bot \subseteq K \times K$ defined by the following rules:
+\[
+ \erule{}{k \le k} \qquad \erule{k_1 \le k_2 \qquad k_2 \le k_3}{k_1 \le k_3}
+\qquad
+\erule{ k \mapsto k_1 \o k_2}{k_1 \le k} \qquad \erule{ k \mapsto k_1 \o k_2}{k_2 \le k}
+\]
+\[\erule{ k \mapsto k_1 \o k_2\qquad k_1'\le k_1 \qquad k_2'\le k_2}{k_1' \bot k_2'}\]
+\item An $\le$-maximum $1\in K$ and an $\le$-minimum $0\in K$.
+\item a relation $\tri(\dash, \dash, \dash)  \subseteq K \times K \times K$
+\end{enumerate}
+
+We say a category $\C$ is a $\tau$-{\em category} when:
+\begin{enumerate}
+\item For each $k \in K$, there is a set $[k]$ of morphisms of $\C$, which contains all isomorphisms and is closed under composition.
+\item If $k_1 \le k_2$, then $[k_1] \subseteq[k_2]$. The set $[1]$ is all morphisms of $\C$,
+and $[0]$ is the isomorphisms of $\C$.
+\item If $k_1 \bot k_2$, then every
+$\cdot \stackrel{k_1}{\longrightarrow} \cdot \stackrel{k_2}{\longleftarrow} \cdot$
+in $\C$ can be completed to
+  \[\begin{diagram}
+  \cdot&\rTo^{k_1}&\cdot\\
+  \dTo<{k_2}&&\dTo>{k_2}\\
+  \cdot&\rTo_{k_1}&\cdot
+  \end{diagram}\]
+and every such commutative square in $\C$ is a pullback.
+\item If $k \mapsto k_1 \o k_2$, then $([k_2], [k_1])$ is an
+orthogonal factorization system in $[k]$.
+\item If  $\tri(k_1, k_2, k_3)$, then for any $X\in \C$ there exists $X \stackrel{d}{\to} D \in [k_2]\circ [k_1]$
+such that $D$ is locally terminal in $[k_2] \o [k_1]$ and $[k_3] \o [k_1]$.
+\end{enumerate}
+
+\subsection{Examples}
+We can define a taxonomy, call it $\tau_1$.
+\begin{enumerate}
+\item  $K = \{1, L, R, 0\}$.
+\item $1 \mapsto L\o R$ and $1 \mapsto R \o L$
+\item  $\tri(0, L, R)$ and $\tri(0, R, L)$
+\end{enumerate}
+
+\noindent This leads to the same definition of $\tau_1$-category as above.
+
+\noindent Let's define another taxonomy, call it $\tau_\omega$.
+\begin{enumerate}
+\item  $K = \{L_n, R_n, E_n, G_n, 0\st n \in \N^+\}$ with
+\item
+  \begin{enumerate}
+  \item $E_n \mapsto L_n\o R_n$
+  \item $E_n \mapsto R_n \o L_n$
+  \item $G_{n} \mapsto E_n \o G_{n+1}$
+  \end{enumerate}
+ (note that $G_1$ is the required $\le$-maximum element)
+\item  $\tri(G_{n+1}, L_n, R_n)$ and $\tri(G_{n+1}, R_n, L_n)$
+\end{enumerate}
+
+The intuition here is that $L_n$ and $R_n$ are for when one
+cell sits inside another solely by composition on the `left' or `right'
+side by an $n$-cell. $E_n$ is when you're allowed to compose on both
+ends with $n$-cells. $G_n$ is when you're allowed to tack on cells of
+dimension $n$ or higher.
+
+\begin{conjecture}
+$\tau_\omega$-categories are something like $\omega$-categories
+\end{conjecture}
+
+
+\def\stackbelow#1#2{\mathrel{\mathop{#2}\limits_{#1}}}
+\def\path#1#2#3{\mathchoice
+{#1 \stackbelow{\raisebox{1pt}{$\scriptstyle #3$}}{\to} #2}
+{#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}
+{#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}
+{#1 \stackbelow{\raisebox{1pt}{$\scriptscriptstyle #3$}}{\to} #2}}
+
+
+\section{Finster-Mimram $\omega$-categories}
+ We recall Finster and Mimram's definition of $\omega$-category and try to compare it with ours
+\def\pps{\prov_{\mathsf{ps}}}
+\def\pfull{\prov^*}
+\def\provr{\prov\hspace{0.07em}\!\!\!\prov}
+\def\coh{\mathrm{coh}}
+\[ \partial_i^\pm(x : \star) = x : \star \]
+\[ \partial_i^-(\Gamma, y : A, f : \path x y A) = \cases{
+\partial_i^-(\Gamma), y : A, f : \path x y A &if $\dim(A) < i$\cr
+\partial_i^-(\Gamma) &  ow\cr
+} \]
+\[ \partial_i^+(\Gamma, y : A, f : \path x y A) = \cases{
+\mathrm{drop}(\partial_i^+(\Gamma)), y : A & if $\dim(A) = i$\cr
+\partial_i^+(\Gamma) & ow
+} \]
+I'm not totally convinced these definitions above are right for $i \ge \dim(\Gamma)$, (particularly $\partial^+$ seems to drop everything)
+but I think we only need them at $i = \dim(\Gamma) - 1$.
+
+\[
+\erule
+{\Gamma \pps x : \star}
+{\Gamma \pps}
+\qquad
+\erule
+{}
+{x : \star \pps x : \star}
+\]
+
+\[
+\erule
+{\Gamma \pps x : A}
+{\Gamma, y : A, f : \path x y A \pps f : \path x y A}
+\qquad
+\erule
+{\Gamma \pps f : \path x y A}
+{\Gamma \pps y : A}
+\]
+
+\[
+\erule{}{\Gamma, x : A \prov x : A}
+\qquad
+\erule
+{\Gamma \prov t : A \qquad FV(\Gamma) = FV(t)}
+{\Gamma \pfull t : A}
+\]
+
+\[\erule{
+\partial^-(\Gamma) \pfull t : A\qquad
+\partial^+(\Gamma) \pfull u : A
+}
+{\Gamma \provr \path t u A}
+\qquad
+\erule{
+FV(\Gamma) = FV(A)
+}
+{\Gamma \provr  A}\]
+
+
+\[\erule{
+\Gamma \pps \qquad \Gamma \prov A\qquad
+\Gamma \provr A\qquad
+\Delta \prov \sigma  \Gamma
+}
+{\Gamma \prov \coh_{\Gamma, A}[\sigma] : \sigma A}\]
+
+\begin{definition}
+An $FM$-category is a functor from the category of contexts and substitutions, to the category of sets.
+\end{definition}
+
+\section{Constructions}
+\subsection{Constructing a $\tau_\omega$ category from an $FM$-category}
+We assume a $FM$-category is given, as a function $\sem \dash$ that takes contexts
+to sets, types to sets over their context, and terms to sections of their type.
+We construct $\C$, a $\tau_\omega$-category.
+\subsection{Objects}
+Define the globular $n$-context $\Gamma_n$ by
+$$\tau_0 = \star \qquad \tau_{n+1} = x_n \to y_n$$
+$$\Delta_0 = \cdot \qquad \Delta_{n+1} = \Delta_n, x_{n+1} : \tau_{n+1}, y_{n+1} : \tau_{n+1} $$
+$$\Gamma_n = \Delta_n, z: \tau_n$$
+$$\Gamma_0 = \sem{z : \star }$$
+so that, e.g.
+$$\Gamma_n = (x_0, y_0 : \star), (x_1, y_1 : x_0 \to y_0), \ldots, z : x_{n-1} \to y_{n-1} $$
+
+The objects of $\C$ are elements of $\bigcup_n \sem{\Gamma_n}$. Call an element of $\sem{\Gamma_n}$ an {\em $n$-object}.
+The $\tau_\omega$-category structure of $\C$ doesn't directly know about this distinction, but we'll use the term to describe the construction.
+
+\subsection{Morphisms}
+Given a globular context $\Gamma_n$, we want to define variations on it with various extensions,
+$\Gamma_n[L_m], \Gamma_n[R_m], \Gamma_n[E_m]$ with $m \le n$. For example,
+
+\[\Gamma_2[L_1] = (x_0, y_0 : \star), (x_1, y_1 : x_0 \to y_0), z : x_1\to y_1, \ell_0 : \star, \ell_1 : y_0 \to \ell_0\]
+
+Hm, no, these won't always be pasting diagrams right off the bat,
+since we'll be doing compositions of higher-dimensional cells whose
+boundaries are themselves compositions of lower-dimensional cells.
+
+\subsubsection{Composition}
+
+Define
+$$\Gamma^1_\o = x : \star, y : \star, f : x \to y, z : \star, g : y \to z \qquad A^1_\o = x \to z$$
+Define $g \circ_1 f$ to be $\coh_{\Gamma^1_\o,A^1_\o}$.
+
+\subsubsection{Classified morphisms}
+
+An $E_1$-morphism from $f$ to $g$ is a pair $(\ell, r)$ of $1$-objects such that $f = \ell\o g\o r$ for a suitable ternary composition.
+Such a composition makes sense when $f$ and $g$ are both $n$-objects with 1-boundaries that line up with $\ell, r$.
+
+
+
+An $E_n$-morphism from $f$ to $g$ is a sequence
+\[(\ell_1, r_1), \ldots, (\ell_n, r_n)\]
+ such that $\ell_i, r_i$ are $i$-objects, and $f = \ell_n\o (\cdots (\ell_1 \o g \o r_1 ) \cdots )\o r_n$ for a suitable iterated ternary composition.
+Such a composition makes sense when $f$ and $g$ are both $m$-objects ($n\le m$) with boundaries that line up with $\ell_i, r_i$.
+
+An $L_n$-morphism is an $E_n$ morphism for which $r_n$ is an identity cell.
+
+A $R_n$-morphism is an $E_n$ morphism for which $\ell_n$ is an identity cell.
+
+A $G_n$-morphism is an $E_m$ morphism for any $m \ge n$.
+\subsection{Constructing an $FM$-category category from a $\tau_\omega$}
+\end{document}
