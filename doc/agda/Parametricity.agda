@@ -5,7 +5,6 @@ module Parametricity where
 open import HoTT hiding (ℤ ; ⊤ ; tt)
 
 postulate
---  param : {A B C1 C2 : Set} → (f : ({C : Set} → (A → C) → (B → C))) (k : C1 → C2) (g : A → C1) → f (k ∘ g) == k ∘ (f g)
   param : {A B C1 C2 : Set} → (f : ((C : Set) → (A → C) → (B → C))) (g : A → C1) (k : C1 → C2) →
     k ∘ (f _ g) == f _ (k ∘ g)
 
@@ -16,23 +15,14 @@ module EquivFunc {A B : Set} where
   unmake : (B → A) → ((C : Set) → (A → C) → (B → C))
   unmake f C g = g ∘ f
 
-  zig : (f : (C : Set) → (A → C) → (B → C)) → unmake (f A (idf A)) == f
-  zig f = λ= (λ C → λ= (param f (idf A))) -- This right here is the only use of parametricity
+  ezig : (f : (C : Set) → (A → C) → (B → C)) → unmake (f A (idf A)) == f
+  ezig f = λ= (λ C → λ= (param f (idf A))) -- This right here is the only use of parametricity
 
-  zag : (f : B → A) → make (unmake f) == f
-  zag f = idp
+  ezag : (f : B → A) → make (unmake f) == f
+  ezag f = idp
 
   thm : ((C : Set) → (A → C) → (B → C)) ≃ (B → A)
-  thm = equiv make unmake zag zig
-
-module Intermediate {X Y Z : Set} where
-  open EquivFunc using ( make ; unmake ; zag )
-
-  ithm : (f : X → Y) (g : Y → Z) → unmake (g ∘ f) == (λ C → unmake f C ∘ unmake g C)
-  ithm f g = idp
-
-  ithm2 : (f : X → Y) (g : Y → Z) → g ∘ f == make (λ C → unmake f C ∘ unmake g C)
-  ithm2 f g = zag (g ∘ f) ∙ ap make (ithm f g)
+  thm = equiv make unmake ezag ezig
 
 module Generally where
 
@@ -97,9 +87,8 @@ module Final {A B : Set} where
     equivs-same b = mprop-of-is-prop (is-equiv b) is-equiv-is-prop
 
     lemma3 : (f : (C : Set) → (A → C) → B → C) → ((C : Set) → is-equiv (f C)) → is-equiv (f A (idf A))
-    lemma3 f iep = is-eq way rway (app= combofact2) (app= combofact) where
-      open EquivFunc using ( make ; unmake ; zig ; zag )
-      open Intermediate using ( ithm2 )
+    lemma3 f iep = is-eq way rway (app= czag) (app= czig) where
+      open EquivFunc using ( make ; unmake ; ezig ; ezag )
 
       way : B → A
       way = make f
@@ -111,18 +100,18 @@ module Final {A B : Set} where
       rway = make rf
 
       fact : unmake way == f
-      fact = zig f
+      fact = ezig f
 
       rfact : unmake rway == rf
-      rfact = zig rf
+      rfact = ezig rf
 
-      combofact : rway ∘ way == idf B
-      combofact = ithm2 way rway
+      czig : rway ∘ way == idf B
+      czig = ezag (rway ∘ way)
         ∙ ap2 (λ x y → make (λ C → x C ∘ y C)) fact rfact
         ∙ ap make (λ= (λ C → λ= (iep C .is-equiv.f-g)))
 
-      combofact2 : way ∘ rway == idf A
-      combofact2 = ithm2 rway way
+      czag : way ∘ rway == idf A
+      czag = ezag (way ∘ rway)
         ∙ ap2 (λ x y → make (λ C → x C ∘ y C)) rfact fact
         ∙ ap make (λ= (λ C → λ= (iep C .is-equiv.g-f)))
 
@@ -133,51 +122,3 @@ module Final {A B : Set} where
 
   final : ((C : Set) → (A → C) ≃ (B → C)) ≃ (B ≃ A)
   final = main2 ∘e main1
-
-{-
-module EquivEquiv where
-  easy1 : (A B : Set) → A == B → ((C : Set) → (A → C) ≃ (B → C))
-  easy1 A .A idp C = ide (A → C)
-
-  easy : {A B : Set} → A ≃ B → ((C : Set) → (A → C) ≃ (B → C))
-  easy {A} {B} e = easy1 A B (ua e)
-
-  hard : {A B : Set} → ((C : Set) → (A → C) ≃ (B → C)) → A ≃ B
-  hard {A} {B} e = equiv w z (app= (! zag2 ∙ zag)) (app= (! zig2 ∙ zig)) where
-    part1 : {C : Set} → (A → C) → B → C
-    part1 {C} = –> (e C)
-    part2 : {C : Set} → (B → C) → A → C
-    part2 {C} = <– (e C)
-    part1param : (C1 C2 : Set) (k : C1 → C2) (g : A → C1) → part1 (k ∘ g) == k ∘ (part1 g)
-    part1param C1 C2 k g = param part1 k g
-    part2param : (C1 C2 : Set) (k : C1 → C2) (g : B → C1) → part2 (k ∘ g) == k ∘ (part2 g)
-    part2param C1 C2 k g = param part2 k g
-
-    z : B → A
-    z = part1 {A} (idf A)
-    zfact : {C2 : Set} (k : A → C2) → part1 k == k ∘ z
-    zfact {C2} k = part1param A C2 k (idf A)
-    w : A → B
-    w = part2 {B} (idf B)
-    wfact : {C2 : Set} (k : B → C2) → part2 k == k ∘ w
-    wfact {C2} k = part2param B C2 k (idf B)
-
-    zig : part2 (part1 (idf A)) == idf A
-    zig = <–-inv-l (e A) (idf A)
-
-    zag : part1 (part2 (idf B)) == idf B
-    zag = <–-inv-r (e B) (idf B)
-
-    zig2 : part2 (part1 (idf A)) == z ∘ w
-    zig2 = ap part2 (zfact (idf A)) ∙ wfact z
-
-    zag2 : part1 (part2 (idf B)) == w ∘ z
-    zag2 = ap part1 (wfact (idf B)) ∙ zfact w
-
-
-  bigZig1 : {A B : Set} (e : A == B) → hard (easy1 A B (ua (coe-equiv e))) == (coe-equiv e)
-  bigZig1 {A} {B} idp = (ap (λ z → hard (easy1 A B z)) (ua-η idp)) ∙ {!!}
-
-  bigZig : {A B : Set} (e : A ≃ B) → hard (easy e) == e
-  bigZig e = coe (ap (λ z → hard (easy z) == z) (coe-equiv-β e)) (bigZig1 (ua e))
--}
