@@ -2,7 +2,7 @@ import { fromJS as _fromJS } from 'immutable';
 
 // some phantom types
 export type Immutable<T> = {
-   [P in keyof T]: Immut<T[P]>;
+  [P in keyof T]: Immut<T[P]>;
 };
 class Path<T, U> { private _className = "Path"; }
 class Immut<T> { private _className = "Immutable"; }
@@ -10,17 +10,17 @@ class Immut<T> { private _className = "Immutable"; }
 function getPath<T, U>(f: (x: T) => U): Path<T, U> {
   const path: any = [];
   const proxy = new Proxy({}, {
-	 get: (target: {}, name: PropertyKey) => {
-		path.push(name);
-		return proxy;
-	 }
+    get: (target: {}, name: PropertyKey) => {
+      path.push(name);
+      return proxy;
+    }
   });
   f(proxy as T);
   return path as Path<T, U>;
 }
 
 export function fromJS<T>(x: T): Immutable<T> {
-  return _fromJS(x);
+  return _fromJS(x) as any;
 }
 
 // this will break on primitives!

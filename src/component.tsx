@@ -1,4 +1,4 @@
-import { h as hh, render } from 'preact';
+import { h as hh, render, JSX } from 'preact';
 import { RollEditor, RollEditorProps } from './roll';
 import { rollDims } from './roll-util';
 import { SongEditor } from './song-editor';
