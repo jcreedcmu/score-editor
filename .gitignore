@@ -6,3 +6,5 @@ doc/*.aux
 doc/*.log
 doc/*.pdf
 doc/*.dvi
+public/js/index.js
+public/js/index.js.map
